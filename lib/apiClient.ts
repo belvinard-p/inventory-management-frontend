@@ -129,6 +129,12 @@ class ApiClient {
           const errorRes = JSON.parse(responseText)
           errorMessage = errorRes.message || errorRes.details || errorMessage
           errorDetails = errorRes
+          
+          // Cas spécial : "No companies found" ne doit pas être traité comme une erreur
+          if (errorRes.errors?.error === 'No companies found') {
+            return { content: [], pageNumber: 0, pageSize: 10, totalElements: 0, totalPages: 0, last: true } as T
+          }
+          
           console.error('Erreur backend détaillée:', errorRes)
         } catch {
           errorMessage = responseText || errorMessage

@@ -11,10 +11,26 @@ export const useCompanies = () => {
   // Query pour récupérer toutes les entreprises
   const getCompanies = useQuery({
     queryKey: [CompaniesCacheKeys.Companies],
-    queryFn: () => companyService.getAll(),
+    queryFn: async () => {
+      try {
+        return await companyService.getAll()
+      } catch (error: any) {
+        // Si c'est une erreur 400/404 ou "No companies found", retourner un objet vide
+        const isNoDataError = error?.response?.status === 404 || 
+                              error?.response?.status === 400 || 
+                              error?.message?.includes('404') ||
+                              error?.response?.data?.errors?.error === 'No companies found'
+        
+        if (isNoDataError) {
+          return { content: [], pageNumber: 0, pageSize: 10, totalElements: 0, totalPages: 0, last: true }
+        }
+        throw error
+      }
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1,
+    retry: false, // Désactiver les retry pour éviter les boucles infinies
     enabled: typeof window !== 'undefined', // Éviter l'hydratation
+    refetchOnWindowFocus: false, // Éviter les refetch automatiques
   })
 
   // Query pour une entreprise spécifique

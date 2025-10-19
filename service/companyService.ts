@@ -34,7 +34,10 @@ export const companyService = {
     if (params?.sortOrder) searchParams.append('sortOrder', params.sortOrder)
     
     const queryString = searchParams.toString()
-    return apiClient.get<PaginatedResponse<Company>>(`${BASE_URL}/all${queryString ? `?${queryString}` : ''}`)
+
+    return apiClient.get<PaginatedResponse<Company>>(`${BASE_URL}/all${queryString ? `?${queryString}` : ''}`, {
+      showErrorToast: false // Désactiver les toasts d'erreur pour cet endpoint
+    })
   },
 
   // Récupérer une entreprise par ID (ALL ROLES)

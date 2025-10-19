@@ -20,6 +20,9 @@ export function AdminCompany() {
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
   const [mounted, setMounted] = useState(false)
 
+  // Debug logging
+  console.log('AdminCompany render:', { isLoading, isError, companies, companiesLength: companies?.content?.length })
+
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -89,6 +92,51 @@ export function AdminCompany() {
     withSuppliers: companiesData.filter(c => c.suppliers && c.suppliers.length > 0)?.length || 0,
   }
 
+  // Si pas d'erreur mais aucune donnée, afficher l'état vide
+  if (!isLoading && !isError && companiesData.length === 0) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Entreprises</h1>
+            <p className="text-muted-foreground">
+              Gérez les entreprises partenaires et leurs informations
+            </p>
+          </div>
+          {(currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER') && (
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouvelle Entreprise
+            </Button>
+          )}
+        </div>
+
+        {/* Empty State */}
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Aucune entreprise trouvée</h2>
+            <p className="text-muted-foreground mb-4">Commencez par créer votre première entreprise.</p>
+            {(currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER') && (
+              <Button onClick={() => setIsCreateModalOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Créer une entreprise
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Create Company Modal */}
+        <CompanyForm 
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+          mode="create"
+        />
+      </div>
+    )
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -97,15 +145,47 @@ export function AdminCompany() {
     )
   }
 
+  // Vérifier si c'est une vraie erreur ou juste aucune donnée
   if (isError) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Entreprises</h1>
+            <p className="text-muted-foreground">
+              Gérez les entreprises partenaires et leurs informations
+            </p>
+          </div>
+          {(currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER') && (
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouvelle Entreprise
+            </Button>
+          )}
+        </div>
+
+        {/* Empty State */}
         <Card>
-          <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-2">Erreur de chargement</h2>
-            <p className="text-muted-foreground">Impossible de charger les entreprises. L'endpoint n'existe peut-être pas encore.</p>
+          <CardContent className="p-12 text-center">
+            <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Aucune entreprise trouvée</h2>
+            <p className="text-muted-foreground mb-4">Commencez par créer votre première entreprise.</p>
+            {(currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER') && (
+              <Button onClick={() => setIsCreateModalOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Créer une entreprise
+              </Button>
+            )}
           </CardContent>
         </Card>
+
+        {/* Create Company Modal */}
+        <CompanyForm 
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+          mode="create"
+        />
       </div>
     )
   }
