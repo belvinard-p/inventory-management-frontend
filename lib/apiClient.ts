@@ -122,13 +122,17 @@ class ApiClient {
 
     if (!response.ok) {
       let errorMessage = `Erreur ${response.status}`
+      let errorDetails = null
       
       if (responseText) {
         try {
           const errorRes = JSON.parse(responseText)
           errorMessage = errorRes.message || errorRes.details || errorMessage
+          errorDetails = errorRes
+          console.error('Erreur backend détaillée:', errorRes)
         } catch {
           errorMessage = responseText || errorMessage
+          console.error('Réponse d\'erreur brute:', responseText)
         }
       }
       
@@ -136,7 +140,13 @@ class ApiClient {
         toast.error("Erreur", { description: errorMessage })
       }
       
-      throw new Error(errorMessage)
+      const error = new Error(errorMessage)
+      // Ajouter les détails de l'erreur pour le débogage
+      if (errorDetails) {
+        (error as any).details = errorDetails
+      }
+      
+      throw error
     }
 
     // Parser la réponse JSON

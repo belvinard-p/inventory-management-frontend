@@ -33,8 +33,10 @@ export const useCompanies = () => {
       queryClient.invalidateQueries({ queryKey: [CompaniesCacheKeys.Companies] })
       toast.success("Entreprise créée avec succès")
     },
-    onError: (error: ApiError) => {
-      toast.error("Erreur lors de la création de l'entreprise")
+    onError: (error: any) => {
+      console.error('Erreur création entreprise:', error)
+      const message = error?.response?.data?.message || error?.message || "Erreur lors de la création de l'entreprise"
+      toast.error(message)
     }
   })
 

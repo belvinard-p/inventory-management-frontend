@@ -23,8 +23,8 @@ const companySchema = z.object({
   name: z.string().min(4, "Le nom doit contenir au moins 4 caractères").max(100, "Le nom ne peut pas dépasser 100 caractères"),
   description: z.string().min(5, "La description doit contenir au moins 5 caractères").max(200, "La description ne peut pas dépasser 200 caractères"),
   email: z.string().email("Email invalide"),
-  phoneNumber: z.string().regex(/^(?:(?:\+237|237)[-.\\s]?)?(?:(?:[67][25-9]\\d{7})|(?:2\\d{2}\\d{6}))$/, "Numéro de téléphone camerounais invalide"),
-  fiscalCode: z.string().min(5, "Le code fiscal doit contenir au moins 5 caractères").max(20, "Le code fiscal ne peut pas dépasser 20 caractères"),
+  phoneNumber: z.string().regex(/^(?:(?:\+237|237)[-.\s]?)?(?:(?:[67]\d{8})|(?:2\d{2}\d{6}))$/, "Numéro de téléphone camerounais invalide"),
+  fiscalCode: z.string().min(5, "Le code fiscal doit contenir au moins 5 caractères").max(20, "Le code fiscal ne peut pas dépasser 20 caractères").optional().or(z.literal("")),
   website: z.string().max(150, "Le site web ne peut pas dépasser 150 caractères").optional().or(z.literal("")),
   image: z.string().optional().or(z.literal("")),
   address1: z.string().optional(),
@@ -68,7 +68,7 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
   const watchedValues = form.watch()
   const isFormValid = form.formState.isValid
   const hasRequiredFields = watchedValues.name && watchedValues.description && watchedValues.email && 
-                           watchedValues.phoneNumber && watchedValues.fiscalCode
+                           watchedValues.phoneNumber
   
   const isSubmitDisabled = !isFormValid || !hasRequiredFields || isCreating || isUpdating
 
@@ -84,10 +84,25 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
       country: country || "",
     }
 
+    // Envoyer des chaînes vides comme le curl qui fonctionne
     const companyData = {
       ...baseData,
+      fiscalCode: baseData.fiscalCode || "",
+      website: baseData.website || "",
+      image: baseData.image || "",
       address,
     }
+    
+    console.log('=== DONNÉES ENVOYÉES ===')
+    console.log('name:', companyData.name)
+    console.log('description:', companyData.description)
+    console.log('email:', companyData.email)
+    console.log('phoneNumber:', companyData.phoneNumber)
+    console.log('fiscalCode:', companyData.fiscalCode)
+    console.log('website:', companyData.website)
+    console.log('image:', companyData.image)
+    console.log('address:', companyData.address)
+    console.table(companyData)
     
     if (isEditMode) {
       updateCompany({
@@ -164,12 +179,29 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
                   <FormItem className="group">
                     <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Description</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Leader de l'import-export de produits agroalimentaires..."
-                        {...field}
-                        disabled={isCreating || isUpdating}
-                        className="min-h-[80px] bg-background/50 border-2 border-border/40 focus:border-primary/60 transition-all duration-300 rounded-lg hover:border-border/60"
-                      />
+                      <div className="relative">
+                        <Textarea
+                          placeholder="Leader de l'import-export de produits agroalimentaires..."
+                          {...field}
+                          disabled={isCreating || isUpdating}
+                          className={`min-h-[80px] pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
+                            form.formState.errors.description 
+                              ? "border-red-400 focus:border-red-500 bg-red-50/50" 
+                              : field.value && !form.formState.errors.description 
+                              ? "border-green-400 focus:border-green-500 bg-green-50/50" 
+                              : "border-border/40 focus:border-primary/60 focus:bg-background"
+                          }`}
+                        />
+                        {field.value && (
+                          <div className="absolute right-3 top-3">
+                            {form.formState.errors.description ? (
+                              <X className="h-4 w-4 text-red-500" />
+                            ) : (
+                              <Check className="h-4 w-4 text-green-500" />
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -257,31 +289,14 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
                   name="fiscalCode"
                   render={({ field }) => (
                     <FormItem className="group">
-                      <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Code fiscal</FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Code fiscal (optionnel)</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Input
-                            placeholder="237-YAO-0123-A"
-                            {...field}
-                            disabled={isCreating || isUpdating}
-                            className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
-                              form.formState.errors.fiscalCode 
-                                ? "border-red-400 focus:border-red-500 bg-red-50/50" 
-                                : field.value && !form.formState.errors.fiscalCode 
-                                ? "border-green-400 focus:border-green-500 bg-green-50/50" 
-                                : "border-border/40 focus:border-primary/60 focus:bg-background"
-                            }`}
-                          />
-                          {field.value && (
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              {form.formState.errors.fiscalCode ? (
-                                <X className="h-4 w-4 text-red-500" />
-                              ) : (
-                                <Check className="h-4 w-4 text-green-500" />
-                              )}
-                            </div>
-                          )}
-                        </div>
+                        <Input
+                          placeholder="237-YAO-0123-A"
+                          {...field}
+                          disabled={isCreating || isUpdating}
+                          className="h-10 pl-4 pr-4 bg-background/50 border-2 border-border/40 focus:border-primary/60 focus:bg-background transition-all duration-300 rounded-lg hover:border-border/60"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -343,7 +358,7 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
                     <FormLabel>Adresse 2</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="BP 580"
+                        placeholder="BP 580 ou Bakôh"
                         {...field}
                         disabled={isCreating || isUpdating}
                         className="h-10"
