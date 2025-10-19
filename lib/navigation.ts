@@ -65,7 +65,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     title: "Entreprises",
-    href: "/dashboard/companies",
+    href: "/dashboard/company",
     icon: Building,
     roles: ["ROLE_ADMIN", "ROLE_MANAGER"],
   },

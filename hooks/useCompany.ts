@@ -13,6 +13,8 @@ export const useCompanies = () => {
     queryKey: [CompaniesCacheKeys.Companies],
     queryFn: () => companyService.getAll(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+    enabled: typeof window !== 'undefined', // Éviter l'hydratation
   })
 
   // Query pour une entreprise spécifique

@@ -15,9 +15,22 @@ import { toast } from "sonner"
 
 export function AdminCompany() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading, accessToken } = useAuth()
-  const { companies, isLoading } = useCompanies()
+  const { companies, isLoading, isError } = useCompanies()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   // Fonction pour gérer l'édition avec vérification du token
   const handleEditCompany = (company: Company) => {
@@ -68,7 +81,7 @@ export function AdminCompany() {
     )
   }
 
-  const companiesData = companies?.content || []
+  const companiesData = Array.isArray(companies?.content) ? companies.content : []
   const stats = {
     total: companiesData.length || 0,
     withWebsite: companiesData.filter(c => c.website)?.length || 0,
@@ -80,6 +93,19 @@ export function AdminCompany() {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold mb-2">Erreur de chargement</h2>
+            <p className="text-muted-foreground">Impossible de charger les entreprises. L'endpoint n'existe peut-être pas encore.</p>
+          </CardContent>
+        </Card>
       </div>
     )
   }
