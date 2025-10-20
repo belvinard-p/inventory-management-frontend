@@ -11,7 +11,18 @@ export const useCompanies = () => {
   // Query pour récupérer toutes les entreprises
   const getCompanies = useQuery({
     queryKey: [CompaniesCacheKeys.Companies],
-    queryFn: () => companyService.getAll(),
+    queryFn: async () => {
+      console.log('Fetching companies...')
+      try {
+        const result = await companyService.getAll()
+        console.log('Companies fetched successfully:', result)
+        return result
+      } catch (error) {
+        console.error('Error fetching companies:', error)
+        // Retourner une réponse vide au lieu de lancer l'erreur
+        return { content: [], pageNumber: 0, pageSize: 10, totalElements: 0, totalPages: 0, last: true }
+      }
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false, // Désactiver les retry pour éviter les boucles infinies
     enabled: typeof window !== 'undefined', // Éviter l'hydratation
@@ -27,8 +38,16 @@ export const useCompanies = () => {
     },
     onError: (error: any) => {
       console.error('Erreur création entreprise:', error)
-      const message = error?.response?.data?.message || error?.message || "Erreur lors de la création de l'entreprise"
-      toast.error(message)
+      
+      // Gestion spécifique des erreurs 409 (conflit)
+      if (error?.details?.status === 409 || error?.message?.includes('409')) {
+        const conflictMessage = error?.details?.message || error?.details?.errors?.error || "Une entreprise avec ce nom existe déjà"
+        toast.error("Conflit", { description: conflictMessage })
+        return
+      }
+      
+      const message = error?.details?.message || error?.message || "Erreur lors de la création de l'entreprise"
+      toast.error("Erreur de création", { description: message })
     }
   })
 

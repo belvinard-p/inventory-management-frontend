@@ -34,18 +34,14 @@ export const companyService = {
     if (params?.direction) searchParams.append('direction', params.direction)
     
     const queryString = searchParams.toString()
+    const url = `${BASE_URL}/all${queryString ? `?${queryString}` : ''}`
+    
+    console.log('Fetching companies from URL:', url)
+    console.log('Full URL:', `${process.env.NEXT_PUBLIC_API_URL}${url}`)
 
-    try {
-      return await apiClient.get<PaginatedResponse<Company>>(`${BASE_URL}${queryString ? `?${queryString}` : ''}`, {
-        showErrorToast: false // Désactiver les toasts d'erreur pour cet endpoint
-      })
-    } catch (error: any) {
-      // Cas spécial : "No companies found" retourne une réponse vide
-      if (error?.details?.errors?.error === 'No companies found') {
-        return { content: [], pageNumber: 0, pageSize: 10, totalElements: 0, totalPages: 0, last: true }
-      }
-      throw error
-    }
+    return apiClient.get<PaginatedResponse<Company>>(url, {
+      showErrorToast: false // Désactiver les toasts d'erreur pour cet endpoint
+    })
   },
 
   // Récupérer une entreprise par ID (ALL ROLES)

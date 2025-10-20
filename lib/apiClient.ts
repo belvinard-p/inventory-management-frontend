@@ -158,7 +158,8 @@ class ApiClient {
       
       if (responseText) {
         try {
-          const errorRes = JSON.parse(responseText)
+          // Si les données sont déjà parsées (JSON), les utiliser directement
+          const errorRes = isJson ? responseData : JSON.parse(responseText)
           errorMessage = errorRes.message || errorRes.details || errorMessage
           errorDetails = errorRes
           console.error('Erreur backend détaillée:', errorRes)
