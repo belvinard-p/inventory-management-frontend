@@ -27,6 +27,7 @@ import {
 import { useCompanies } from "@/hooks/useCompany"
 import { useCompanyContext } from "./CompanyContext"
 import { DeleteConfirmDialog } from "@/components/global/DeleteConfirmDialog"
+import { ImageUploadDialog } from "./ImageUploadDialog"
 import { useState } from "react"
 
 interface DataTableRowActionsProps<TData> {
@@ -39,6 +40,7 @@ export function DataTableRowActions<TData>({
   const company = row.original as Company
   const { onEditCompany } = useCompanyContext()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false)
   const { deleteCompany } = useCompanies()
 
   return (
@@ -69,7 +71,10 @@ export function DataTableRowActions<TData>({
             <span>Modifier</span>
           </DropdownMenuItem>
           
-          <DropdownMenuItem className="text-purple-600 hover:text-purple-700">
+          <DropdownMenuItem 
+            onClick={() => setIsImageDialogOpen(true)}
+            className="text-purple-600 hover:text-purple-700"
+          >
             <Image className="mr-2 h-4 w-4" />
             <span>Changer image</span>
           </DropdownMenuItem>
@@ -106,6 +111,12 @@ export function DataTableRowActions<TData>({
         }}
         itemName={company.name}
         isLoading={false}
+      />
+      
+      <ImageUploadDialog
+        open={isImageDialogOpen}
+        onOpenChange={setIsImageDialogOpen}
+        company={company}
       />
     </>
   )

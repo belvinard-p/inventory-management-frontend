@@ -26,7 +26,7 @@ const companySchema = z.object({
   phoneNumber: z.string().regex(/^(?:(?:\+237|237)[-.\s]?)?(?:(?:[67]\d{8})|(?:2\d{2}\d{6}))$/, "Numéro de téléphone camerounais invalide"),
   fiscalCode: z.string().min(5, "Le code fiscal doit contenir au moins 5 caractères").max(20, "Le code fiscal ne peut pas dépasser 20 caractères").optional().or(z.literal("")),
   website: z.string().max(150, "Le site web ne peut pas dépasser 150 caractères").optional().or(z.literal("")),
-  image: z.string().optional().or(z.literal("")),
+  imageFile: z.instanceof(File).optional(),
   address1: z.string().optional(),
   address2: z.string().optional(),
   city: z.string().optional(),
@@ -42,7 +42,7 @@ interface CompanyFormProps {
 }
 
 export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: CompanyFormProps) {
-  const { createCompany, updateCompany, isCreating, isUpdating } = useCompanies()
+  const { createCompany, updateCompany, updateCompanyImage, isCreating, isUpdating, isUpdatingImage } = useCompanies()
   const isEditMode = mode === 'edit' && company
   
   const form = useForm<z.infer<typeof companySchema>>({
@@ -55,7 +55,6 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
       phoneNumber: company?.phoneNumber || "",
       fiscalCode: company?.fiscalCode || "",
       website: company?.website || "",
-      image: company?.image || "",
       address1: company?.address?.address1 || "",
       address2: company?.address?.address2 || "",
       city: company?.address?.city || "",
@@ -70,10 +69,10 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
   const hasRequiredFields = watchedValues.name && watchedValues.description && watchedValues.email && 
                            watchedValues.phoneNumber
   
-  const isSubmitDisabled = !isFormValid || !hasRequiredFields || isCreating || isUpdating
+  const isSubmitDisabled = !isFormValid || !hasRequiredFields || isCreating || isUpdating || isUpdatingImage
 
-  async function onSubmit(data: z.infer<typeof companySchema>) {
-    const { address1, address2, city, postalCode, country, ...baseData } = data
+  function onSubmit(data: z.infer<typeof companySchema>) {
+    const { address1, address2, city, postalCode, country, imageFile, ...baseData } = data
     
     // Toujours créer un objet address, même vide
     const address = {
@@ -89,28 +88,24 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
       ...baseData,
       fiscalCode: baseData.fiscalCode || "",
       website: baseData.website || "",
-      image: baseData.image || "",
+      image: "", // Always empty since we handle image separately
       address,
     }
-    
-    console.log('=== DONNÉES ENVOYÉES ===')
-    console.log('name:', companyData.name)
-    console.log('description:', companyData.description)
-    console.log('email:', companyData.email)
-    console.log('phoneNumber:', companyData.phoneNumber)
-    console.log('fiscalCode:', companyData.fiscalCode)
-    console.log('website:', companyData.website)
-    console.log('image:', companyData.image)
-    console.log('address:', companyData.address)
-    console.table(companyData)
     
     if (isEditMode) {
       updateCompany({
         id: company.id,
         data: companyData
       })
+      
+      // Upload image separately if provided
+      if (imageFile) {
+        updateCompanyImage({ id: company.id, imageFile })
+      }
     } else {
       createCompany(companyData)
+      // Note: For new companies, image upload would need to be handled after creation
+      // This would require modifying the mutation to return the created company ID
     }
     
     form.reset()
@@ -322,6 +317,38 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
                   )}
                 />
               </div>
+              
+              {/* Image Upload Section */}
+              <div className="space-y-4 pt-4 border-t border-border/30">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-primary/60 rounded-full" />
+                  <h3 className="text-sm font-medium text-foreground/80">Image (optionnel)</h3>
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="imageFile"
+                  render={({ field: { onChange, value, ...field } }) => (
+                    <FormItem className="group">
+                      <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Fichier Image</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            onChange(file)
+                          }}
+                          disabled={isCreating || isUpdating || isUpdatingImage}
+                          className="h-10 pl-4 pr-4 bg-background/50 border-2 border-border/40 focus:border-primary/60 focus:bg-background transition-all duration-300 rounded-lg hover:border-border/60"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             {/* Adresse */}
@@ -429,7 +456,7 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
             </div>
             
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCreating || isUpdating} className="relative">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCreating || isUpdating || isUpdatingImage} className="relative">
                 <Badge variant="secondary" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0">
                   <X className="h-3 w-3" />
                 </Badge>
@@ -441,14 +468,14 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
                     <Badge variant="outline" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-yellow-100 text-yellow-800 border-yellow-200">
                       <span className="text-xs">✏️</span>
                     </Badge>
-                    {isUpdating ? "Modification..." : "Modifier l'entreprise"}
+                    {isUpdating || isUpdatingImage ? "Modification..." : "Modifier l'entreprise"}
                   </>
                 ) : (
                   <>
                     <Badge variant="outline" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-green-100 text-green-800 border-green-200">
                       <span className="text-xs">+</span>
                     </Badge>
-                    {isCreating ? "Création..." : "Créer l'entreprise"}
+                    {isCreating || isUpdatingImage ? "Création..." : "Créer l'entreprise"}
                   </>
                 )}
               </Button>

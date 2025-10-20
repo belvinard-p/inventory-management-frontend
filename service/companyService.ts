@@ -63,6 +63,7 @@ export const companyService = {
   updateImage: async (id: number, imageFile: File): Promise<Company> => {
     const formData = new FormData()
     formData.append('image', imageFile)
+    // Don't set Content-Type header manually for FormData, let the browser set it
     return apiClient.put<Company>(`${BASE_URL}/${id}/image`, formData)
   }
 }
