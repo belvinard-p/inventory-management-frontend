@@ -11,36 +11,12 @@ export const useCompanies = () => {
   // Query pour récupérer toutes les entreprises
   const getCompanies = useQuery({
     queryKey: [CompaniesCacheKeys.Companies],
-    queryFn: async () => {
-      try {
-        return await companyService.getAll()
-      } catch (error: any) {
-        // Si c'est une erreur 400/404 ou "No companies found", retourner un objet vide
-        const isNoDataError = error?.response?.status === 404 || 
-                              error?.response?.status === 400 || 
-                              error?.message?.includes('404') ||
-                              error?.response?.data?.errors?.error === 'No companies found'
-        
-        if (isNoDataError) {
-          return { content: [], pageNumber: 0, pageSize: 10, totalElements: 0, totalPages: 0, last: true }
-        }
-        throw error
-      }
-    },
+    queryFn: () => companyService.getAll(),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false, // Désactiver les retry pour éviter les boucles infinies
     enabled: typeof window !== 'undefined', // Éviter l'hydratation
     refetchOnWindowFocus: false, // Éviter les refetch automatiques
   })
-
-  // Query pour une entreprise spécifique
-  const useCompanyById = (id?: number) =>
-    useQuery({
-      queryKey: [CompaniesCacheKeys.Companies, id],
-      queryFn: () => companyService.getById(id!),
-      enabled: !!id,
-      staleTime: 5 * 60 * 1000,
-    })
 
   // Mutation pour créer une entreprise
   const createCompany = useMutation({
@@ -101,7 +77,8 @@ export const useCompanies = () => {
     companies: getCompanies.data,
     isLoading: getCompanies.isLoading,
     isError: getCompanies.isError,
-    useCompanyById,
+    error: getCompanies.error,
+    refetch: getCompanies.refetch,
     
     // Mutations
     createCompany: createCompany.mutate,
@@ -109,37 +86,77 @@ export const useCompanies = () => {
     deleteCompany: deleteCompany.mutate,
     updateCompanyImage: updateCompanyImage.mutate,
     
-    // States
+    // Mutation States
     isCreating: createCompany.isPending,
     isUpdating: updateCompany.isPending,
     isDeleting: deleteCompany.isPending,
     isUpdatingImage: updateCompanyImage.isPending,
+    
+    // Mutation Results
+    createError: createCompany.error,
+    updateError: updateCompany.error,
+    deleteError: deleteCompany.error,
+    imageError: updateCompanyImage.error,
   }
 }
 
 // Hook spécialisé pour une entreprise spécifique
 export const useCompany = (id?: number) => {
-  const { useCompanyById, updateCompany, deleteCompany, updateCompanyImage } = useCompanies()
-  const companyQuery = useCompanyById(id)
+  const queryClient = useQueryClient()
+  
+  const companyQuery = useQuery({
+    queryKey: [CompaniesCacheKeys.Companies, id],
+    queryFn: () => companyService.getById(id!),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  })
+  
+  const updateMutation = useMutation({
+    mutationFn: (data: CompanyRequest) => {
+      if (!id) throw new Error("ID requis")
+      return companyService.update(id, data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [CompaniesCacheKeys.Companies] })
+      if (id) {
+        queryClient.invalidateQueries({ queryKey: [CompaniesCacheKeys.Companies, id] })
+      }
+      toast.success("Entreprise mise à jour avec succès")
+    },
+    onError: () => {
+      toast.error("Erreur lors de la mise à jour")
+    }
+  })
+  
+  const deleteMutation = useMutation({
+    mutationFn: () => {
+      if (!id) throw new Error("ID requis")
+      return companyService.delete(id)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [CompaniesCacheKeys.Companies] })
+      toast.success("Entreprise supprimée avec succès")
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression")
+    }
+  })
   
   return {
     company: companyQuery.data,
     isLoading: companyQuery.isLoading,
     isError: companyQuery.isError,
+    error: companyQuery.error,
     refetch: companyQuery.refetch,
     
-    // Mutations pré-liées à l'ID
-    updateCompany: (data: CompanyRequest) => {
-      if (!id) throw new Error("ID requis")
-      return updateCompany({ id, data })
-    },
-    deleteCompany: () => {
-      if (!id) throw new Error("ID requis")
-      return deleteCompany(id)
-    },
-    updateImage: (imageFile: File) => {
-      if (!id) throw new Error("ID requis")
-      return updateCompanyImage({ id, imageFile })
-    }
+    // Mutations
+    updateCompany: updateMutation.mutate,
+    deleteCompany: deleteMutation.mutate,
+    
+    // Mutation States
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
+    updateError: updateMutation.error,
+    deleteError: deleteMutation.error,
   }
 }

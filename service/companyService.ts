@@ -13,10 +13,10 @@ interface PaginatedResponse<T> {
 }
 
 interface GetAllCompaniesParams {
-  pageNumber?: number
-  pageSize?: number
-  sortBy?: string
-  sortOrder?: 'asc' | 'desc'
+  page?: number
+  size?: number
+  sort?: string
+  direction?: 'asc' | 'desc'
 }
 
 export const companyService = {
@@ -28,16 +28,24 @@ export const companyService = {
   // Récupérer toutes les entreprises avec pagination (ALL ROLES)
   getAll: async (params?: GetAllCompaniesParams): Promise<PaginatedResponse<Company>> => {
     const searchParams = new URLSearchParams()
-    if (params?.pageNumber !== undefined) searchParams.append('pageNumber', params.pageNumber.toString())
-    if (params?.pageSize !== undefined) searchParams.append('pageSize', params.pageSize.toString())
-    if (params?.sortBy) searchParams.append('sortBy', params.sortBy)
-    if (params?.sortOrder) searchParams.append('sortOrder', params.sortOrder)
+    if (params?.page !== undefined) searchParams.append('page', params.page.toString())
+    if (params?.size !== undefined) searchParams.append('size', params.size.toString())
+    if (params?.sort) searchParams.append('sort', params.sort)
+    if (params?.direction) searchParams.append('direction', params.direction)
     
     const queryString = searchParams.toString()
 
-    return apiClient.get<PaginatedResponse<Company>>(`${BASE_URL}/all${queryString ? `?${queryString}` : ''}`, {
-      showErrorToast: false // Désactiver les toasts d'erreur pour cet endpoint
-    })
+    try {
+      return await apiClient.get<PaginatedResponse<Company>>(`${BASE_URL}${queryString ? `?${queryString}` : ''}`, {
+        showErrorToast: false // Désactiver les toasts d'erreur pour cet endpoint
+      })
+    } catch (error: any) {
+      // Cas spécial : "No companies found" retourne une réponse vide
+      if (error?.details?.errors?.error === 'No companies found') {
+        return { content: [], pageNumber: 0, pageSize: 10, totalElements: 0, totalPages: 0, last: true }
+      }
+      throw error
+    }
   },
 
   // Récupérer une entreprise par ID (ALL ROLES)

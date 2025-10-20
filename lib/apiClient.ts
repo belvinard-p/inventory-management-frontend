@@ -37,6 +37,10 @@ class ApiClient {
       skipAuth = false 
     } = clientOptions
 
+    // Ajouter timeout et AbortController
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
+
     // Ne pas définir Content-Type pour FormData (le navigateur le fera automatiquement)
     const isFormData = options.body instanceof FormData
     const headers: Record<string, string> = {}
@@ -62,10 +66,21 @@ class ApiClient {
       const response = await fetch(url, {
         ...options,
         headers,
+        signal: controller.signal,
       })
       
+      clearTimeout(timeoutId)
       return await this.handleResponse<T>(response, showErrorToast, showSuccessToast, successMessage)
     } catch (err) {
+      clearTimeout(timeoutId)
+      
+      if (err instanceof Error && err.name === 'AbortError') {
+        const timeoutError = 'Requête expirée - le serveur met trop de temps à répondre'
+        if (showErrorToast) {
+          toast.error('Timeout', { description: timeoutError })
+        }
+        throw new Error(timeoutError)
+      }
       if (err instanceof TypeError && err.message === 'Failed to fetch') {
         const corsError = 'Erreur de connexion au serveur. Le backend doit autoriser votre domaine Vercel.'
         if (showErrorToast) {
@@ -96,9 +111,15 @@ class ApiClient {
       
       // Redirection vers login seulement si pas déjà sur une page d'auth
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-        setTimeout(() => {
+        // Utiliser Next.js router pour la redirection côté client
+        import('next/navigation').then(({ redirect }) => {
+          setTimeout(() => {
+            redirect('/login')
+          }, 1000)
+        }).catch(() => {
+          // Fallback si Next.js router n'est pas disponible
           window.location.href = '/login'
-        }, 1000)
+        })
       }
       
       throw new Error("Non autorisé")
@@ -112,10 +133,21 @@ class ApiClient {
       return {} as T
     }
 
-    // Lire le body une seule fois
-    let responseText: string
+    // Optimiser la lecture de la réponse
+    const contentType = response.headers.get('content-type')
+    const isJson = contentType?.includes('application/json')
+    
+    let responseData: any
+    let responseText: string = ''
+    
     try {
-      responseText = await response.text()
+      if (isJson) {
+        responseData = await response.json()
+        responseText = JSON.stringify(responseData)
+      } else {
+        responseText = await response.text()
+        responseData = responseText
+      }
     } catch {
       throw new Error("Impossible de lire la réponse du serveur")
     }
@@ -129,12 +161,6 @@ class ApiClient {
           const errorRes = JSON.parse(responseText)
           errorMessage = errorRes.message || errorRes.details || errorMessage
           errorDetails = errorRes
-          
-          // Cas spécial : "No companies found" ne doit pas être traité comme une erreur
-          if (errorRes.errors?.error === 'No companies found') {
-            return { content: [], pageNumber: 0, pageSize: 10, totalElements: 0, totalPages: 0, last: true } as T
-          }
-          
           console.error('Erreur backend détaillée:', errorRes)
         } catch {
           errorMessage = responseText || errorMessage
@@ -155,14 +181,8 @@ class ApiClient {
       throw error
     }
 
-    // Parser la réponse JSON
-    let data: T
-    try {
-      data = responseText ? JSON.parse(responseText) : ({} as T)
-    } catch {
-      // Si ce n'est pas du JSON, retourner le texte comme données
-      data = responseText as unknown as T
-    }
+    // Utiliser les données déjà parsées
+    const data: T = isJson ? responseData : (responseText as unknown as T)
 
     if (showSuccessToast && successMessage) {
       toast.success(successMessage)
