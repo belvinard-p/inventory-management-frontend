@@ -6,6 +6,7 @@ interface ApiClientOptions {
   showSuccessToast?: boolean
   successMessage?: string
   skipAuth?: boolean // 👈 Nouvelle option pour endpoints publics
+  responseType?: 'json' | 'blob' | 'text'
 }
 
 class ApiClient {
@@ -34,7 +35,8 @@ class ApiClient {
       showErrorToast = true, 
       showSuccessToast = false, 
       successMessage,
-      skipAuth = false 
+      skipAuth = false,
+      responseType = 'json'
     } = clientOptions
 
     // Ajouter timeout et AbortController
@@ -70,7 +72,7 @@ class ApiClient {
       })
       
       clearTimeout(timeoutId)
-      return await this.handleResponse<T>(response, showErrorToast, showSuccessToast, successMessage)
+      return await this.handleResponse<T>(response, showErrorToast, showSuccessToast, successMessage, responseType)
     } catch (err) {
       clearTimeout(timeoutId)
       
@@ -96,7 +98,8 @@ class ApiClient {
     response: Response,
     showErrorToast: boolean,
     showSuccessToast: boolean,
-    successMessage?: string
+    successMessage?: string,
+    responseType: 'json' | 'blob' | 'text' = 'json'
   ): Promise<T> {
     // Gestion des erreurs d'authentification
     if (response.status === 401 || response.status === 403) {
@@ -133,20 +136,29 @@ class ApiClient {
       return {} as T
     }
 
-    // Optimiser la lecture de la réponse
-    const contentType = response.headers.get('content-type')
-    const isJson = contentType?.includes('application/json')
-    
+    // Handle different response types
     let responseData: any
     let responseText: string = ''
     
     try {
-      if (isJson) {
-        responseData = await response.json()
-        responseText = JSON.stringify(responseData)
+      if (responseType === 'blob') {
+        responseData = await response.blob()
+        return responseData as T
+      } else if (responseType === 'text') {
+        responseData = await response.text()
+        responseText = responseData
       } else {
-        responseText = await response.text()
-        responseData = responseText
+        // Default to JSON
+        const contentType = response.headers.get('content-type')
+        const isJson = contentType?.includes('application/json')
+        
+        if (isJson) {
+          responseData = await response.json()
+          responseText = JSON.stringify(responseData)
+        } else {
+          responseText = await response.text()
+          responseData = responseText
+        }
       }
     } catch {
       throw new Error("Impossible de lire la réponse du serveur")
@@ -182,8 +194,8 @@ class ApiClient {
       throw error
     }
 
-    // Utiliser les données déjà parsées
-    const data: T = isJson ? responseData : (responseText as unknown as T)
+    // Return the parsed data
+    const data: T = responseData as T
 
     if (showSuccessToast && successMessage) {
       toast.success(successMessage)

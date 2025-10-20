@@ -6,6 +6,7 @@ import { DataTableColumnHeader } from "./DataTableColumnHeader"
 import { DataTableRowActions } from "./DataTableRowActions"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { AuthenticatedImage } from "@/components/ui/authenticated-image"
 
 export const columns: ColumnDef<Company>[] = [
   {
@@ -39,9 +40,21 @@ export const columns: ColumnDef<Company>[] = [
     ),
     cell: ({ row }) => {
       const company = row.original
+      
       return (
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+          {company.image ? (
+            <AuthenticatedImage
+              filename={company.image}
+              alt={company.name}
+              className="h-8 w-8 rounded-full object-cover border"
+              onError={() => {
+                const fallback = document.querySelector(`[data-company-id="${company.id}"] .fallback-avatar`)
+                fallback?.classList.remove('hidden')
+              }}
+            />
+          ) : null}
+          <div className={`fallback-avatar h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center ${company.image ? 'hidden' : ''}`} data-company-id={company.id}>
             <span className="text-sm font-medium text-primary">
               {company.name?.[0] || 'E'}
             </span>

@@ -65,5 +65,12 @@ export const companyService = {
     formData.append('image', imageFile)
     // Don't set Content-Type header manually for FormData, let the browser set it
     return apiClient.put<Company>(`${BASE_URL}/${id}/image`, formData)
+  },
+
+  // Récupérer une image (ALL ROLES)
+  getImage: async (filename: string): Promise<Blob> => {
+    return apiClient.get<Blob>(`/files/${filename}`, {
+      responseType: 'blob'
+    })
   }
 }
