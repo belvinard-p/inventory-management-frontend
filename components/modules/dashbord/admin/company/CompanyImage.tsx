@@ -30,7 +30,15 @@ export function CompanyImage({
     )
   }
 
-  if (isError || !imageUrl || hasImageError) {
+  if (isError || hasImageError || (imageUrl === null)) {
+    return (
+      <div className={fallbackClassName}>
+        <Building2 className="h-4 w-4 text-muted-foreground" />
+      </div>
+    )
+  }
+  
+  if (!imageUrl) {
     return (
       <div className={fallbackClassName}>
         <Building2 className="h-4 w-4 text-muted-foreground" />

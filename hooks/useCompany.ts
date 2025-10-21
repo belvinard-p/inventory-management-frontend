@@ -121,12 +121,25 @@ export const useCompanies = () => {
 
 // Hook pour récupérer l'URL de l'image d'une entreprise
 export const useCompanyImageUrl = (companyId?: number, expirationMinutes: number = 15) => {
+  const queryClient = useQueryClient()
+  
   return useQuery({
     queryKey: [CompaniesCacheKeys.Companies, companyId, 'imageUrl'],
-    queryFn: () => companyService.getImageUrl(companyId!, expirationMinutes),
+    queryFn: () => {
+      // Vérifier d'abord si l'entreprise a une image
+      const companiesData = queryClient.getQueryData([CompaniesCacheKeys.Companies]) as any
+      const company = companiesData?.content?.find((c: Company) => c.id === companyId)
+      
+      // Si pas d'image, retourner null sans faire d'appel API
+      if (!company?.hasImage) {
+        return null
+      }
+      
+      return companyService.getImageUrl(companyId!, expirationMinutes)
+    },
     enabled: !!companyId,
     staleTime: 10 * 60 * 1000, // 10 minutes (moins que l'expiration de l'URL)
-    retry: 1,
+    retry: false, // Pas de retry pour éviter les erreurs répétées
   })
 }
 
