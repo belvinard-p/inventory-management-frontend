@@ -27,8 +27,8 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
             <CompanyImage
               companyId={company.id}
               companyName={company.name}
-              className="h-32 w-32 rounded-2xl object-cover border-4 border-white shadow-lg"
-              fallbackClassName="h-32 w-32 rounded-2xl bg-white/90 flex items-center justify-center border-4 border-white shadow-lg"
+              className="h-48 w-48 rounded-2xl object-cover border-4 border-white shadow-lg"
+              fallbackClassName="h-48 w-48 rounded-2xl bg-white/90 flex items-center justify-center border-4 border-white shadow-lg"
             />
             <div>
               <h2 className="text-2xl font-bold text-foreground">{company.name}</h2>
