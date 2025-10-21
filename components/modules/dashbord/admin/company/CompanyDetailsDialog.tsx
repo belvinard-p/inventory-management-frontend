@@ -4,13 +4,10 @@ import { Company } from "@/types"
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { CompanyImage } from "./CompanyImage"
-import { Building2, Mail, Phone, Globe, MapPin, Calendar, FileText } from "lucide-react"
+import { Mail, Phone, Globe, MapPin, Calendar, FileText } from "lucide-react"
 
 interface CompanyDetailsDialogProps {
   company: Company | null
@@ -23,125 +20,129 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+        {/* Header avec photo en grand */}
+        <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 p-8 pb-6">
+          <div className="flex flex-col items-center text-center space-y-4">
             <CompanyImage
               companyId={company.id}
               companyName={company.name}
-              className="h-12 w-12 rounded-lg object-cover border"
-              fallbackClassName="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center"
+              className="h-32 w-32 rounded-2xl object-cover border-4 border-white shadow-lg"
+              fallbackClassName="h-32 w-32 rounded-2xl bg-white/90 flex items-center justify-center border-4 border-white shadow-lg"
             />
             <div>
-              <h2 className="text-xl font-semibold">{company.name}</h2>
-              <p className="text-sm text-muted-foreground">{company.fiscalCode}</p>
+              <h2 className="text-2xl font-bold text-foreground">{company.name}</h2>
+              <p className="text-sm text-muted-foreground font-mono bg-white/50 px-3 py-1 rounded-full mt-2">
+                {company.fiscalCode}
+              </p>
             </div>
-          </DialogTitle>
-        </DialogHeader>
+          </div>
+        </div>
 
-        <div className="space-y-6">
+        {/* Contenu principal */}
+        <div className="p-8 space-y-8">
           {/* Informations de contact */}
           <div>
-            <h3 className="text-lg font-medium mb-3">Informations de contact</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold mb-4 text-foreground">Contact</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+                  <Mail className="h-5 w-5" />
+                </div>
                 <div>
-                  <p className="text-sm font-medium">Email</p>
-                  <p className="text-sm text-muted-foreground">{company.email}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Email</p>
+                  <p className="text-sm font-semibold">{company.email}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Phone className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="p-2 rounded-lg bg-green-100 text-green-600">
+                  <Phone className="h-5 w-5" />
+                </div>
                 <div>
-                  <p className="text-sm font-medium">Téléphone</p>
-                  <p className="text-sm text-muted-foreground font-mono">{company.phoneNumber}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Téléphone</p>
+                  <p className="text-sm font-semibold font-mono">{company.phoneNumber}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <Separator />
-
           {/* Adresse */}
           {company.address && (
-            <>
-              <div>
-                <h3 className="text-lg font-medium mb-3">Adresse</h3>
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Adresse</h3>
+              <div className="p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-orange-100 text-orange-600">
+                    <MapPin className="h-5 w-5" />
+                  </div>
                   <div className="space-y-1">
-                    <p className="text-sm">{company.address.street}</p>
-                    <p className="text-sm">
+                    <p className="font-medium">{company.address.street}</p>
+                    <p className="text-sm text-muted-foreground">
                       {company.address.city}, {company.address.postalCode}
                     </p>
                     <p className="text-sm text-muted-foreground">{company.address.country}</p>
                   </div>
                 </div>
               </div>
-              <Separator />
-            </>
+            </div>
           )}
 
           {/* Site web */}
           {company.website && (
-            <>
-              <div>
-                <h3 className="text-lg font-medium mb-3">Site web</h3>
-                <div className="flex items-center gap-3">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Site web</h3>
+              <div className="p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
+                    <Globe className="h-5 w-5" />
+                  </div>
                   <a 
                     href={`https://${company.website}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 underline"
+                    className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors"
                   >
                     {company.website}
                   </a>
                 </div>
               </div>
-              <Separator />
-            </>
+            </div>
           )}
 
           {/* Description */}
           {company.description && (
-            <>
-              <div>
-                <h3 className="text-lg font-medium mb-3">Description</h3>
-                <div className="flex items-start gap-3">
-                  <FileText className="h-4 w-4 text-muted-foreground mt-1" />
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Description</h3>
+              <div className="p-4 rounded-xl bg-muted/30">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-indigo-100 text-indigo-600">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
                     {company.description}
                   </p>
                 </div>
               </div>
-              <Separator />
-            </>
+            </div>
           )}
 
-          {/* Informations système */}
+          {/* Date de création */}
           <div>
-            <h3 className="text-lg font-medium mb-3">Informations système</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold mb-4 text-foreground">Informations</h3>
+            <div className="p-4 rounded-xl bg-muted/30">
+              <div className="flex items-center gap-4">
+                <div className="p-2 rounded-lg bg-gray-100 text-gray-600">
+                  <Calendar className="h-5 w-5" />
+                </div>
                 <div>
-                  <p className="text-sm font-medium">Date de création</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm font-medium text-muted-foreground">Créée le</p>
+                  <p className="font-semibold">
                     {new Date(company.createdAt).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
                     })}
                   </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Statut</p>
-                  <Badge variant="secondary">Active</Badge>
                 </div>
               </div>
             </div>

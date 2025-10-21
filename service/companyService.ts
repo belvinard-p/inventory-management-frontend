@@ -76,6 +76,8 @@ export const companyService = {
 
   // Récupérer l'URL de l'image d'une entreprise (ALL ROLES)
   getImageUrl: async (id: number, expirationMinutes: number = 15): Promise<string> => {
-    return apiClient.get<string>(`${BASE_URL}/${id}/image_url?expirationMinutes=${expirationMinutes}`)
+    return apiClient.get<string>(`${BASE_URL}/${id}/image_url?expirationMinutes=${expirationMinutes}`, {
+      showErrorToast: false // Désactiver les toasts d'erreur pour cet endpoint
+    })
   }
 }
