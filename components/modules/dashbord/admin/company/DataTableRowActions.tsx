@@ -22,12 +22,14 @@ import {
   Edit, 
   Trash2, 
   Image,
-  ExternalLink
+  ExternalLink,
+  Eye
 } from "lucide-react"
 import { useCompanies } from "@/hooks/useCompany"
 import { useCompanyContext } from "./CompanyContext"
 import { DeleteConfirmDialog } from "@/components/global/DeleteConfirmDialog"
 import { ImageUploadDialog } from "./ImageUploadDialog"
+import { CompanyDetailsDialog } from "./CompanyDetailsDialog"
 import { useState } from "react"
 
 interface DataTableRowActionsProps<TData> {
@@ -41,6 +43,7 @@ export function DataTableRowActions<TData>({
   const { onEditCompany } = useCompanyContext()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false)
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
   const { deleteCompany } = useCompanies()
 
   return (
@@ -66,7 +69,15 @@ export function DataTableRowActions<TData>({
           </Tooltip>
         </TooltipProvider>
         <DropdownMenuContent align="end" className="w-[200px] shadow-lg border-border/50">
-          <DropdownMenuItem onClick={() => onEditCompany(company)} className="text-blue-600 hover:text-blue-700">
+          <DropdownMenuItem 
+            onClick={() => setIsDetailsDialogOpen(true)}
+            className="text-blue-600 hover:text-blue-700"
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            <span>Détails</span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem onClick={() => onEditCompany(company)} className="text-green-600 hover:text-green-700">
             <Edit className="mr-2 h-4 w-4" />
             <span>Modifier</span>
           </DropdownMenuItem>
@@ -117,6 +128,12 @@ export function DataTableRowActions<TData>({
         open={isImageDialogOpen}
         onOpenChange={setIsImageDialogOpen}
         company={company}
+      />
+      
+      <CompanyDetailsDialog
+        company={company}
+        open={isDetailsDialogOpen}
+        onOpenChange={setIsDetailsDialogOpen}
       />
     </>
   )

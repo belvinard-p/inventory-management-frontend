@@ -36,7 +36,7 @@ export const columns: ColumnDef<Company>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Entreprise" />
+      <DataTableColumnHeader column={column} title="Nom de l'entreprise" />
     ),
     cell: ({ row }) => {
       const company = row.original
@@ -46,12 +46,12 @@ export const columns: ColumnDef<Company>[] = [
           <CompanyImage
             companyId={company.id}
             companyName={company.name}
-            className="h-8 w-8 rounded-full object-cover border"
-            fallbackClassName="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center"
+            className="h-10 w-10 rounded-lg object-cover border"
+            fallbackClassName="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"
           />
           <div className="flex flex-col">
             <span className="font-medium">{company.name}</span>
-            <span className="text-sm text-muted-foreground">{company.fiscalCode}</span>
+            <span className="text-xs text-muted-foreground">{company.fiscalCode}</span>
           </div>
         </div>
       )
@@ -64,7 +64,11 @@ export const columns: ColumnDef<Company>[] = [
     ),
     cell: ({ row }) => {
       const email = row.getValue("email") as string
-      return <div className="lowercase">{email}</div>
+      return (
+        <div className="flex flex-col">
+          <span className="text-sm">{email}</span>
+        </div>
+      )
     },
   },
   {
@@ -75,60 +79,6 @@ export const columns: ColumnDef<Company>[] = [
     cell: ({ row }) => {
       const phone = row.getValue("phoneNumber") as string
       return <div className="font-mono text-sm">{phone}</div>
-    },
-  },
-  {
-    accessorKey: "address",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Ville" />
-    ),
-    cell: ({ row }) => {
-      const company = row.original
-      const city = company.address?.city
-      return city ? (
-        <Badge variant="secondary">{city}</Badge>
-      ) : (
-        <span className="text-muted-foreground">-</span>
-      )
-    },
-  },
-  {
-    accessorKey: "website",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Site web" />
-    ),
-    cell: ({ row }) => {
-      const website = row.getValue("website") as string
-      return website ? (
-        <a 
-          href={`https://${website}`} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 underline text-sm"
-        >
-          {website}
-        </a>
-      ) : (
-        <span className="text-muted-foreground">-</span>
-      )
-    },
-  },
-  {
-    accessorKey: "createdAt",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Date de création" />
-    ),
-    cell: ({ row }) => {
-      const date = row.getValue("createdAt") as string
-      return (
-        <div className="text-sm">
-          {new Date(date).toLocaleDateString('fr-FR')}
-        </div>
-      )
-    },
-    filterFn: (row, id, value) => {
-      const rowDate = new Date(row.getValue(id) as string).toISOString().split('T')[0]
-      return rowDate === value
     },
   },
   {
