@@ -72,5 +72,10 @@ export const companyService = {
     return apiClient.get<Blob>(`/files/${filename}`, {
       responseType: 'blob'
     })
+  },
+
+  // Récupérer l'URL de l'image d'une entreprise (ALL ROLES)
+  getImageUrl: async (id: number, expirationMinutes: number = 15): Promise<string> => {
+    return apiClient.get<string>(`${BASE_URL}/${id}/image_url?expirationMinutes=${expirationMinutes}`)
   }
 }

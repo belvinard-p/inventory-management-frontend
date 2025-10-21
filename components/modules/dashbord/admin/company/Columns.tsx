@@ -6,7 +6,7 @@ import { DataTableColumnHeader } from "./DataTableColumnHeader"
 import { DataTableRowActions } from "./DataTableRowActions"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { AuthenticatedImage } from "@/components/ui/authenticated-image"
+import { CompanyImage } from "./CompanyImage"
 
 export const columns: ColumnDef<Company>[] = [
   {
@@ -43,22 +43,12 @@ export const columns: ColumnDef<Company>[] = [
       
       return (
         <div className="flex items-center gap-3">
-          {company.image ? (
-            <AuthenticatedImage
-              filename={company.image}
-              alt={company.name}
-              className="h-8 w-8 rounded-full object-cover border"
-              onError={() => {
-                const fallback = document.querySelector(`[data-company-id="${company.id}"] .fallback-avatar`)
-                fallback?.classList.remove('hidden')
-              }}
-            />
-          ) : null}
-          <div className={`fallback-avatar h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center ${company.image ? 'hidden' : ''}`} data-company-id={company.id}>
-            <span className="text-sm font-medium text-primary">
-              {company.name?.[0] || 'E'}
-            </span>
-          </div>
+          <CompanyImage
+            companyId={company.id}
+            companyName={company.name}
+            className="h-8 w-8 rounded-full object-cover border"
+            fallbackClassName="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center"
+          />
           <div className="flex flex-col">
             <span className="font-medium">{company.name}</span>
             <span className="text-sm text-muted-foreground">{company.fiscalCode}</span>

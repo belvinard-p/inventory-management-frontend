@@ -119,6 +119,17 @@ export const useCompanies = () => {
   }
 }
 
+// Hook pour récupérer l'URL de l'image d'une entreprise
+export const useCompanyImageUrl = (companyId?: number, expirationMinutes: number = 15) => {
+  return useQuery({
+    queryKey: [CompaniesCacheKeys.Companies, companyId, 'imageUrl'],
+    queryFn: () => companyService.getImageUrl(companyId!, expirationMinutes),
+    enabled: !!companyId,
+    staleTime: 10 * 60 * 1000, // 10 minutes (moins que l'expiration de l'URL)
+    retry: 1,
+  })
+}
+
 // Hook spécialisé pour une entreprise spécifique
 export const useCompany = (id?: number) => {
   const queryClient = useQueryClient()
