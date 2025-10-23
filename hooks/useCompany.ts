@@ -1,5 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { enhancedToast } from '@/lib/toast-utils'
 import { companyService } from '@/service/companyService'
 import { Company, CompanyRequest, ApiError } from '@/types'
 import { CompaniesCacheKeys } from '@/lib/const'
@@ -32,9 +33,15 @@ export const useCompanies = () => {
   // Mutation pour créer une entreprise
   const createCompany = useMutation({
     mutationFn: (data: CompanyRequest) => companyService.create(data),
-    onSuccess: () => {
+    onSuccess: (newCompany) => {
       queryClient.invalidateQueries({ queryKey: [CompaniesCacheKeys.Companies] })
-      toast.success("Entreprise créée avec succès")
+      enhancedToast.success("Entreprise créée avec succès", {
+        description: `${newCompany.name} a été ajoutée à votre liste`,
+        action: {
+          label: "Voir détails",
+          onClick: () => console.log('Voir détails de', newCompany.name)
+        }
+      })
     },
     onError: (error: any) => {
       console.error('Erreur création entreprise:', error)
@@ -70,10 +77,20 @@ export const useCompanies = () => {
     mutationFn: (id: number) => companyService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CompaniesCacheKeys.Companies] })
-      toast.success("Entreprise supprimée avec succès")
+      enhancedToast.actionWithUndo("Entreprise supprimée", () => {
+        enhancedToast.info("Fonction de restauration à implémenter")
+      }, {
+        description: "L'entreprise a été supprimée de votre liste"
+      })
     },
     onError: (error: ApiError) => {
-      toast.error("Erreur lors de la suppression")
+      enhancedToast.error("Erreur lors de la suppression", {
+        description: "L'entreprise n'a pas pu être supprimée",
+        action: {
+          label: "Réessayer",
+          onClick: () => window.location.reload()
+        }
+      })
     }
   })
 
@@ -134,6 +151,19 @@ export const useCompanyImageUrl = (companyId?: number, expirationMinutes: number
     enabled: !!companyId,
     staleTime: 10 * 60 * 1000, // 10 minutes (moins que l'expiration de l'URL)
     retry: false, // Pas de retry pour éviter les erreurs répétées
+  })
+}
+
+// Hook pour la pagination infinie
+export const useInfiniteCompanies = (pageSize: number = 10) => {
+  return useInfiniteQuery({
+    queryKey: [CompaniesCacheKeys.Companies, 'infinite'],
+    queryFn: ({ pageParam = 0 }) => companyService.getInfinite(pageParam, pageSize),
+    getNextPageParam: (lastPage) => {
+      return lastPage.last ? undefined : lastPage.pageNumber + 1
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: typeof window !== 'undefined',
   })
 }
 

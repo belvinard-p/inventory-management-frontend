@@ -7,6 +7,7 @@ import { DataTableRowActions } from "./DataTableRowActions"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CompanyImage } from "./CompanyImage"
+import { CopyButton } from "@/components/ui/copy-button"
 
 export const columns: ColumnDef<Company>[] = [
   {
@@ -65,8 +66,13 @@ export const columns: ColumnDef<Company>[] = [
     cell: ({ row }) => {
       const email = row.getValue("email") as string
       return (
-        <div className="flex flex-col">
-          <span className="text-sm">{email}</span>
+        <div className="flex items-center gap-2 group">
+          <span className="text-sm flex-1">{email}</span>
+          <CopyButton 
+            text={email} 
+            label="Email"
+            className="opacity-0 group-hover:opacity-100 transition-opacity"
+          />
         </div>
       )
     },
@@ -78,7 +84,16 @@ export const columns: ColumnDef<Company>[] = [
     ),
     cell: ({ row }) => {
       const phone = row.getValue("phoneNumber") as string
-      return <div className="font-mono text-sm">{phone}</div>
+      return (
+        <div className="flex items-center gap-2 group">
+          <span className="font-mono text-sm flex-1">{phone}</span>
+          <CopyButton 
+            text={phone} 
+            label="Téléphone"
+            className="opacity-0 group-hover:opacity-100 transition-opacity"
+          />
+        </div>
+      )
     },
   },
   {

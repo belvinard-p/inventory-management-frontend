@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { CompanyImage } from "./CompanyImage"
+import { CopyButton } from "@/components/ui/copy-button"
 import { Mail, Phone, Globe, MapPin, Calendar, FileText } from "lucide-react"
 
 interface CompanyDetailsDialogProps {
@@ -45,23 +46,33 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
           <div>
             <h3 className="text-lg font-semibold mb-4 text-foreground">Contact</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
                 <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
                   <Mail className="h-5 w-5" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-medium text-muted-foreground">Email</p>
                   <p className="text-sm font-semibold">{company.email}</p>
                 </div>
+                <CopyButton 
+                  text={company.email} 
+                  label="Email"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                />
               </div>
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
                 <div className="p-2 rounded-lg bg-green-100 text-green-600">
                   <Phone className="h-5 w-5" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-medium text-muted-foreground">Téléphone</p>
                   <p className="text-sm font-semibold font-mono">{company.phoneNumber}</p>
                 </div>
+                <CopyButton 
+                  text={company.phoneNumber} 
+                  label="Téléphone"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                />
               </div>
             </div>
           </div>
@@ -91,19 +102,26 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
           {company.website && (
             <div>
               <h3 className="text-lg font-semibold mb-4 text-foreground">Site web</h3>
-              <div className="p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+              <div className="p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
                 <div className="flex items-center gap-4">
                   <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
                     <Globe className="h-5 w-5" />
                   </div>
-                  <a 
-                    href={`https://${company.website}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors"
-                  >
-                    {company.website}
-                  </a>
+                  <div className="flex-1">
+                    <a 
+                      href={`https://${company.website}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors"
+                    >
+                      {company.website}
+                    </a>
+                  </div>
+                  <CopyButton 
+                    text={company.website} 
+                    label="Site web"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  />
                 </div>
               </div>
             </div>

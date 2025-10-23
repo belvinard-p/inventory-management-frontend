@@ -36,11 +36,21 @@ export const companyService = {
     const queryString = searchParams.toString()
     const url = `${BASE_URL}/all${queryString ? `?${queryString}` : ''}`
     
-    console.log('Fetching companies from URL:', url)
-    console.log('Full URL:', `${process.env.NEXT_PUBLIC_API_URL}${url}`)
-
     return apiClient.get<PaginatedResponse<Company>>(url, {
       showErrorToast: false // Désactiver les toasts d'erreur pour cet endpoint
+    })
+  },
+
+  // Récupérer les entreprises avec pagination infinie
+  getInfinite: async (pageParam: number = 0, size: number = 10): Promise<PaginatedResponse<Company>> => {
+    const searchParams = new URLSearchParams()
+    searchParams.append('page', pageParam.toString())
+    searchParams.append('size', size.toString())
+    
+    const url = `${BASE_URL}/all?${searchParams.toString()}`
+    
+    return apiClient.get<PaginatedResponse<Company>>(url, {
+      showErrorToast: false
     })
   },
 

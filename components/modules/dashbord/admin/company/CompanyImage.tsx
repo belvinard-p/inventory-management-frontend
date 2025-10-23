@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Building2 } from "lucide-react"
 import { useCompanyImageUrl } from "@/hooks/useCompany"
+import { LazyImage } from "@/components/ui/lazy-image"
 
 interface CompanyImageProps {
   companyId: number
@@ -25,7 +26,7 @@ export function CompanyImage({
   if (isLoading) {
     return (
       <div className={fallbackClassName}>
-        <div className="animate-pulse bg-muted-foreground/20 w-full h-full rounded-md" />
+        <div className="animate-pulse bg-gradient-to-r from-muted via-muted-foreground/20 to-muted w-full h-full rounded-md" />
       </div>
     )
   }
@@ -47,10 +48,12 @@ export function CompanyImage({
   }
 
   return (
-    <img
+    <LazyImage
       src={imageUrl}
       alt={`Image de ${companyName}`}
       className={className}
+      fallbackClassName={fallbackClassName}
+      placeholder={<Building2 className="h-4 w-4 text-muted-foreground" />}
       onError={() => setHasImageError(true)}
     />
   )

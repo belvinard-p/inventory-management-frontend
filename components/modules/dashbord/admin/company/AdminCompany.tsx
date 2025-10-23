@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { useCompanies } from "@/hooks/useCompany"
 import { useAuth } from "@/hooks/useAuth"
 import { DataTable } from "./DataTable"
@@ -10,15 +11,41 @@ import { CompanyForm } from "./CompanyForm"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CompanyProvider } from "./CompanyContext"
+import { CompanyTableSkeleton } from "./CompanyTableSkeleton"
+import { CompanySearch } from "./CompanySearch"
+import { BulkActions } from "./BulkActions"
+import { InfiniteCompanyList } from "./InfiniteCompanyList"
+import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { List, Grid } from "lucide-react"
 import type { Company } from "@/types"
 import { toast } from "sonner"
 
 export function AdminCompany() {
+  // --- ALL HOOKS MUST BE CALLED UNCONDITIONALLY AT THE TOP ---
   const { user: currentUser, isAuthenticated, isLoading: authLoading, accessToken } = useAuth()
   const { companies, isLoading, isError } = useCompanies()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([])
+  const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([])
+  const [viewMode, setViewMode] = useState<'table' | 'infinite'>('table')
+
+  // Check user permissions
+  const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' ||
+                         currentUser?.roleName === 'ROLE_MANAGER'
+
+  // Keyboard shortcuts - Called unconditionally before any conditional returns
+  // This fix prevents the "Rendered more hooks" error.
+  useCommonShortcuts({
+    onNew: hasPermission ? () => setIsCreateModalOpen(true) : undefined,
+    onEscape: () => {
+      if (isCreateModalOpen) setIsCreateModalOpen(false)
+      if (editingCompany) setEditingCompany(null)
+    }
+  })
+  // -------------------------------------------------------------------------
 
   // Debug logging
   console.log('AdminCompany render:', { isLoading, isError, companies, companiesLength: companies?.content?.length })
@@ -26,6 +53,29 @@ export function AdminCompany() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Compute data early to use in useEffect
+  const companiesData = Array.isArray(companies?.content) ? companies.content : []
+
+  // Initialize filtered data - moved to top to ensure consistent hook calls
+  useEffect(() => {
+    if (companiesData.length > 0 && filteredCompanies.length === 0) {
+      setFilteredCompanies(companiesData)
+    }
+  }, [companiesData, filteredCompanies.length])
+
+  // Fonction pour gérer l'édition avec vérification du token
+  const handleEditCompany = (company: Company) => {
+    if (!accessToken) {
+      toast.error("Session expirée", {
+        description: "Veuillez vous reconnecter"
+      })
+      return
+    }
+    setEditingCompany(company)
+  }
+
+  // --- CONDITIONAL RENDERING STARTS HERE ---
 
   if (!mounted) {
     return (
@@ -35,21 +85,6 @@ export function AdminCompany() {
     )
   }
 
-  // Fonction pour gérer l'édition avec vérification du token
-  const handleEditCompany = (company: Company) => {
-    if (!accessToken) {
-      toast.error("Session expirée", { 
-        description: "Veuillez vous reconnecter" 
-      })
-      return
-    }
-    setEditingCompany(company)
-  }
-
-  // Vérifier si l'utilisateur a les permissions (ADMIN ou MANAGER)
-  const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || 
-                       currentUser?.roleName === 'ROLE_MANAGER'
-  
   if (authLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -57,7 +92,7 @@ export function AdminCompany() {
       </div>
     )
   }
-  
+
   if (!isAuthenticated || !currentUser) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -70,7 +105,7 @@ export function AdminCompany() {
       </div>
     )
   }
-  
+
   if (!hasPermission) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -84,12 +119,24 @@ export function AdminCompany() {
     )
   }
 
-  const companiesData = Array.isArray(companies?.content) ? companies.content : []
+  const displayData = filteredCompanies.length > 0 || companiesData.length === 0 ? filteredCompanies : companiesData
+
   const stats = {
     total: companiesData.length || 0,
     withWebsite: companiesData.filter(c => c.website)?.length || 0,
     withCategories: companiesData.filter(c => c.categories && c.categories.length > 0)?.length || 0,
     withSuppliers: companiesData.filter(c => c.suppliers && c.suppliers.length > 0)?.length || 0,
+  }
+
+  // Gérer la sélection multiple
+  const handleRowSelectionChange = (selection: Record<string, boolean>) => {
+    const selectedIds = Object.keys(selection).filter(key => selection[key])
+    const selected = displayData.filter((_, index) => selectedIds.includes(index.toString()))
+    setSelectedCompanies(selected)
+  }
+
+  const clearSelection = () => {
+    setSelectedCompanies([])
   }
 
   // Si pas d'erreur mais aucune donnée, afficher l'état vide
@@ -128,7 +175,7 @@ export function AdminCompany() {
         </Card>
 
         {/* Create Company Modal */}
-        <CompanyForm 
+        <CompanyForm
           open={isCreateModalOpen}
           onOpenChange={setIsCreateModalOpen}
           mode="create"
@@ -139,8 +186,17 @@ export function AdminCompany() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Entreprises</h1>
+            <p className="text-muted-foreground">
+              Gérez les entreprises partenaires et leurs informations
+            </p>
+          </div>
+        </div>
+        <CompanyTableSkeleton />
       </div>
     )
   }
@@ -165,18 +221,13 @@ export function AdminCompany() {
           )}
         </div>
 
-        {/* Empty State */}
+        {/* Error State - Reusing Empty State UI for simplicity */}
         <Card>
           <CardContent className="p-12 text-center">
             <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Aucune entreprise trouvée</h2>
-            <p className="text-muted-foreground mb-4">Commencez par créer votre première entreprise.</p>
-            {(currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER') && (
-              <Button onClick={() => setIsCreateModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Créer une entreprise
-              </Button>
-            )}
+            <h2 className="text-xl font-semibold mb-2">Erreur de chargement</h2>
+            <p className="text-muted-foreground mb-4">Impossible de charger les données des entreprises. Veuillez réessayer.</p>
+
           </CardContent>
         </Card>
 
@@ -256,10 +307,41 @@ export function AdminCompany() {
         <CardHeader>
           <CardTitle>Liste des Entreprises</CardTitle>
         </CardHeader>
-        <CardContent>
-          <CompanyProvider onEditCompany={handleEditCompany}>
-            <DataTable columns={columns} data={companiesData} />
-          </CompanyProvider>
+        <CardContent className="space-y-4">
+          {/* Mode de vue */}
+          <div className="flex items-center justify-between">
+            <CompanySearch 
+              data={companiesData}
+              onFilteredData={setFilteredCompanies}
+              placeholder="Rechercher par nom, email, téléphone..."
+            />
+            
+            <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'table' | 'infinite')}>
+              <ToggleGroupItem value="table" aria-label="Vue tableau">
+                <Grid className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="infinite" aria-label="Vue infinie">
+                <List className="h-4 w-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+          
+          <BulkActions 
+            selectedCompanies={selectedCompanies}
+            onClearSelection={clearSelection}
+          />
+          
+          {viewMode === 'table' ? (
+            <CompanyProvider onEditCompany={handleEditCompany}>
+              <DataTable 
+                columns={columns} 
+                data={displayData}
+                onRowSelectionChange={handleRowSelectionChange}
+              />
+            </CompanyProvider>
+          ) : (
+            <InfiniteCompanyList onEditCompany={handleEditCompany} />
+          )}
         </CardContent>
       </Card>
 
