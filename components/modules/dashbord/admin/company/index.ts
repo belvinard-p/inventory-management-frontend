@@ -1,0 +1,1 @@
+export { AdminCompany as AdminCompanyPage } from './AdminCompany'

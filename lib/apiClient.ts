@@ -6,6 +6,7 @@ interface ApiClientOptions {
   showSuccessToast?: boolean
   successMessage?: string
   skipAuth?: boolean // 👈 Nouvelle option pour endpoints publics
+  responseType?: 'json' | 'blob' | 'text'
 }
 
 class ApiClient {
@@ -34,8 +35,13 @@ class ApiClient {
       showErrorToast = true, 
       showSuccessToast = false, 
       successMessage,
-      skipAuth = false 
+      skipAuth = false,
+      responseType = 'json'
     } = clientOptions
+
+    // Ajouter timeout et AbortController
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
 
     // Ne pas définir Content-Type pour FormData (le navigateur le fera automatiquement)
     const isFormData = options.body instanceof FormData
@@ -62,10 +68,21 @@ class ApiClient {
       const response = await fetch(url, {
         ...options,
         headers,
+        signal: controller.signal,
       })
       
-      return await this.handleResponse<T>(response, showErrorToast, showSuccessToast, successMessage)
+      clearTimeout(timeoutId)
+      return await this.handleResponse<T>(response, showErrorToast, showSuccessToast, successMessage, responseType)
     } catch (err) {
+      clearTimeout(timeoutId)
+      
+      if (err instanceof Error && err.name === 'AbortError') {
+        const timeoutError = 'Requête expirée - le serveur met trop de temps à répondre'
+        if (showErrorToast) {
+          toast.error('Timeout', { description: timeoutError })
+        }
+        throw new Error(timeoutError)
+      }
       if (err instanceof TypeError && err.message === 'Failed to fetch') {
         const corsError = 'Erreur de connexion au serveur. Le backend doit autoriser votre domaine Vercel.'
         if (showErrorToast) {
@@ -81,7 +98,8 @@ class ApiClient {
     response: Response,
     showErrorToast: boolean,
     showSuccessToast: boolean,
-    successMessage?: string
+    successMessage?: string,
+    responseType: 'json' | 'blob' | 'text' = 'json'
   ): Promise<T> {
     // Gestion des erreurs d'authentification
     if (response.status === 401 || response.status === 403) {
@@ -96,9 +114,15 @@ class ApiClient {
       
       // Redirection vers login seulement si pas déjà sur une page d'auth
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-        setTimeout(() => {
+        // Utiliser Next.js router pour la redirection côté client
+        import('next/navigation').then(({ redirect }) => {
+          setTimeout(() => {
+            redirect('/login')
+          }, 1000)
+        }).catch(() => {
+          // Fallback si Next.js router n'est pas disponible
           window.location.href = '/login'
-        }, 1000)
+        })
       }
       
       throw new Error("Non autorisé")
@@ -112,23 +136,50 @@ class ApiClient {
       return {} as T
     }
 
-    // Lire le body une seule fois
-    let responseText: string
+    // Handle different response types
+    let responseData: unknown
+    let responseText: string = ''
+    
     try {
-      responseText = await response.text()
+      if (responseType === 'blob') {
+        responseData = await response.blob()
+        return responseData as T
+      } else if (responseType === 'text') {
+        responseData = await response.text()
+        responseText = responseData as string
+      } else {
+        // Default to JSON
+        const contentType = response.headers.get('content-type')
+        const isJson = contentType?.includes('application/json')
+        
+        if (isJson) {
+          responseData = await response.json()
+          responseText = JSON.stringify(responseData)
+        } else {
+          responseText = await response.text()
+          responseData = responseText
+        }
+      }
     } catch {
       throw new Error("Impossible de lire la réponse du serveur")
     }
 
     if (!response.ok) {
       let errorMessage = `Erreur ${response.status}`
+      let errorDetails = null
       
       if (responseText) {
         try {
-          const errorRes = JSON.parse(responseText)
+          // Si les données sont déjà parsées (JSON), les utiliser directement
+          const contentType = response.headers.get('content-type')
+          const isJson = contentType?.includes('application/json')
+          const errorRes = isJson ? responseData : JSON.parse(responseText)
           errorMessage = errorRes.message || errorRes.details || errorMessage
+          errorDetails = errorRes
+          console.error('Erreur backend détaillée:', errorRes)
         } catch {
           errorMessage = responseText || errorMessage
+          console.error('Réponse d\'erreur brute:', responseText)
         }
       }
       
@@ -136,17 +187,17 @@ class ApiClient {
         toast.error("Erreur", { description: errorMessage })
       }
       
-      throw new Error(errorMessage)
+      const error = new Error(errorMessage)
+      // Ajouter les détails de l'erreur pour le débogage
+      if (errorDetails) {
+        (error as unknown as { details: unknown }).details = errorDetails
+      }
+      
+      throw error
     }
 
-    // Parser la réponse JSON
-    let data: T
-    try {
-      data = responseText ? JSON.parse(responseText) : ({} as T)
-    } catch {
-      // Si ce n'est pas du JSON, retourner le texte comme données
-      data = responseText as unknown as T
-    }
+    // Return the parsed data
+    const data: T = responseData as T
 
     if (showSuccessToast && successMessage) {
       toast.success(successMessage)
