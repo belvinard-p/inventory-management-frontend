@@ -71,7 +71,33 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
   
   const isSubmitDisabled = !isFormValid || !hasRequiredFields || isCreating || isUpdating || isUpdatingImage
 
-  function onSubmit(data: z.infer<typeof companySchema>) {
+  async function uploadImageToSignedUrl(imageFile: File, companyId: number) {
+    try {
+      // Get signed URL from API
+      const response = await fetch(`http://localhost:8282/api/v1/companies/${companyId}/image_url?expirationMinutes=15`)
+      if (!response.ok) throw new Error('Failed to get signed URL')
+      
+      const signedUrl = await response.text()
+      
+      // Upload image to signed URL
+      const uploadResponse = await fetch(signedUrl, {
+        method: 'PUT',
+        body: imageFile,
+        headers: {
+          'Content-Type': imageFile.type,
+        },
+      })
+      
+      if (!uploadResponse.ok) throw new Error('Failed to upload image')
+      
+      return true
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      return false
+    }
+  }
+
+  async function onSubmit(data: z.infer<typeof companySchema>) {
     const { address1, address2, city, postalCode, country, imageFile, ...baseData } = data
     
     // Toujours créer un objet address, même vide
@@ -103,9 +129,13 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
         updateCompanyImage({ id: company.id, imageFile })
       }
     } else {
-      createCompany(companyData)
-      // Note: For new companies, image upload would need to be handled after creation
-      // This would require modifying the mutation to return the created company ID
+      // Create company first
+      const result = await createCompany(companyData)
+      
+      // If company creation successful and image provided, upload image
+      if (result && imageFile) {
+        await uploadImageToSignedUrl(imageFile, result.id)
+      }
     }
     
     form.reset()
