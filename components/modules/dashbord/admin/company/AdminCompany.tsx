@@ -203,11 +203,36 @@ export function AdminCompany() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Entreprises</h1>
             <p className="text-muted-foreground">
-              Gérez les entreprises partenaires et leurs informations
+              Chargement des données...
             </p>
           </div>
         </div>
-        <CompanyTableSkeleton />
+        
+        {/* Enhanced Loading State */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Chargement des entreprises...</p>
+                <p className="text-xs text-muted-foreground">Cela peut prendre jusqu'à 45 secondes</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => window.location.reload()}
+                  className="mt-2"
+                >
+                  Actualiser la page
+                </Button>
+              </div>
+              {/* Progress bar simulation */}
+              <div className="w-64 bg-gray-200 rounded-full h-2 mx-auto">
+                <div className="bg-primary h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+              </div>
+            </div>
+          </div>
+          <CompanyTableSkeleton />
+        </div>
       </div>
     )
   }
@@ -361,6 +386,7 @@ export function AdminCompany() {
                       <PaginationPrevious 
                         onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
                         disabled={currentPage === 0}
+                        size="default"
                       />
                     </PaginationItem>
                     
@@ -369,6 +395,7 @@ export function AdminCompany() {
                         <PaginationLink
                           onClick={() => setCurrentPage(i)}
                           isActive={currentPage === i}
+                          size="default"
                         >
                           {i + 1}
                         </PaginationLink>
@@ -379,6 +406,7 @@ export function AdminCompany() {
                       <PaginationNext 
                         onClick={() => setCurrentPage(Math.min(companies.totalPages - 1, currentPage + 1))}
                         disabled={currentPage === companies.totalPages - 1}
+                        size="default"
                       />
                     </PaginationItem>
                   </PaginationContent>

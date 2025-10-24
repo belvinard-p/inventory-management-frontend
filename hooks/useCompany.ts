@@ -26,9 +26,11 @@ export const useCompanies = (page: number = 0, size: number = 50) => {
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false, // Désactiver les retry pour éviter les boucles infinies
+    retry: 3, // Retry 3 times for slow connections
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     enabled: typeof window !== 'undefined', // Éviter l'hydratation
     refetchOnWindowFocus: false, // Éviter les refetch automatiques
+    gcTime: 10 * 60 * 1000 // Keep data for 10 minutes
   })
 
   // Mutation pour créer une entreprise
