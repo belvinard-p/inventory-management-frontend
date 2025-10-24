@@ -28,13 +28,15 @@ export const companyService = {
   // Récupérer toutes les entreprises avec pagination (ALL ROLES)
   getAll: async (params?: GetAllCompaniesParams): Promise<PaginatedResponse<Company>> => {
     const searchParams = new URLSearchParams()
-    if (params?.page !== undefined) searchParams.append('page', params.page.toString())
-    if (params?.size !== undefined) searchParams.append('size', params.size.toString())
-    if (params?.sort) searchParams.append('sort', params.sort)
-    if (params?.direction) searchParams.append('direction', params.direction)
+    if (params?.page !== undefined) searchParams.append('pageNumber', params.page.toString())
+    if (params?.size !== undefined) searchParams.append('pageSize', params.size.toString())
+    if (params?.sort) searchParams.append('sortBy', params.sort)
+    if (params?.direction) searchParams.append('sortOrder', params.direction)
     
     const queryString = searchParams.toString()
     const url = `${BASE_URL}/all${queryString ? `?${queryString}` : ''}`
+    
+    console.log('API Call:', { url, params, queryString })
     
     return apiClient.get<PaginatedResponse<Company>>(url, {
       showErrorToast: false // Désactiver les toasts d'erreur pour cet endpoint
@@ -44,8 +46,8 @@ export const companyService = {
   // Récupérer les entreprises avec pagination infinie
   getInfinite: async (pageParam: number = 0, size: number = 10): Promise<PaginatedResponse<Company>> => {
     const searchParams = new URLSearchParams()
-    searchParams.append('page', pageParam.toString())
-    searchParams.append('size', size.toString())
+    searchParams.append('pageNumber', pageParam.toString())
+    searchParams.append('pageSize', size.toString())
     
     const url = `${BASE_URL}/all?${searchParams.toString()}`
     

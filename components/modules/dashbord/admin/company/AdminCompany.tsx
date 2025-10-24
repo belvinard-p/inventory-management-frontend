@@ -20,17 +20,27 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { List, Grid } from "lucide-react"
 import type { Company } from "@/types"
 import { toast } from "sonner"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 export function AdminCompany() {
   // --- ALL HOOKS MUST BE CALLED UNCONDITIONALLY AT THE TOP ---
   const { user: currentUser, isAuthenticated, isLoading: authLoading, accessToken } = useAuth()
-  const { companies, isLoading, isError } = useCompanies()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
   const [mounted, setMounted] = useState(false)
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([])
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([])
   const [viewMode, setViewMode] = useState<'table' | 'infinite'>('table')
+  const [currentPage, setCurrentPage] = useState(0)
+  const pageSize = 10
+  const { companies, isLoading, isError } = useCompanies(currentPage, pageSize)
 
   // Check user permissions
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' ||
@@ -333,13 +343,48 @@ export function AdminCompany() {
           />
           
           {viewMode === 'table' ? (
-            <CompanyProvider onEditCompany={handleEditCompany}>
-              <DataTable 
-                columns={columns} 
-                data={displayData}
-                onRowSelectionChange={handleRowSelectionChange}
-              />
-            </CompanyProvider>
+            <>
+              <CompanyProvider onEditCompany={handleEditCompany}>
+                <DataTable 
+                  columns={columns} 
+                  data={displayData}
+                  onRowSelectionChange={handleRowSelectionChange}
+                  enablePagination={false}
+                />
+              </CompanyProvider>
+              
+              {/* Pagination personnalisée */}
+              {companies && companies.totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                        disabled={currentPage === 0}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: companies.totalPages }, (_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(i)}
+                          isActive={currentPage === i}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setCurrentPage(Math.min(companies.totalPages - 1, currentPage + 1))}
+                        disabled={currentPage === companies.totalPages - 1}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </>
           ) : (
             <InfiniteCompanyList onEditCompany={handleEditCompany} />
           )}

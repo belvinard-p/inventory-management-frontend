@@ -5,23 +5,24 @@ import { companyService } from '@/service/companyService'
 import { Company, CompanyRequest, ApiError } from '@/types'
 import { CompaniesCacheKeys } from '@/lib/const'
 
-// Hook principal pour les entreprises
-export const useCompanies = () => {
+// Hook principal pour les entreprises avec pagination
+export const useCompanies = (page: number = 0, size: number = 50) => {
   const queryClient = useQueryClient()
 
-  // Query pour récupérer toutes les entreprises
+  // Query pour récupérer toutes les entreprises avec pagination
   const getCompanies = useQuery({
-    queryKey: [CompaniesCacheKeys.Companies],
+    queryKey: [CompaniesCacheKeys.Companies, page, size],
     queryFn: async () => {
-      console.log('Fetching companies...')
+      console.log('Fetching companies...', { page, size })
       try {
-        const result = await companyService.getAll()
+        const result = await companyService.getAll({ page, size })
         console.log('Companies fetched successfully:', result)
+        console.log('First company ID:', result.content[0]?.id, 'Page returned:', result.pageNumber)
         return result
       } catch (error) {
         console.error('Error fetching companies:', error)
         // Retourner une réponse vide au lieu de lancer l'erreur
-        return { content: [], pageNumber: 0, pageSize: 10, totalElements: 0, totalPages: 0, last: true }
+        return { content: [], pageNumber: 0, pageSize: size, totalElements: 0, totalPages: 0, last: true }
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
