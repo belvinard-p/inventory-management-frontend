@@ -61,7 +61,7 @@ export function CompanySearch({ data, onFilteredData, placeholder = "Rechercher 
     }
 
     if (filters.hasImage !== undefined) {
-      filtered = filtered.filter(company => !!company.hasImage === filters.hasImage)
+      filtered = filtered.filter(company => !!company.image === filters.hasImage)
     }
 
     if (filters.city) {
@@ -240,7 +240,7 @@ export function CompanySearch({ data, onFilteredData, placeholder = "Rechercher 
           {searchTerm && (
             <Badge variant="secondary" className="gap-1">
               <Search className="h-3 w-3" />
-              "{searchTerm}"
+&quot;{searchTerm}&quot;
               <Button
                 variant="ghost"
                 size="sm"

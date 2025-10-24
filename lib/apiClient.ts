@@ -137,7 +137,7 @@ class ApiClient {
     }
 
     // Handle different response types
-    let responseData: any
+    let responseData: unknown
     let responseText: string = ''
     
     try {
@@ -146,7 +146,7 @@ class ApiClient {
         return responseData as T
       } else if (responseType === 'text') {
         responseData = await response.text()
-        responseText = responseData
+        responseText = responseData as string
       } else {
         // Default to JSON
         const contentType = response.headers.get('content-type')
@@ -171,6 +171,8 @@ class ApiClient {
       if (responseText) {
         try {
           // Si les données sont déjà parsées (JSON), les utiliser directement
+          const contentType = response.headers.get('content-type')
+          const isJson = contentType?.includes('application/json')
           const errorRes = isJson ? responseData : JSON.parse(responseText)
           errorMessage = errorRes.message || errorRes.details || errorMessage
           errorDetails = errorRes
@@ -188,7 +190,7 @@ class ApiClient {
       const error = new Error(errorMessage)
       // Ajouter les détails de l'erreur pour le débogage
       if (errorDetails) {
-        (error as any).details = errorDetails
+        (error as unknown as { details: unknown }).details = errorDetails
       }
       
       throw error

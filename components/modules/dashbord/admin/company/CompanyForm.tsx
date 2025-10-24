@@ -18,6 +18,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Check, X, Building2 } from "lucide-react"
 import { useCompanies } from "@/hooks/useCompany"
 import { Company } from "@/types"
+import { useQueryClient } from "@tanstack/react-query"
+import { CompaniesCacheKeys } from "@/lib/const"
+import { companyService } from "@/service/companyService"
 
 const companySchema = z.object({
   name: z.string().min(4, "Le nom doit contenir au moins 4 caractères").max(100, "Le nom ne peut pas dépasser 100 caractères"),
@@ -42,7 +45,8 @@ interface CompanyFormProps {
 }
 
 export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: CompanyFormProps) {
-  const { createCompany, updateCompany, updateCompanyImage, isCreating, isUpdating, isUpdatingImage } = useCompanies()
+  const { createCompany, createCompanyAsync, updateCompany, updateCompanyImage, isCreating, isUpdating, isUpdatingImage } = useCompanies()
+  const queryClient = useQueryClient()
   const isEditMode = mode === 'edit' && company
   
   const form = useForm<z.infer<typeof companySchema>>({
@@ -73,11 +77,8 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
 
   async function uploadImageToSignedUrl(imageFile: File, companyId: number) {
     try {
-      // Get signed URL from API
-      const response = await fetch(`http://localhost:8282/api/v1/companies/${companyId}/image_url?expirationMinutes=15`)
-      if (!response.ok) throw new Error('Failed to get signed URL')
-      
-      const signedUrl = await response.text()
+      // Get signed URL from API using the service
+      const signedUrl = await companyService.getImageUrl(companyId, 15)
       
       // Upload image to signed URL
       const uploadResponse = await fetch(signedUrl, {
@@ -129,12 +130,21 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
         updateCompanyImage({ id: company.id, imageFile })
       }
     } else {
-      // Create company first
-      const result = await createCompany(companyData)
-      
-      // If company creation successful and image provided, upload image
-      if (result && imageFile) {
-        await uploadImageToSignedUrl(imageFile, result.id)
+      try {
+        // Create company first
+        const result = await createCompanyAsync(companyData)
+        
+        // If company creation successful and image provided, upload image
+        if (result && imageFile) {
+          const uploadSuccess = await uploadImageToSignedUrl(imageFile, result.id)
+          if (uploadSuccess) {
+            // Invalider le cache de l'image pour forcer le rechargement
+            queryClient.invalidateQueries({ queryKey: [CompaniesCacheKeys.Companies, result.id, 'imageUrl'] })
+          }
+        }
+      } catch (error) {
+        console.error('Error creating company:', error)
+        return // Don't close dialog on error
       }
     }
     
@@ -148,11 +158,11 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
-            {isEditMode ? "Modifier l'entreprise" : 'Créer une entreprise'}
+            {isEditMode ? "Modifier l&apos;entreprise" : 'Créer une entreprise'}
           </DialogTitle>
           <DialogDescription>
             {isEditMode 
-              ? "Modifiez les informations de l'entreprise." 
+              ? "Modifiez les informations de l&apos;entreprise." 
               : 'Ajoutez une nouvelle entreprise au système.'
             }
           </DialogDescription>
@@ -166,7 +176,7 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
                 name="name"
                 render={({ field }) => (
                   <FormItem className="group">
-                    <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Nom de l'entreprise</FormLabel>
+                    <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Nom de l&apos;entreprise</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -206,7 +216,7 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
                     <FormControl>
                       <div className="relative">
                         <Textarea
-                          placeholder="Leader de l'import-export de produits agroalimentaires..."
+                          placeholder="Leader de l&apos;import-export de produits agroalimentaires..."
                           {...field}
                           disabled={isCreating || isUpdating}
                           className={`min-h-[80px] pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
@@ -498,14 +508,14 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
                     <Badge variant="outline" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-yellow-100 text-yellow-800 border-yellow-200">
                       <span className="text-xs">✏️</span>
                     </Badge>
-                    {isUpdating || isUpdatingImage ? "Modification..." : "Modifier l'entreprise"}
+                    {isUpdating || isUpdatingImage ? "Modification..." : "Modifier l&apos;entreprise"}
                   </>
                 ) : (
                   <>
                     <Badge variant="outline" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-green-100 text-green-800 border-green-200">
                       <span className="text-xs">+</span>
                     </Badge>
-                    {isCreating || isUpdatingImage ? "Création..." : "Créer l'entreprise"}
+                    {isCreating || isUpdatingImage ? "Création..." : "Créer l&apos;entreprise"}
                   </>
                 )}
               </Button>

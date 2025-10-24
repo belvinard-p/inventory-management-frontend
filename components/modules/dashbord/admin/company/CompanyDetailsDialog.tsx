@@ -87,7 +87,10 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
                     <MapPin className="h-5 w-5" />
                   </div>
                   <div className="space-y-1">
-                    <p className="font-medium">{company.address.street}</p>
+                    <p className="font-medium">{company.address.address1}</p>
+                    {company.address.address2 && (
+                      <p className="text-sm text-muted-foreground">{company.address.address2}</p>
+                    )}
                     <p className="text-sm text-muted-foreground">
                       {company.address.city}, {company.address.postalCode}
                     </p>

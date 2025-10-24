@@ -47,7 +47,7 @@ const ToggleContext = React.createContext<{
 
 const ToggleGroupWithContext = ({ value, onValueChange, children, ...props }: ToggleGroupProps) => (
   <ToggleContext.Provider value={{ value, onValueChange }}>
-    <ToggleGroup {...props}>{children}</ToggleGroup>
+    <ToggleGroup value={value} onValueChange={onValueChange} {...props}>{children}</ToggleGroup>
   </ToggleContext.Provider>
 )
 

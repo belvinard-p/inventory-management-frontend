@@ -118,6 +118,7 @@ export const useCompanies = () => {
     
     // Mutations
     createCompany: createCompany.mutate,
+    createCompanyAsync: createCompany.mutateAsync,
     updateCompany: updateCompany.mutate,
     deleteCompany: deleteCompany.mutate,
     updateCompanyImage: updateCompanyImage.mutate,
@@ -143,9 +144,13 @@ export const useCompanyImageUrl = (companyId?: number, expirationMinutes: number
     queryFn: async () => {
       try {
         return await companyService.getImageUrl(companyId!, expirationMinutes)
-      } catch (error) {
-        // Retourner null silencieusement si pas d'image
-        return null
+      } catch (error: any) {
+        // Si l'erreur indique qu'il n'y a pas d'image, retourner null silencieusement
+        if (error?.message?.includes('No image found')) {
+          return null
+        }
+        // Pour les autres erreurs, les laisser passer
+        throw error
       }
     },
     enabled: !!companyId,
@@ -159,6 +164,7 @@ export const useInfiniteCompanies = (pageSize: number = 10) => {
   return useInfiniteQuery({
     queryKey: [CompaniesCacheKeys.Companies, 'infinite'],
     queryFn: ({ pageParam = 0 }) => companyService.getInfinite(pageParam, pageSize),
+    initialPageParam: 0,
     getNextPageParam: (lastPage) => {
       return lastPage.last ? undefined : lastPage.pageNumber + 1
     },

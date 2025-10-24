@@ -46,7 +46,7 @@ export function InfiniteCompanyList({ onEditCompany }: InfiniteCompanyListProps)
   }
 
   // Aplatir toutes les pages en une seule liste
-  const allCompanies = data?.pages.flatMap(page => page.content) || []
+  const allCompanies = data?.pages.flatMap(page => (page as { content: Company[] }).content) || []
 
   return (
     <div className="space-y-4">
@@ -65,7 +65,7 @@ export function InfiniteCompanyList({ onEditCompany }: InfiniteCompanyListProps)
         
         {hasNextPage && !isFetchingNextPage && (
           <Button variant="outline" onClick={() => fetchNextPage()}>
-            Charger plus d'entreprises
+            Charger plus d&apos;entreprises
           </Button>
         )}
         

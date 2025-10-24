@@ -70,7 +70,7 @@ export function ImageUploadDialog({ open, onOpenChange, company }: ImageUploadDi
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Image className="h-5 w-5" />
-            Changer l'image de {company.name}
+            Changer l&apos;image de {company.name}
           </DialogTitle>
           <DialogDescription>
             Sélectionnez une nouvelle image pour cette entreprise. Formats acceptés : JPG, PNG, WebP (max 1MB)

@@ -112,7 +112,7 @@ export function AdminCompany() {
         <Card>
           <CardContent className="p-6">
             <h2 className="text-xl font-semibold mb-2">Accès refusé</h2>
-            <p className="text-muted-foreground">Vous n'avez pas les permissions nécessaires pour accéder à cette page.</p>
+            <p className="text-muted-foreground">Vous n&apos;avez pas les permissions nécessaires pour accéder à cette page.</p>
           </CardContent>
         </Card>
       </div>
@@ -129,8 +129,9 @@ export function AdminCompany() {
   }
 
   // Gérer la sélection multiple
-  const handleRowSelectionChange = (selection: Record<string, boolean>) => {
-    const selectedIds = Object.keys(selection).filter(key => selection[key])
+  const handleRowSelectionChange = (selection: unknown) => {
+    const selectionRecord = selection as Record<string, boolean>
+    const selectedIds = Object.keys(selectionRecord).filter(key => selectionRecord[key])
     const selected = displayData.filter((_, index) => selectedIds.includes(index.toString()))
     setSelectedCompanies(selected)
   }
