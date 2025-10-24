@@ -9,7 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Search, Filter, X, Building2, Mail, Phone, Globe } from "lucide-react"
+import { Search, Filter, X, Building2, Globe } from "lucide-react"
 import { Company } from "@/types"
 
 interface SearchFilters {
@@ -30,48 +30,37 @@ export function CompanySearch({ data, onFilteredData, placeholder = "Rechercher 
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
+  const filterData = () => {
+    if (!data) return [];
+    
+    return data.filter(company => {
+      // Filter by search term
+      const matchesSearch = !searchTerm || 
+        company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.phoneNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Filter by website
+      const matchesWebsite = filters.hasWebsite === undefined || 
+        (filters.hasWebsite ? company.website : !company.website);
+
+      // Filter by address city
+      const matchesCity = !filters.city || 
+        company.address?.city?.toLowerCase() === filters.city.toLowerCase();
+
+      return matchesSearch && matchesWebsite && matchesCity;
+    });
+  };
+
   // Debounce pour la recherche
   useEffect(() => {
     const timer = setTimeout(() => {
-      filterData()
-    }, 300)
+      const filtered = filterData();
+      onFilteredData(filtered);
+    }, 300);
 
-    return () => clearTimeout(timer)
-  }, [searchTerm, filters, data])
-
-  const filterData = () => {
-    let filtered = data
-
-    // Recherche textuelle
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase()
-      filtered = filtered.filter(company => 
-        company.name.toLowerCase().includes(term) ||
-        company.email.toLowerCase().includes(term) ||
-        company.phoneNumber.includes(term) ||
-        company.fiscalCode.toLowerCase().includes(term) ||
-        company.website?.toLowerCase().includes(term) ||
-        company.address?.city?.toLowerCase().includes(term)
-      )
-    }
-
-    // Filtres avancés
-    if (filters.hasWebsite !== undefined) {
-      filtered = filtered.filter(company => !!company.website === filters.hasWebsite)
-    }
-
-    if (filters.hasImage !== undefined) {
-      filtered = filtered.filter(company => !!company.image === filters.hasImage)
-    }
-
-    if (filters.city) {
-      filtered = filtered.filter(company => 
-        company.address?.city?.toLowerCase().includes(filters.city!.toLowerCase())
-      )
-    }
-
-    onFilteredData(filtered)
-  }
+    return () => clearTimeout(timer);
+  }, [searchTerm, filters, data, onFilteredData]);
 
   const clearFilters = () => {
     setSearchTerm("")

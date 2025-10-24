@@ -45,7 +45,7 @@ interface CompanyFormProps {
 }
 
 export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: CompanyFormProps) {
-  const { createCompany, createCompanyAsync, updateCompany, updateCompanyImage, isCreating, isUpdating, isUpdatingImage } = useCompanies()
+  const { createCompanyAsync, updateCompany, updateCompanyImage, isCreating, isUpdating, isUpdatingImage } = useCompanies()
   const queryClient = useQueryClient()
   const isEditMode = mode === 'edit' && company
   

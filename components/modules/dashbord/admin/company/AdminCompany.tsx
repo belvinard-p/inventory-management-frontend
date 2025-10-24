@@ -1,25 +1,23 @@
 "use client"
 
-import React from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import { useCompanies } from "@/hooks/useCompany"
 import { useAuth } from "@/hooks/useAuth"
+import { InfiniteCompanyList } from "./InfiniteCompanyList"
 import { DataTable } from "./DataTable"
-import { columns } from "./Columns"
 import { Button } from "@/components/ui/button"
-import { Plus, Building2, MapPin, Globe, Mail, Phone } from "lucide-react"
-import { CompanyForm } from "./CompanyForm"
-import { useState, useEffect } from "react"
+import { Plus, Building2, MapPin, Globe, Phone } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CompanyProvider } from "./CompanyContext"
 import { CompanyTableSkeleton } from "./CompanyTableSkeleton"
 import { CompanySearch } from "./CompanySearch"
 import { BulkActions } from "./BulkActions"
-import { InfiniteCompanyList } from "./InfiniteCompanyList"
 import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { List, Grid } from "lucide-react"
 import type { Company } from "@/types"
 import { toast } from "sonner"
+import { CompanyForm } from "./CompanyForm"
 import {
   Pagination,
   PaginationContent,
@@ -34,17 +32,51 @@ export function AdminCompany() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading, accessToken } = useAuth()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
-  const [mounted, setMounted] = useState(false)
-  const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([])
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([])
   const [viewMode, setViewMode] = useState<'table' | 'infinite'>('table')
   const [currentPage, setCurrentPage] = useState(0)
   const pageSize = 10
-  const { companies, isLoading, isError } = useCompanies(currentPage, pageSize)
+  
+  // Single source of truth for companies data
+  const { 
+    companies, 
+    isLoading: companiesLoading, 
+    isError 
+  } = useCompanies(currentPage, pageSize)
+  
+  // Memoize the current page data
+  const currentPageData = useMemo(() => {
+    return companies?.content || []
+  }, [companies])
+
+  // Define columns for the data table
+  const columns = [
+    {
+      header: "Name",
+      accessorKey: "name",
+    },
+    {
+      header: "Email",
+      accessorKey: "email",
+    },
+    {
+      header: "Phone",
+      accessorKey: "phoneNumber",
+    },
+    {
+      header: "Address",
+      accessorKey: "address",
+      cell: ({ row }: { row: { original: Company } }) => {
+        const address = row.original.address;
+        return address ? `${address.address1 || ''} ${address.city || ''} ${address.country || ''}`.trim() : '';
+      }
+    },
+    // Add more columns as needed
+  ];
 
   // Check user permissions
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' ||
-                         currentUser?.roleName === 'ROLE_MANAGER'
+                       currentUser?.roleName === 'ROLE_MANAGER'
 
   // Keyboard shortcuts - Called unconditionally before any conditional returns
   // This fix prevents the "Rendered more hooks" error.
@@ -55,25 +87,39 @@ export function AdminCompany() {
       if (editingCompany) setEditingCompany(null)
     }
   })
-  // -------------------------------------------------------------------------
 
-  // Debug logging
-  console.log('AdminCompany render:', { isLoading, isError, companies, companiesLength: companies?.content?.length })
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // Compute data early to use in useEffect
-  const companiesData = Array.isArray(companies?.content) ? companies.content : []
-
-  // Initialize filtered data - moved to top to ensure consistent hook calls
-  useEffect(() => {
-    if (companiesData.length > 0 && filteredCompanies.length === 0) {
-      setFilteredCompanies(companiesData)
-    }
-  }, [companiesData, filteredCompanies.length])
-
+  // Handle search filtering
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const filteredData = useMemo(() => {
+    if (!companies?.content) return [];
+    
+    if (!searchQuery) return companies.content;
+    
+    const query = searchQuery.toLowerCase();
+    return companies.content.filter(company => 
+      company.name?.toLowerCase().includes(query) ||
+      company.email?.toLowerCase().includes(query) ||
+      company.phoneNumber?.toLowerCase().includes(query) ||
+      company.vatNumber?.toLowerCase().includes(query) ||
+      company.siret?.toLowerCase().includes(query) ||
+      company.siren?.toLowerCase().includes(query) ||
+      company.website?.toLowerCase().includes(query) ||
+      company.description?.toLowerCase().includes(query) ||
+      (company.address && (
+        (company.address.address1?.toLowerCase().includes(query)) ||
+        (company.address.city?.toLowerCase().includes(query)) ||
+        (company.address.country?.toLowerCase().includes(query)) ||
+        (company.address.postalCode?.toLowerCase().includes(query))
+      ))
+    );
+  }, [companies?.content, searchQuery]);
+  
+  // Clear selection
+  const clearSelection = () => {
+    setSelectedCompanies([]);
+  };
+  
   // Fonction pour gérer l'édition avec vérification du token
   const handleEditCompany = (company: Company) => {
     if (!accessToken) {
@@ -84,6 +130,19 @@ export function AdminCompany() {
     }
     setEditingCompany(company)
   }
+
+  // Get data to display based on view mode and search
+  const displayData = useMemo(() => {
+    if (viewMode === 'infinite') return []
+    return filteredData.length > 0 || currentPageData.length === 0 ? filteredData : currentPageData
+  }, [viewMode, filteredData, currentPageData])
+
+  // Add missing mounted state
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // --- CONDITIONAL RENDERING STARTS HERE ---
 
@@ -108,7 +167,7 @@ export function AdminCompany() {
       <div className="flex items-center justify-center h-96">
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-2">Non authentifié</h2>
+            <h2 className="text-xl font-semibent mb-2">Non authentifié</h2>
             <p className="text-muted-foreground">Vous devez être connecté pour accéder à cette page.</p>
           </CardContent>
         </Card>
@@ -129,13 +188,11 @@ export function AdminCompany() {
     )
   }
 
-  const displayData = filteredCompanies.length > 0 || companiesData.length === 0 ? filteredCompanies : companiesData
-
   const stats = {
-    total: companiesData.length || 0,
-    withWebsite: companiesData.filter(c => c.website)?.length || 0,
-    withCategories: companiesData.filter(c => c.categories && c.categories.length > 0)?.length || 0,
-    withSuppliers: companiesData.filter(c => c.suppliers && c.suppliers.length > 0)?.length || 0,
+    total: currentPageData.length || 0,
+    withWebsite: currentPageData.filter(c => c.website)?.length || 0,
+    withCategories: currentPageData.filter(c => c.categories && c.categories.length > 0)?.length || 0,
+    withSuppliers: currentPageData.filter(c => c.suppliers && c.suppliers.length > 0)?.length || 0,
   }
 
   // Gérer la sélection multiple
@@ -146,12 +203,9 @@ export function AdminCompany() {
     setSelectedCompanies(selected)
   }
 
-  const clearSelection = () => {
-    setSelectedCompanies([])
-  }
 
   // Si pas d'erreur mais aucune donnée, afficher l'état vide
-  if (!isLoading && !isError && companiesData.length === 0) {
+  if (!companiesLoading && !isError && currentPageData.length === 0) {
     return (
       <div className="space-y-6">
         {/* Header */}
@@ -195,7 +249,7 @@ export function AdminCompany() {
     )
   }
 
-  if (isLoading) {
+  if (companiesLoading) {
     return (
       <div className="space-y-6">
         {/* Header */}
@@ -215,7 +269,7 @@ export function AdminCompany() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
               <div className="space-y-2">
                 <p className="text-sm font-medium">Chargement des entreprises...</p>
-                <p className="text-xs text-muted-foreground">Cela peut prendre jusqu'à 45 secondes</p>
+                <p className="text-xs text-muted-foreground">Cela peut prendre jusqu&apos;à 45 secondes</p>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -347,8 +401,8 @@ export function AdminCompany() {
           {/* Mode de vue */}
           <div className="flex items-center justify-between">
             <CompanySearch 
-              data={companiesData}
-              onFilteredData={setFilteredCompanies}
+              data={currentPageData}
+              onFilteredData={(filtered) => setSearchQuery(filtered.length === currentPageData.length ? '' : 'filtered')}
               placeholder="Rechercher par nom, email, téléphone..."
             />
             

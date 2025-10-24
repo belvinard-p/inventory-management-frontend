@@ -1,15 +1,36 @@
 import { useQuery } from '@tanstack/react-query'
-import { companyService } from '@/service/companyService'
+import { apiClient } from '@/lib/apiClient'
+import { useEffect } from 'react'
 
 export const useImageQuery = (filename: string | null) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['image', filename],
     queryFn: async () => {
-      const blob = await companyService.getImage(filename!)
-      return URL.createObjectURL(blob)
+      try {
+        const blob = await apiClient.get<Blob>(`/files/${filename}`, {
+          responseType: 'blob',
+          showErrorToast: false
+        })
+        return URL.createObjectURL(blob)
+      } catch (error) {
+        console.error('Failed to fetch image:', error)
+        throw error
+      }
     },
     enabled: !!filename,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1
+    retry: 1,
+    refetchOnWindowFocus: false
   })
+
+  // Cleanup blob URL when component unmounts or data changes
+  useEffect(() => {
+    return () => {
+      if (query.data && typeof query.data === 'string') {
+        URL.revokeObjectURL(query.data)
+      }
+    }
+  }, [query.data])
+
+  return query
 }

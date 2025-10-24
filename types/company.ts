@@ -20,6 +20,9 @@ export type Company = {
     description: string;
     address: AddressDto;
     fiscalCode: string;
+    vatNumber?: string;
+    siret?: string;
+    siren?: string;
     image?: string;
     email: string;
     phoneNumber: string;
@@ -28,6 +31,7 @@ export type Company = {
     updatedAt: string;
     categories?: CategoryResponse[];
     suppliers?: SupplierResponse[];
+    tags?: string[];
 }
 
 // Type pour créer/modifier une company (basé sur CompanyRequestDto)

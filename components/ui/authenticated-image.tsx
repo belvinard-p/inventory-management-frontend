@@ -1,6 +1,7 @@
 "use client"
 
 import { useImageQuery } from "@/hooks/useImageQuery"
+import { useEffect } from "react"
 
 interface AuthenticatedImageProps {
   filename: string
@@ -12,6 +13,15 @@ interface AuthenticatedImageProps {
 
 export function AuthenticatedImage({ filename, alt, className, onError, onLoad }: AuthenticatedImageProps) {
   const { data: imageSrc, isLoading, isError } = useImageQuery(filename)
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (imageSrc && typeof imageSrc === 'string') {
+        URL.revokeObjectURL(imageSrc)
+      }
+    }
+  }, [imageSrc])
 
   if (isLoading) {
     return <div className={`${className} animate-pulse bg-gray-200 rounded-full`} />
@@ -28,6 +38,12 @@ export function AuthenticatedImage({ filename, alt, className, onError, onLoad }
       alt={alt} 
       className={className}
       onLoad={onLoad}
+      onError={() => {
+        if (imageSrc && typeof imageSrc === 'string') {
+          URL.revokeObjectURL(imageSrc)
+        }
+        onError?.()
+      }}
     />
   )
 }
