@@ -1,33 +1,71 @@
-import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery, UseQueryOptions } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { enhancedToast } from '@/lib/toast-utils'
 import { companyService } from '@/service/companyService'
 import { Company, CompanyRequest, ApiError } from '@/types'
 import { CompaniesCacheKeys } from '@/lib/const'
 
-// Hook principal pour les entreprises
-export const useCompanies = () => {
-  const queryClient = useQueryClient()
+// Interface pour les paramètres de pagination
+export interface PaginationParams {
+  pageNumber?: number
+  pageSize?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}
 
-  // Query pour récupérer toutes les entreprises
-  const getCompanies = useQuery({
-    queryKey: [CompaniesCacheKeys.Companies],
+// Interface pour la réponse paginée
+export interface PaginatedResponse<T> {
+  content: T[]
+  pageNumber: number
+  pageSize: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+}
+
+// Hook principal pour les entreprises
+export const useCompanies = (
+  paginationParams?: PaginationParams,
+  options?: Omit<
+    UseQueryOptions<PaginatedResponse<Company>, Error>,
+    'queryKey' | 'queryFn' | 'staleTime' | 'retry' | 'enabled' | 'refetchOnWindowFocus' | 'keepPreviousData'
+  >
+) => {
+  const queryClient = useQueryClient()
+  const { pageNumber = 0, pageSize = 10, sortBy, sortOrder } = paginationParams || {}
+
+  // Query pour récupérer les entreprises avec pagination
+  const getCompanies = useQuery<PaginatedResponse<Company>, Error>({
+    queryKey: [CompaniesCacheKeys.Companies, { pageNumber, pageSize, sortBy, sortOrder }],
     queryFn: async () => {
-      console.log('Fetching companies...')
+      console.log('Fetching companies...', { pageNumber, pageSize, sortBy, sortOrder })
       try {
-        const result = await companyService.getAll()
+        const result = await companyService.getAll({
+          page: pageNumber,
+          size: pageSize,
+          sort: sortBy,
+          direction: sortOrder
+        })
         console.log('Companies fetched successfully:', result)
         return result
       } catch (error) {
         console.error('Error fetching companies:', error)
         // Retourner une réponse vide au lieu de lancer l'erreur
-        return { content: [], pageNumber: 0, pageSize: 10, totalElements: 0, totalPages: 0, last: true }
+        return { 
+          content: [], 
+          pageNumber: 0, 
+          pageSize, 
+          totalElements: 0, 
+          totalPages: 0, 
+          last: true 
+        }
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false, // Désactiver les retry pour éviter les boucles infinies
     enabled: typeof window !== 'undefined', // Éviter l'hydratation
     refetchOnWindowFocus: false, // Éviter les refetch automatiques
+    ...options
   })
 
   // Mutation pour créer une entreprise

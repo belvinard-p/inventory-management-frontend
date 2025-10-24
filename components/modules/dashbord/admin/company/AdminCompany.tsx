@@ -24,13 +24,38 @@ import { toast } from "sonner"
 export function AdminCompany() {
   // --- ALL HOOKS MUST BE CALLED UNCONDITIONALLY AT THE TOP ---
   const { user: currentUser, isAuthenticated, isLoading: authLoading, accessToken } = useAuth()
-  const { companies, isLoading, isError } = useCompanies()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
   const [mounted, setMounted] = useState(false)
-  const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([])
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([])
   const [viewMode, setViewMode] = useState<'table' | 'infinite'>('table')
+
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+    sortBy: 'name',
+    sortOrder: 'asc' as 'asc' | 'desc'
+  })
+
+  // Fetch companies with pagination
+  const { companies, isLoading, isError } = useCompanies({
+    pageNumber: pagination.pageIndex,
+    pageSize: pagination.pageSize,
+    sortBy: pagination.sortBy,
+    sortOrder: pagination.sortOrder
+  })
+
+  // Use the PaginatedResponse type from useCompany hook
+  type CompaniesResponse = import('@/hooks/useCompany').PaginatedResponse<Company>
+  
+  // Type assertion for companies
+  const companiesData = companies as CompaniesResponse | undefined
+  
+  // Update filtered companies when data changes
+  const filteredCompanies = companiesData?.content || []
+  const totalItems = companiesData?.totalElements || 0
+  const pageCount = companiesData?.totalPages || 1
 
   // Check user permissions
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' ||
@@ -54,15 +79,35 @@ export function AdminCompany() {
     setMounted(true)
   }, [])
 
-  // Compute data early to use in useEffect
-  const companiesData = Array.isArray(companies?.content) ? companies.content : []
-
-  // Initialize filtered data - moved to top to ensure consistent hook calls
-  useEffect(() => {
-    if (companiesData.length > 0 && filteredCompanies.length === 0) {
-      setFilteredCompanies(companiesData)
-    }
-  }, [companiesData, filteredCompanies.length])
+  // Handle page change
+  const handlePageChange = (pageIndex: number) => {
+    setPagination(prev => ({
+      ...prev,
+      pageIndex
+    }))
+    
+    // Scroll to top of the table
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  
+  // Handle page size change
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPagination(prev => ({
+      ...prev,
+      pageSize: newPageSize,
+      pageIndex: 0 // Reset to first page when changing page size
+    }))
+  }
+  
+  // Handle sorting
+  const handleSortingChange = (columnId: string, direction: 'asc' | 'desc') => {
+    setPagination(prev => ({
+      ...prev,
+      sortBy: columnId,
+      sortOrder: direction,
+      pageIndex: 0 // Reset to first page when changing sort
+    }))
+  }
 
   // Fonction pour gérer l'édition avec vérification du token
   const handleEditCompany = (company: Company) => {
@@ -119,20 +164,19 @@ export function AdminCompany() {
     )
   }
 
-  const displayData = filteredCompanies.length > 0 || companiesData.length === 0 ? filteredCompanies : companiesData
-
+  // Calculate stats with proper type checking
   const stats = {
-    total: companiesData.length || 0,
-    withWebsite: companiesData.filter(c => c.website)?.length || 0,
-    withCategories: companiesData.filter(c => c.categories && c.categories.length > 0)?.length || 0,
-    withSuppliers: companiesData.filter(c => c.suppliers && c.suppliers.length > 0)?.length || 0,
+    total: totalItems,
+    withWebsite: companiesData?.content?.filter((c: Company) => c.website)?.length || 0,
+    withCategories: companiesData?.content?.filter((c: Company) => c.categories && c.categories.length > 0)?.length || 0,
+    withSuppliers: companiesData?.content?.filter((c: Company) => c.suppliers && c.suppliers.length > 0)?.length || 0,
   }
 
   // Gérer la sélection multiple
   const handleRowSelectionChange = (selection: unknown) => {
     const selectionRecord = selection as Record<string, boolean>
     const selectedIds = Object.keys(selectionRecord).filter(key => selectionRecord[key])
-    const selected = displayData.filter((_, index) => selectedIds.includes(index.toString()))
+    const selected = filteredCompanies.filter((_, index) => selectedIds.includes(index.toString()))
     setSelectedCompanies(selected)
   }
 
@@ -141,7 +185,7 @@ export function AdminCompany() {
   }
 
   // Si pas d'erreur mais aucune donnée, afficher l'état vide
-  if (!isLoading && !isError && companiesData.length === 0) {
+  if (!isLoading && !isError && filteredCompanies.length === 0) {
     return (
       <div className="space-y-6">
         {/* Header */}
@@ -312,8 +356,12 @@ export function AdminCompany() {
           {/* Mode de vue */}
           <div className="flex items-center justify-between">
             <CompanySearch 
-              data={companiesData}
-              onFilteredData={setFilteredCompanies}
+              data={filteredCompanies}
+              onFilteredData={(data) => {
+                // This is a client-side search, but we're using server-side pagination
+                // So we'll just show a message that search is handled server-side
+                toast.info('La recherche est gérée côté serveur. Utilisez la barre de recherche ci-dessus.')
+              }}
               placeholder="Rechercher par nom, email, téléphone..."
             />
             
@@ -336,8 +384,19 @@ export function AdminCompany() {
             <CompanyProvider onEditCompany={handleEditCompany}>
               <DataTable 
                 columns={columns} 
-                data={displayData}
+                data={filteredCompanies}
+                enableRowSelection={hasPermission}
+                enablePagination={viewMode === 'table'}
+                enableToolbar={viewMode === 'table'}
                 onRowSelectionChange={handleRowSelectionChange}
+                pageIndex={pagination.pageIndex}
+                pageSize={pagination.pageSize}
+                pageCount={pageCount}
+                totalItems={totalItems}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                onSortingChange={handleSortingChange}
+                isLoading={isLoading}
               />
             </CompanyProvider>
           ) : (

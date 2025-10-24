@@ -38,6 +38,14 @@ interface DataTableProps<TData, TValue> {
   enablePagination?: boolean
   enableToolbar?: boolean
   onRowSelectionChange?: (selected: unknown) => void
+  pageIndex?: number
+  pageSize?: number
+  pageCount?: number
+  totalItems?: number
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (pageSize: number) => void
+  onSortingChange?: (columnId: string, direction: 'asc' | 'desc') => void
+  isLoading?: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -47,6 +55,14 @@ export function DataTable<TData, TValue>({
   enablePagination = true,
   enableToolbar = true,
   onRowSelectionChange,
+  pageIndex: controlledPageIndex = 0,
+  pageSize: controlledPageSize = 10,
+  pageCount = 1,
+  totalItems,
+  onPageChange,
+  onPageSizeChange,
+  onSortingChange,
+  isLoading = false,
 }: DataTableProps<TData, TValue>) {
   // Protection contre les données undefined/null
   const safeData: TData[] = Array.isArray(data) ? data : []
@@ -80,6 +96,16 @@ export function DataTable<TData, TValue>({
     }
   }, [onRowSelectionChange, rowSelection])
 
+  // Handle sorting changes
+  React.useEffect(() => {
+    if (onSortingChange && sorting.length > 0) {
+      const sort = sorting[0]
+      onSortingChange(sort.id, sort.desc ? 'desc' : 'asc')
+    }
+  }, [sorting, onSortingChange])
+
+  const isControlled = onPageChange !== undefined && onPageSizeChange !== undefined
+  
   const table = useReactTable({
     data: safeData,
     columns: safeColumns,
@@ -88,7 +114,14 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
       columnFilters,
+      pagination: {
+        pageIndex: isControlled ? controlledPageIndex : 0,
+        pageSize: isControlled ? controlledPageSize : 10,
+      },
     },
+    pageCount: isControlled ? pageCount : undefined,
+    manualPagination: isControlled,
+    manualSorting: !!onSortingChange,
     enableRowSelection,
     onRowSelectionChange: handleRowSelectionChange,
     onSortingChange: setSorting,
