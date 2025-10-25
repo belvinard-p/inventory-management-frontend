@@ -7,17 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Company } from '@/types'
 
 interface CompanySearchProps {
-  data: Company[]
-  onFilteredData: (filtered: Company[], hasFilter?: boolean) => void
-  placeholder?: string
-  className?: string
+  readonly data: Company[]
+  readonly onFilteredData: (filtered: Company[], hasFilter?: boolean) => void
+  readonly placeholder?: string
 }
 
 export function CompanySearch({ 
   data, 
   onFilteredData, 
-  placeholder = "Rechercher des entreprises...", 
-  className 
+  placeholder = "Search companies..." 
 }: CompanySearchProps) {
   const [selectValue, setSelectValue] = React.useState("")
   const isFiltered = selectValue !== "" && selectValue !== "all"
