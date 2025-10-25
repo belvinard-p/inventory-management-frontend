@@ -12,6 +12,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CompanyProvider } from "./CompanyContext"
 import { CompanyTableSkeleton } from "./CompanyTableSkeleton"
+
 import { CompanySearch } from "./CompanySearch"
 import { BulkActions } from "./BulkActions"
 import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
@@ -33,7 +34,9 @@ export function AdminCompany() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
   const [mounted, setMounted] = useState(false)
+
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([])
+  const [hasFilter, setHasFilter] = useState(false)
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([])
 
   const [currentPage, setCurrentPage] = useState(0)
@@ -61,15 +64,14 @@ export function AdminCompany() {
 
   // Compute data early to use in useEffect
   const companiesData = Array.isArray(companies?.content) ? companies.content : []
-
-  // Initialize filtered data - moved to top to ensure consistent hook calls
-  const [hasFilter, setHasFilter] = useState(false)
   
   useEffect(() => {
     if (companiesData.length > 0 && filteredCompanies.length === 0 && !hasFilter) {
       setFilteredCompanies(companiesData)
     }
   }, [companiesData, filteredCompanies.length, hasFilter])
+
+
 
   // Fonction pour gérer l'édition avec vérification du token
   const handleEditCompany = (company: Company) => {
@@ -341,7 +343,6 @@ export function AdminCompany() {
           <CardTitle>Liste des Entreprises</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Search and Column Visibility */}
           <div className="flex items-center justify-between">
             <CompanySearch 
               data={companiesData}
