@@ -350,7 +350,7 @@ export function AdminCompany() {
                 setFilteredCompanies(filtered)
                 setHasFilter(hasFilter)
               }}
-              placeholder="Rechercher par nom, email, téléphone..."
+              placeholder="Rechercher entreprise"
             />
           </div>
           
