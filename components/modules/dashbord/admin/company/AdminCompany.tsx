@@ -355,14 +355,14 @@ export function AdminCompany() {
               placeholder="Rechercher par nom, email, téléphone..."
             />
             
-            <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'table' | 'infinite')}>
-              <ToggleGroupItem value="table" aria-label="Vue tableau">
-                <Grid className="h-4 w-4" />
-              </ToggleGroupItem>
-              <ToggleGroupItem value="infinite" aria-label="Vue infinie">
-                <List className="h-4 w-4" />
-              </ToggleGroupItem>
-            </ToggleGroup>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              aria-label="Vue tableau"
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
           </div>
           
           <BulkActions 
