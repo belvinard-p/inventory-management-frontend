@@ -131,7 +131,7 @@ export function AdminCompany() {
   const displayData = hasFilter ? filteredCompanies : companiesData
 
   const stats = {
-    total: companiesData.length || 0,
+    total: (companies && typeof companies.totalElements === 'number') ? companies.totalElements : (companiesData.length || 0),
     withWebsite: companiesData.filter(c => c.website)?.length || 0,
     withCategories: companiesData.filter(c => c.categories && c.categories.length > 0)?.length || 0,
     withSuppliers: companiesData.filter(c => c.suppliers && c.suppliers.length > 0)?.length || 0,
