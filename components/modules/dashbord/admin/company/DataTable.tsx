@@ -244,8 +244,8 @@ export function DataTable<TData, TValue>({
                     <EmptyState 
                       title={safeData.length === 0 ? "Aucune donnée" : "Aucun résultat"}
                       description={safeData.length === 0 
-                        ? "Aucun utilisateur n'a été trouvé" 
-                        : "Aucun utilisateur ne correspond aux filtres actuels"
+                        ? "Aucune entreprise n'a été trouvée" 
+                        : "Aucune entreprise ne correspond aux filtres actuels"
                       }
                     />
                   </TableCell>

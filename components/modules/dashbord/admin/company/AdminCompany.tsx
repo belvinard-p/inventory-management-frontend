@@ -20,6 +20,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { List, Grid } from "lucide-react"
 import type { Company } from "@/types"
 import { toast } from "sonner"
+import { EmptyState } from "@/components/global/EmptyState"
 import {
   Pagination,
   PaginationContent,
@@ -372,10 +373,10 @@ export function AdminCompany() {
           {viewMode === 'table' ? (
             <>
               {displayData.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Aucun résultat</p>
-                  <p className="text-sm text-muted-foreground mt-1">Aucune entreprise ne correspond aux filtres actuels</p>
-                </div>
+                <EmptyState 
+                  title="Aucun résultat"
+                  description="Aucune entreprise ne correspond aux filtres actuels"
+                />
               ) : (
                 <CompanyProvider onEditCompany={handleEditCompany}>
                   <DataTable 
