@@ -57,9 +57,6 @@ export function AdminCompany() {
   })
   // -------------------------------------------------------------------------
 
-  // Debug logging
-  console.log('AdminCompany render:', { isLoading, isError, companies, companiesLength: companies?.content?.length })
-
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -68,11 +65,13 @@ export function AdminCompany() {
   const companiesData = Array.isArray(companies?.content) ? companies.content : []
 
   // Initialize filtered data - moved to top to ensure consistent hook calls
+  const [hasFilter, setHasFilter] = useState(false)
+  
   useEffect(() => {
-    if (companiesData.length > 0 && filteredCompanies.length === 0) {
+    if (companiesData.length > 0 && filteredCompanies.length === 0 && !hasFilter) {
       setFilteredCompanies(companiesData)
     }
-  }, [companiesData, filteredCompanies.length])
+  }, [companiesData, filteredCompanies.length, hasFilter])
 
   // Fonction pour gérer l'édition avec vérification du token
   const handleEditCompany = (company: Company) => {
@@ -129,7 +128,7 @@ export function AdminCompany() {
     )
   }
 
-  const displayData = filteredCompanies.length > 0 || companiesData.length === 0 ? filteredCompanies : companiesData
+  const displayData = hasFilter ? filteredCompanies : companiesData
 
   const stats = {
     total: companiesData.length || 0,
@@ -348,7 +347,10 @@ export function AdminCompany() {
           <div className="flex items-center justify-between">
             <CompanySearch 
               data={companiesData}
-              onFilteredData={setFilteredCompanies}
+              onFilteredData={(filtered, hasFilter = true) => {
+                setFilteredCompanies(filtered)
+                setHasFilter(hasFilter)
+              }}
               placeholder="Rechercher par nom, email, téléphone..."
             />
             
@@ -369,14 +371,22 @@ export function AdminCompany() {
           
           {viewMode === 'table' ? (
             <>
-              <CompanyProvider onEditCompany={handleEditCompany}>
-                <DataTable 
-                  columns={columns} 
-                  data={displayData}
-                  onRowSelectionChange={handleRowSelectionChange}
-                  enablePagination={false}
-                />
-              </CompanyProvider>
+              {displayData.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Aucun résultat</p>
+                  <p className="text-sm text-muted-foreground mt-1">Aucune entreprise ne correspond aux filtres actuels</p>
+                </div>
+              ) : (
+                <CompanyProvider onEditCompany={handleEditCompany}>
+                  <DataTable 
+                    columns={columns} 
+                    data={displayData}
+                    onRowSelectionChange={handleRowSelectionChange}
+                    enablePagination={false}
+                    enableToolbar={false}
+                  />
+                </CompanyProvider>
+              )}
               
               {/* Pagination personnalisée */}
               {companies && companies.totalPages > 1 && (
