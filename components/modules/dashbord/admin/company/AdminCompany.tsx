@@ -14,10 +14,7 @@ import { CompanyProvider } from "./CompanyContext"
 import { CompanyTableSkeleton } from "./CompanyTableSkeleton"
 import { CompanySearch } from "./CompanySearch"
 import { BulkActions } from "./BulkActions"
-import { InfiniteCompanyList } from "./InfiniteCompanyList"
 import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { List, Grid } from "lucide-react"
 import type { Company } from "@/types"
 import { toast } from "sonner"
 import { EmptyState } from "@/components/global/EmptyState"
@@ -38,7 +35,7 @@ export function AdminCompany() {
   const [mounted, setMounted] = useState(false)
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([])
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([])
-  const [viewMode, setViewMode] = useState<'table' | 'infinite'>('table')
+
   const [currentPage, setCurrentPage] = useState(0)
   const pageSize = 10
   const { companies, isLoading, isError } = useCompanies(currentPage, pageSize)
@@ -344,7 +341,7 @@ export function AdminCompany() {
           <CardTitle>Liste des Entreprises</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Mode de vue */}
+          {/* Search and Column Visibility */}
           <div className="flex items-center justify-between">
             <CompanySearch 
               data={companiesData}
@@ -354,15 +351,6 @@ export function AdminCompany() {
               }}
               placeholder="Rechercher par nom, email, téléphone..."
             />
-            
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              aria-label="Vue tableau"
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
           </div>
           
           <BulkActions 
@@ -370,62 +358,74 @@ export function AdminCompany() {
             onClearSelection={clearSelection}
           />
           
-          {viewMode === 'table' ? (
-            <>
-              {displayData.length === 0 ? (
-                <EmptyState 
-                  title="Aucun résultat"
-                  description="Aucune entreprise ne correspond aux filtres actuels"
-                />
-              ) : (
-                <CompanyProvider onEditCompany={handleEditCompany}>
-                  <DataTable 
-                    columns={columns} 
-                    data={displayData}
-                    onRowSelectionChange={handleRowSelectionChange}
-                    enablePagination={false}
-                    enableToolbar={false}
-                  />
-                </CompanyProvider>
-              )}
-              
-              {/* Pagination personnalisée */}
-              {companies && companies.totalPages > 1 && (
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
-                        disabled={currentPage === 0}
-                        size="default"
-                      />
-                    </PaginationItem>
+          {displayData.length === 0 ? (
+            <EmptyState 
+              title="Aucun résultat"
+              description="Aucune entreprise ne correspond aux filtres actuels"
+            />
+          ) : (
+            <CompanyProvider onEditCompany={handleEditCompany}>
+              <DataTable 
+                columns={columns} 
+                data={displayData}
+                onRowSelectionChange={handleRowSelectionChange}
+                enablePagination={false}
+                enableToolbar={true}
+              />
+            </CompanyProvider>
+          )}
+          
+          {/* Pagination personnalisée */}
+          {companies && companies.totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Page {currentPage + 1} sur {companies.totalPages} ({companies.totalElements} entreprises)
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                      className={currentPage === 0 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      size="default"
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: Math.min(companies.totalPages, 5) }, (_, i) => {
+                    let pageIndex = i
+                    if (companies.totalPages > 5) {
+                      if (currentPage < 3) {
+                        pageIndex = i
+                      } else if (currentPage > companies.totalPages - 4) {
+                        pageIndex = companies.totalPages - 5 + i
+                      } else {
+                        pageIndex = currentPage - 2 + i
+                      }
+                    }
                     
-                    {Array.from({ length: companies.totalPages }, (_, i) => (
-                      <PaginationItem key={i}>
+                    return (
+                      <PaginationItem key={pageIndex}>
                         <PaginationLink
-                          onClick={() => setCurrentPage(i)}
-                          isActive={currentPage === i}
-                          size="default"
+                          onClick={() => setCurrentPage(pageIndex)}
+                          isActive={currentPage === pageIndex}
+                          className="cursor-pointer"
                         >
-                          {i + 1}
+                          {pageIndex + 1}
                         </PaginationLink>
                       </PaginationItem>
-                    ))}
-                    
-                    <PaginationItem>
-                      <PaginationNext 
-                        onClick={() => setCurrentPage(Math.min(companies.totalPages - 1, currentPage + 1))}
-                        disabled={currentPage === companies.totalPages - 1}
-                        size="default"
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              )}
-            </>
-          ) : (
-            <InfiniteCompanyList onEditCompany={handleEditCompany} />
+                    )
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(Math.min(companies.totalPages - 1, currentPage + 1))}
+                      className={currentPage === companies.totalPages - 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      size="default"
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           )}
         </CardContent>
       </Card>
