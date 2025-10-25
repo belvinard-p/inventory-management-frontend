@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 
 interface InfiniteCompanyListProps {
-  onEditCompany: (company: Company) => void
+  readonly onEditCompany: (company: Company) => void
 }
 
 export function InfiniteCompanyList({ onEditCompany }: InfiniteCompanyListProps) {
@@ -27,7 +27,7 @@ export function InfiniteCompanyList({ onEditCompany }: InfiniteCompanyListProps)
   const { loadMoreRef } = useInfiniteScroll({
     hasNextPage: !!hasNextPage,
     isFetchingNextPage,
-    fetchNextPage
+    fetchNextPage: () => { void fetchNextPage() }
   })
 
   if (isLoading) {
@@ -64,7 +64,7 @@ export function InfiniteCompanyList({ onEditCompany }: InfiniteCompanyListProps)
         )}
         
         {hasNextPage && !isFetchingNextPage && (
-          <Button variant="outline" onClick={() => fetchNextPage()}>
+          <Button variant="outline" onClick={() => { void fetchNextPage() }}>
             Charger plus d&apos;entreprises
           </Button>
         )}

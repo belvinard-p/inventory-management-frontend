@@ -46,6 +46,8 @@ export function DataTableViewOptions<TData>({
             const getFrenchTitle = (columnId: string) => {
               const frenchTitles: { [key: string]: string } = {
                 'userName': 'Nom',
+                'name': 'Nom',
+                'phoneNumber': 'Téléphone',
                 'email': 'Email',
                 'roleName': 'Rôle',
                 'status': 'Statut',

@@ -18,9 +18,9 @@ import { toast } from "sonner"
 import { CompanyImage } from "./CompanyImage"
 
 interface ImageUploadDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  company: Company
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
+  readonly company: Company
 }
 
 export function ImageUploadDialog({ open, onOpenChange, company }: ImageUploadDialogProps) {
