@@ -29,7 +29,7 @@ interface StatsCardProps {
 }
 
 interface AdminCompanyContentProps {
-  readonly currentUser: any
+  readonly currentUser: { roleName: string } | null
   readonly companiesData: Company[]
   readonly displayData: Company[]
   readonly stats: {
@@ -38,7 +38,7 @@ interface AdminCompanyContentProps {
     readonly withCategories: number
     readonly withSuppliers: number
   }
-  readonly companies: any
+  readonly companies: { totalPages: number; totalElements: number } | null | undefined
   readonly currentPage: number
   readonly selectedCompanies: Company[]
   readonly isCreateModalOpen: boolean
@@ -70,7 +70,7 @@ function StatsCard({ title, value, icon, colorClass }: StatsCardProps) {
 }
 
 function PaginationComponent({ companies, currentPage, setCurrentPage }: {
-  readonly companies: any
+  readonly companies: { totalPages: number; totalElements: number } | null | undefined
   readonly currentPage: number
   readonly setCurrentPage: (page: number) => void
 }) {

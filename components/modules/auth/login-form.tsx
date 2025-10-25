@@ -28,6 +28,7 @@ export function LoginForm() {
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [retryCount, setRetryCount] = useState(0)
 
     const form = useForm<z.infer<typeof LoginSchema>>({
         resolver: zodResolver(LoginSchema),
@@ -53,9 +54,12 @@ export function LoginForm() {
         setLoading(true)
         setError(null)
         try {
-            console.log('Tentative de connexion avec:', data.username)
+            console.log(`Tentative de connexion ${retryCount + 1} avec:`, data.username)
             const result = await authService.signIn(data)
             console.log('Réponse authService:', result)
+            
+            // Reset retry count on success
+            setRetryCount(0)
 
             if (!result || !result.jwtToken) {
                 throw new Error("Réponse invalide du serveur")
@@ -91,12 +95,31 @@ export function LoginForm() {
         } catch (err: unknown) {
             console.error('Erreur de connexion:', err)
             const errorMessage = err instanceof Error ? err.message : "Erreur de connexion"
-            setError(errorMessage)
-            toast.error(errorMessage)
+            
+            // Handle timeout/slow connection with retry suggestion
+            if (errorMessage.includes('Connexion lente') || errorMessage.includes('expirée')) {
+                setRetryCount(prev => prev + 1)
+                if (retryCount < 2) {
+                    setError(`${errorMessage} (Tentative ${retryCount + 1}/3)`)
+                    toast.error('Connexion lente', {
+                        description: 'Cliquez sur "Se connecter" pour réessayer',
+                        duration: 4000
+                    })
+                } else {
+                    setError('Serveur indisponible - Vérifiez votre connexion internet')
+                    toast.error('Serveur indisponible', {
+                        description: 'Le serveur ne répond pas. Contactez l\'administrateur.',
+                        duration: 6000
+                    })
+                }
+            } else {
+                setError(errorMessage)
+                toast.error(errorMessage)
+            }
         } finally {
             setLoading(false)
         }
-    }, [setUser, setTokens, router])
+    }, [setUser, setTokens, router, retryCount])
 
     return (
         <div className="min-h-screen flex">

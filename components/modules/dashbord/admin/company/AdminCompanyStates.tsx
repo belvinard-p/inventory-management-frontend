@@ -6,7 +6,6 @@ import { Plus, Building2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { CompanyForm } from "./CompanyForm"
 import { CompanyTableSkeleton } from "./CompanyTableSkeleton"
-import type { Company } from "@/types"
 
 interface LoadingStateProps {
   readonly title?: string
@@ -14,13 +13,13 @@ interface LoadingStateProps {
 }
 
 interface EmptyStateProps {
-  readonly currentUser: any
+  readonly currentUser: { roleName: string } | null
   readonly isCreateModalOpen: boolean
   readonly setIsCreateModalOpen: (open: boolean) => void
 }
 
 interface ErrorStateProps {
-  readonly currentUser: any
+  readonly currentUser: { roleName: string } | null
   readonly isCreateModalOpen: boolean
   readonly setIsCreateModalOpen: (open: boolean) => void
 }
