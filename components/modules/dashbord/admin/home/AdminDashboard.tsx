@@ -1,6 +1,6 @@
 "use client"
 
-import { Users, Package, ShoppingCart, TrendingUp, AlertTriangle, RefreshCw } from "lucide-react"
+import { Users, Package, ShoppingCart, TrendingUp, AlertTriangle, RefreshCw, Building2 } from "lucide-react"
 import { useState, useMemo, useCallback, useEffect } from "react"
 import { useAuthGuard } from "@/hooks/useAuthGuard"
 import { FormLoadingState } from "@/components/global"
@@ -9,6 +9,7 @@ import { UserCheck, Archive, Lock, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { userService } from "@/service/userService"
+import { companyService } from "@/service/companyService"
 
 export function AdminDashboard() {
     // Vérification des permissions admin
@@ -23,6 +24,7 @@ export function AdminDashboard() {
     // Simulation de données - remplacer par de vrais appels API
     const [dashboardData, setDashboardData] = useState({
         totalUsers: 0,
+        totalCompanies: 0,
         totalProducts: 0,
         totalOrders: 0,
         monthlyRevenue: 0,
@@ -37,13 +39,19 @@ export function AdminDashboard() {
             setIsLoading(true)
             setError(null)
             
-            // Récupérer le nombre réel d'utilisateurs
-            const users = await userService.getAll()
-            const usersCount = users.length
+            // Récupérer le nombre réel d'utilisateurs et d'entreprises
+            const [users, companies] = await Promise.all([
+                userService.getAll(),
+                companyService.getAll({ page: 0, size: 1 }) // On ne récupère qu'une page pour avoir totalElements
+            ])
             
-            // Données avec le vrai nombre d'utilisateurs
+            const usersCount = users.length
+            const companiesCount = companies.totalElements
+            
+            // Données avec les vrais nombres d'utilisateurs et d'entreprises
             setDashboardData({
                 totalUsers: usersCount,
+                totalCompanies: companiesCount,
                 totalProducts: 1247,
                 totalOrders: 89,
                 monthlyRevenue: 125000,
@@ -79,6 +87,7 @@ export function AdminDashboard() {
     // Extraction des données du state
     const {
         totalUsers,
+        totalCompanies,
         totalProducts,
         totalOrders,
         monthlyRevenue,
@@ -104,10 +113,11 @@ export function AdminDashboard() {
     // Vérifier les états vides et la fraîcheur des données
     const hasData = useMemo(() => ({
         users: totalUsers > 0,
+        companies: totalCompanies > 0,
         products: totalProducts > 0,
         orders: totalOrders > 0,
         revenue: monthlyRevenue > 0
-    }), [totalUsers, totalProducts, totalOrders, monthlyRevenue])
+    }), [totalUsers, totalCompanies, totalProducts, totalOrders, monthlyRevenue])
     
     const isDataStale = useMemo(() => {
         if (!lastFetch) return false
@@ -121,6 +131,10 @@ export function AdminDashboard() {
     
     const handleUserClick = useCallback(() => {
         console.log('Navigate to users')
+    }, [])
+    
+    const handleCompaniesClick = useCallback(() => {
+        console.log('Navigate to companies')
     }, [])
     
     const handleProductsClick = useCallback(() => {
@@ -153,12 +167,12 @@ export function AdminDashboard() {
     
     // Gérer les états de chargement d'authentification
     if (authLoading) {
-        return <FormLoadingState isLoading={true}><div /></FormLoadingState>
+        return <FormLoadingState isLoading={true}><div></div></FormLoadingState>
     }
     
     // Vérifier les permissions avant d'afficher le dashboard
     if (!hasRequiredRole) {
-        return <FormLoadingState isLoading={true}><div /></FormLoadingState>
+        return <FormLoadingState isLoading={true}><div></div></FormLoadingState>
     }
     
     // Affichage d'erreur critique
@@ -216,7 +230,7 @@ export function AdminDashboard() {
                 </Alert>
             )}
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                 <MetricCard
                     title="Total Utilisateurs"
                     value={totalUsers}
@@ -230,6 +244,21 @@ export function AdminDashboard() {
                     onClick={handleUserClick}
                     isEmpty={!isLoading && !error && totalUsers === 0}
                     emptyMessage="Aucun utilisateur enregistré dans le système"
+                />
+                
+                <MetricCard
+                    title="Total Entreprises"
+                    value={totalCompanies}
+                    description="Entreprises partenaires"
+                    icon={Building2}
+                    iconColor="text-orange-500"
+                    isLoading={isLoading}
+                    isError={!!error}
+                    errorMessage="Échec du chargement des entreprises. Vérifiez votre connexion."
+                    onRetry={handleManualRetry}
+                    onClick={handleCompaniesClick}
+                    isEmpty={!isLoading && !error && totalCompanies === 0}
+                    emptyMessage="Aucune entreprise enregistrée dans le système"
                 />
                 
                 <MetricCard
