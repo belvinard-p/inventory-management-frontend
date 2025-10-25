@@ -40,11 +40,11 @@ export function CompanySearch({
         case "with-categories":
           return company.categories && company.categories.length > 0
         case "without-categories":
-          return !company.categories || company.categories.length === 0
+          return Array.isArray(company.categories) && company.categories.length === 0
         case "with-suppliers":
           return company.suppliers && company.suppliers.length > 0
         case "without-suppliers":
-          return !company.suppliers || company.suppliers.length === 0
+          return Array.isArray(company.suppliers) && company.suppliers.length === 0
         default:
           return true
       }
