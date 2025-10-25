@@ -7,6 +7,10 @@ export interface CategoryResponse {
     id: number;
     designation: string;
     code: string;
+    companyId: number;
+    description?: string;
+    isActive?: boolean;
+    image?: string;
     articles?: ArticleResponse[];
     createdDate: string; 
     updatedDate: string; 
@@ -16,6 +20,9 @@ export interface CategoryRequest {
     designation: string;
     code: string;
     companyId: number;
+    description?: string;
+    isActive?: boolean;
+    image?: string;
 }
 
 // For list responses
