@@ -1,314 +1,87 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { Input } from "@/components/ui/input"
+import * as React from "react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Search, Filter, X, Building2, Mail, Phone, Globe } from "lucide-react"
-import { Company } from "@/types"
-
-interface SearchFilters {
-  hasWebsite?: boolean
-  hasImage?: boolean
-  city?: string
-}
+import { X } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Company } from '@/types'
 
 interface CompanySearchProps {
-  data: Company[]
-  onFilteredData: (filtered: Company[]) => void
-  placeholder?: string
+  readonly data: Company[]
+  readonly onFilteredData: (filtered: Company[], hasFilter?: boolean) => void
+  readonly placeholder?: string
 }
 
-export function CompanySearch({ data, onFilteredData, placeholder = "Rechercher une entreprise..." }: CompanySearchProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filters, setFilters] = useState<SearchFilters>({})
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const searchInputRef = useRef<HTMLInputElement>(null)
+export function CompanySearch({ 
+  data, 
+  onFilteredData, 
+  placeholder = "Search companies..." 
+}: CompanySearchProps) {
+  const [selectValue, setSelectValue] = React.useState("")
+  const isFiltered = selectValue !== "" && selectValue !== "all"
 
-  // Debounce pour la recherche
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      filterData()
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [searchTerm, filters, data])
-
-  const filterData = () => {
-    let filtered = data
-
-    // Recherche textuelle
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase()
-      filtered = filtered.filter(company => 
-        company.name.toLowerCase().includes(term) ||
-        company.email.toLowerCase().includes(term) ||
-        company.phoneNumber.includes(term) ||
-        company.fiscalCode.toLowerCase().includes(term) ||
-        company.website?.toLowerCase().includes(term) ||
-        company.address?.city?.toLowerCase().includes(term)
-      )
+  const handleFilterChange = (value: string) => {
+    setSelectValue(value)
+    
+    if (value === "all" || value === "") {
+      onFilteredData(data, false)
+      return
     }
-
-    // Filtres avancés
-    if (filters.hasWebsite !== undefined) {
-      filtered = filtered.filter(company => !!company.website === filters.hasWebsite)
-    }
-
-    if (filters.hasImage !== undefined) {
-      filtered = filtered.filter(company => !!company.image === filters.hasImage)
-    }
-
-    if (filters.city) {
-      filtered = filtered.filter(company => 
-        company.address?.city?.toLowerCase().includes(filters.city!.toLowerCase())
-      )
-    }
-
-    onFilteredData(filtered)
-  }
-
-  const clearFilters = () => {
-    setSearchTerm("")
-    setFilters({})
-    setIsFilterOpen(false)
-  }
-
-  const removeFilter = (key: keyof SearchFilters) => {
-    setFilters(prev => {
-      const newFilters = { ...prev }
-      delete newFilters[key]
-      return newFilters
-    })
-  }
-
-  const activeFiltersCount = Object.keys(filters).length
-  const hasActiveFilters = activeFiltersCount > 0 || searchTerm
-
-  // Focus sur la recherche avec Ctrl+K
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === 'k') {
-        e.preventDefault()
-        searchInputRef.current?.focus()
+    
+    // Appliquer le filtre selon la valeur sélectionnée
+    const filtered = data.filter(company => {
+      switch (value) {
+        case "with-website":
+          return company.website && company.website.trim() !== ""
+        case "without-website":
+          return !company.website || company.website.trim() === ""
+        case "with-categories":
+          return company.categories && company.categories.length > 0
+        case "without-categories":
+          return Array.isArray(company.categories) && company.categories.length === 0
+        case "with-suppliers":
+          return company.suppliers && company.suppliers.length > 0
+        case "without-suppliers":
+          return Array.isArray(company.suppliers) && company.suppliers.length === 0
+        default:
+          return true
       }
-    }
+    })
+    
+    onFilteredData(filtered, true)
+  }
 
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  const handleReset = () => {
+    setSelectValue("")
+    onFilteredData(data, false)
+  }
 
   return (
-    <div className="space-y-3">
-      {/* Barre de recherche */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            ref={searchInputRef}
-            placeholder={placeholder}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4"
-          />
-          {searchTerm && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-              onClick={() => setSearchTerm("")}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
-
-        {/* Bouton filtres */}
-        <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="relative">
-              <Filter className="h-4 w-4 mr-2" />
-              Filtres
-              {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
-                  {activeFiltersCount}
-                </Badge>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80" align="end">
-            <div className="space-y-4">
-              <h4 className="font-medium">Filtres avancés</h4>
-              
-              {/* Filtre site web */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Site web</label>
-                <div className="flex gap-2">
-                  <Button
-                    variant={filters.hasWebsite === true ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilters(prev => ({ 
-                      ...prev, 
-                      hasWebsite: prev.hasWebsite === true ? undefined : true 
-                    }))}
-                  >
-                    <Globe className="h-3 w-3 mr-1" />
-                    Avec site
-                  </Button>
-                  <Button
-                    variant={filters.hasWebsite === false ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilters(prev => ({ 
-                      ...prev, 
-                      hasWebsite: prev.hasWebsite === false ? undefined : false 
-                    }))}
-                  >
-                    Sans site
-                  </Button>
-                </div>
-              </div>
-
-              {/* Filtre image */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Image</label>
-                <div className="flex gap-2">
-                  <Button
-                    variant={filters.hasImage === true ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilters(prev => ({ 
-                      ...prev, 
-                      hasImage: prev.hasImage === true ? undefined : true 
-                    }))}
-                  >
-                    Avec image
-                  </Button>
-                  <Button
-                    variant={filters.hasImage === false ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilters(prev => ({ 
-                      ...prev, 
-                      hasImage: prev.hasImage === false ? undefined : false 
-                    }))}
-                  >
-                    Sans image
-                  </Button>
-                </div>
-              </div>
-
-              {/* Filtre ville */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Ville</label>
-                <Input
-                  placeholder="Filtrer par ville..."
-                  value={filters.city || ""}
-                  onChange={(e) => setFilters(prev => ({ 
-                    ...prev, 
-                    city: e.target.value || undefined 
-                  }))}
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="flex justify-between pt-2">
-                <Button variant="outline" size="sm" onClick={clearFilters}>
-                  Effacer tout
-                </Button>
-                <Button size="sm" onClick={() => setIsFilterOpen(false)}>
-                  Appliquer
-                </Button>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-
-        {/* Bouton clear si filtres actifs */}
-        {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters}>
-            <X className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
-
-      {/* Chips des filtres actifs */}
-      {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2">
-          {searchTerm && (
-            <Badge variant="secondary" className="gap-1">
-              <Search className="h-3 w-3" />
-&quot;{searchTerm}&quot;
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-4 w-4 p-0 hover:bg-transparent"
-                onClick={() => setSearchTerm("")}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </Badge>
-          )}
-          
-          {filters.hasWebsite === true && (
-            <Badge variant="secondary" className="gap-1">
-              <Globe className="h-3 w-3" />
-              Avec site web
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-4 w-4 p-0 hover:bg-transparent"
-                onClick={() => removeFilter('hasWebsite')}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </Badge>
-          )}
-          
-          {filters.hasWebsite === false && (
-            <Badge variant="secondary" className="gap-1">
-              Sans site web
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-4 w-4 p-0 hover:bg-transparent"
-                onClick={() => removeFilter('hasWebsite')}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </Badge>
-          )}
-
-          {filters.city && (
-            <Badge variant="secondary" className="gap-1">
-              Ville: {filters.city}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-4 w-4 p-0 hover:bg-transparent"
-                onClick={() => removeFilter('city')}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </Badge>
-          )}
-        </div>
+    <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
+      <Select value={selectValue} onValueChange={handleFilterChange}>
+        <SelectTrigger className="h-8 w-full xs:w-[200px] sm:w-[220px]">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Toutes les entreprises</SelectItem>
+          <SelectItem value="with-website">Avec site web</SelectItem>
+          <SelectItem value="without-website">Sans site web</SelectItem>
+          <SelectItem value="with-categories">Avec catégories</SelectItem>
+          <SelectItem value="without-categories">Sans catégories</SelectItem>
+          <SelectItem value="with-suppliers">Avec fournisseurs</SelectItem>
+          <SelectItem value="without-suppliers">Sans fournisseurs</SelectItem>
+        </SelectContent>
+      </Select>
+      {isFiltered && (
+        <Button
+          variant="ghost"
+          onClick={handleReset}
+          className="h-8 px-2 lg:px-3"
+        >
+          Réinitialiser
+          <X className="ml-2 h-4 w-4" />
+        </Button>
       )}
-
-      {/* Indicateur de résultats */}
-      <div className="text-sm text-muted-foreground">
-        {data.length > 0 && (
-          <>
-            {hasActiveFilters ? (
-              <>Affichage de {onFilteredData.length} résultat(s) sur {data.length} entreprise(s)</>
-            ) : (
-              <>{data.length} entreprise(s) au total</>
-            )}
-          </>
-        )}
-      </div>
     </div>
   )
 }

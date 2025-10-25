@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { 
   Trash2, 
-  Download, 
   ChevronDown, 
   X,
   FileSpreadsheet,
@@ -51,7 +50,7 @@ export function BulkActions({ selectedCompanies, onClearSelection }: BulkActions
       })
       
       onClearSelection()
-    } catch (error) {
+    } catch {
       enhancedToast.error("Erreur lors de la suppression", {
         description: "Certaines entreprises n'ont pas pu être supprimées"
       })

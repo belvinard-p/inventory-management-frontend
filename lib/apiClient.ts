@@ -41,7 +41,7 @@ class ApiClient {
 
     // Ajouter timeout et AbortController
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 60000) // 60s timeout
 
     // Ne pas définir Content-Type pour FormData (le navigateur le fera automatiquement)
     const isFormData = options.body instanceof FormData
@@ -77,9 +77,12 @@ class ApiClient {
       clearTimeout(timeoutId)
       
       if (err instanceof Error && err.name === 'AbortError') {
-        const timeoutError = 'Requête expirée - le serveur met trop de temps à répondre'
+        const timeoutError = 'Connexion lente - Vérifiez votre réseau ou réessayez'
         if (showErrorToast) {
-          toast.error('Timeout', { description: timeoutError })
+          toast.error('Connexion lente', { 
+            description: timeoutError,
+            duration: 5000
+          })
         }
         throw new Error(timeoutError)
       }

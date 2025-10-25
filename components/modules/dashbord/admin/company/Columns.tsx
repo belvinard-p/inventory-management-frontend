@@ -4,7 +4,6 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Company } from "@/types"
 import { DataTableColumnHeader } from "./DataTableColumnHeader"
 import { DataTableRowActions } from "./DataTableRowActions"
-import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CompanyImage } from "./CompanyImage"
 import { CopyButton } from "@/components/ui/copy-button"
@@ -94,6 +93,24 @@ export const columns: ColumnDef<Company>[] = [
           />
         </div>
       )
+    },
+  },
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Date de création" />
+    ),
+    cell: ({ row }) => {
+      const date = row.getValue("createdAt") as string
+      return (
+        <div className="text-sm">
+          {date ? new Date(date).toLocaleDateString('fr-FR') : ""}
+        </div>
+      )
+    },
+    filterFn: (row, id, value) => {
+      const rowDate = new Date(row.getValue(id) as string).toISOString().split('T')[0]
+      return rowDate === value
     },
   },
   {
