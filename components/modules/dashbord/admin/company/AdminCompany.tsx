@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { DataTable } from "./DataTable"
 import { columns } from "./Columns"
 import { Button } from "@/components/ui/button"
-import { Plus, Building2, MapPin, Globe, Mail, Phone } from "lucide-react"
+import { Plus, Building2, MapPin, Globe, Phone } from "lucide-react"
 import { CompanyForm } from "./CompanyForm"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -215,7 +215,7 @@ export function AdminCompany() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
               <div className="space-y-2">
                 <p className="text-sm font-medium">Chargement des entreprises...</p>
-                <p className="text-xs text-muted-foreground">Cela peut prendre jusqu'à 45 secondes</p>
+                <p className="text-xs text-muted-foreground">Cela peut prendre jusqu&apos;à 45 secondes</p>
                 <Button 
                   variant="outline" 
                   size="sm" 
