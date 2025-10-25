@@ -97,6 +97,24 @@ export const columns: ColumnDef<Company>[] = [
     },
   },
   {
+    accessorKey: "createdAt",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Date de création" />
+    ),
+    cell: ({ row }) => {
+      const date = row.getValue("createdAt") as string
+      return (
+        <div className="text-sm">
+          {date ? new Date(date).toLocaleDateString('fr-FR') : ""}
+        </div>
+      )
+    },
+    filterFn: (row, id, value) => {
+      const rowDate = new Date(row.getValue(id) as string).toISOString().split('T')[0]
+      return rowDate === value
+    },
+  },
+  {
     id: "actions",
     cell: ({ row }) => <DataTableRowActions row={row} />,
   },
