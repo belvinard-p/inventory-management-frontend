@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { DataTable } from "./DataTable"
 import { columns } from "./Columns"
 import { Button } from "@/components/ui/button"
-import { Plus, Building2, MapPin, Globe, Mail, Phone } from "lucide-react"
+import { Plus, Building2, MapPin, Globe, Phone } from "lucide-react"
 import { CompanyForm } from "./CompanyForm"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,17 +20,27 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { List, Grid } from "lucide-react"
 import type { Company } from "@/types"
 import { toast } from "sonner"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 export function AdminCompany() {
   // --- ALL HOOKS MUST BE CALLED UNCONDITIONALLY AT THE TOP ---
   const { user: currentUser, isAuthenticated, isLoading: authLoading, accessToken } = useAuth()
-  const { companies, isLoading, isError } = useCompanies()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
   const [mounted, setMounted] = useState(false)
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([])
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([])
   const [viewMode, setViewMode] = useState<'table' | 'infinite'>('table')
+  const [currentPage, setCurrentPage] = useState(0)
+  const pageSize = 10
+  const { companies, isLoading, isError } = useCompanies(currentPage, pageSize)
 
   // Check user permissions
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' ||
@@ -193,11 +203,36 @@ export function AdminCompany() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Entreprises</h1>
             <p className="text-muted-foreground">
-              Gérez les entreprises partenaires et leurs informations
+              Chargement des données...
             </p>
           </div>
         </div>
-        <CompanyTableSkeleton />
+        
+        {/* Enhanced Loading State */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Chargement des entreprises...</p>
+                <p className="text-xs text-muted-foreground">Cela peut prendre jusqu&apos;à 45 secondes</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => window.location.reload()}
+                  className="mt-2"
+                >
+                  Actualiser la page
+                </Button>
+              </div>
+              {/* Progress bar simulation */}
+              <div className="w-64 bg-gray-200 rounded-full h-2 mx-auto">
+                <div className="bg-primary h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+              </div>
+            </div>
+          </div>
+          <CompanyTableSkeleton />
+        </div>
       </div>
     )
   }
@@ -333,13 +368,51 @@ export function AdminCompany() {
           />
           
           {viewMode === 'table' ? (
-            <CompanyProvider onEditCompany={handleEditCompany}>
-              <DataTable 
-                columns={columns} 
-                data={displayData}
-                onRowSelectionChange={handleRowSelectionChange}
-              />
-            </CompanyProvider>
+            <>
+              <CompanyProvider onEditCompany={handleEditCompany}>
+                <DataTable 
+                  columns={columns} 
+                  data={displayData}
+                  onRowSelectionChange={handleRowSelectionChange}
+                  enablePagination={false}
+                />
+              </CompanyProvider>
+              
+              {/* Pagination personnalisée */}
+              {companies && companies.totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                        disabled={currentPage === 0}
+                        size="default"
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: companies.totalPages }, (_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(i)}
+                          isActive={currentPage === i}
+                          size="default"
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setCurrentPage(Math.min(companies.totalPages - 1, currentPage + 1))}
+                        disabled={currentPage === companies.totalPages - 1}
+                        size="default"
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </>
           ) : (
             <InfiniteCompanyList onEditCompany={handleEditCompany} />
           )}
