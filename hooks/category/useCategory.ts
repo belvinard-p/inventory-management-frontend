@@ -43,7 +43,7 @@ export const useCategories = (page: number = 0, size: number = 50, companyId?: n
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 3,
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: typeof window !== 'undefined' && (companyId !== undefined),
+    enabled: typeof window !== 'undefined',
     refetchOnWindowFocus: false,
     gcTime: 10 * 60 * 1000 // Keep data for 10 minutes
   })

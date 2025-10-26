@@ -34,7 +34,10 @@ export const categoryService = {
     if (params?.size !== undefined) searchParams.append('pageSize', params.size.toString())
     if (params?.sort) searchParams.append('sortBy', params.sort)
     if (params?.direction) searchParams.append('sortOrder', params.direction)
-    if (params?.companyId !== undefined) searchParams.append('companyId', params.companyId.toString())
+    // Only add companyId if it's explicitly provided and not undefined
+    if (params?.companyId !== undefined && params?.companyId !== null) {
+      searchParams.append('companyId', params.companyId.toString())
+    }
     
     const queryString = searchParams.toString()
     const url = `${BASE_URL}/all${queryString ? `?${queryString}` : ''}`

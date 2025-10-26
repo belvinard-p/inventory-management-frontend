@@ -1,1 +1,1 @@
-export { AdminCategory as AdminCategoryPage } from "./AdminCategory"
+export { AdminCategory as AdminCategoryPage } from './AdminCategory'

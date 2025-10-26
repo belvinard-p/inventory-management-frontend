@@ -39,10 +39,12 @@ export function AdminCategoryContent({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Categories</h2>
-        <Button onClick={onCreateCategory}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Category
-        </Button>
+        {hasPermission && (
+          <Button onClick={onCreateCategory}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Category
+          </Button>
+        )}
       </div>
 
       <Card className="overflow-hidden">
@@ -61,46 +63,6 @@ export function AdminCategoryContent({
           />
         </CardContent>
       </Card>
-    </div>
-  )
-}
-          onClearSelection={onClearSelection}
-          pageCount={Math.ceil(stats.total / 10)} // Assuming 10 items per page
-        />
-      </Card>
-
-      {isCreateModalOpen && (
-        <CategoryForm
-          category={editingCategory || undefined}
-          onSubmit={async (values) => {
-            try {
-              const categoryData = {
-                designation: values.designation,
-                code: values.code,
-                description: values.description || '',
-                companyId: values.companyId,
-                isActive: values.isActive || true,
-                image: values.image || ''
-              };
-
-              if (editingCategory) {
-                await updateCategory.mutateAsync({ 
-                  id: editingCategory.id,
-                  data: categoryData 
-                });
-              } else {
-                await createCategory.mutateAsync(categoryData);
-              }
-              onCloseModal();
-            } catch (error) {
-              console.error('Error saving category:', error);
-              // Error handling is already done in the mutation
-            }
-          }}
-          onCancel={onCloseModal}
-          isSubmitting={createCategory.isPending || updateCategory.isPending}
-        />
-      )}
     </div>
   )
 }
