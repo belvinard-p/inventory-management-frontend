@@ -65,10 +65,15 @@ export const columns: ColumnDef<CategoryResponse>[] = [
     },
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: "createdDate",
     header: "Créé le",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("createdAt"))
+      const dateValue = row.getValue("createdDate") as string
+      if (!dateValue) return <div className="text-sm text-muted-foreground">-</div>
+      
+      const date = new Date(dateValue)
+      if (isNaN(date.getTime())) return <div className="text-sm text-muted-foreground">-</div>
+      
       return (
         <div className="text-sm text-muted-foreground">
           {format(date, "PPp", { locale: fr })}
@@ -77,10 +82,15 @@ export const columns: ColumnDef<CategoryResponse>[] = [
     },
   },
   {
-    accessorKey: "updatedAt",
+    accessorKey: "updatedDate",
     header: "Mis à jour le",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("updatedAt"))
+      const dateValue = row.getValue("updatedDate") as string
+      if (!dateValue) return <div className="text-sm text-muted-foreground">-</div>
+      
+      const date = new Date(dateValue)
+      if (isNaN(date.getTime())) return <div className="text-sm text-muted-foreground">-</div>
+      
       return (
         <div className="text-sm text-muted-foreground">
           {format(date, "PPp", { locale: fr })}

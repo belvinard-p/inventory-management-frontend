@@ -62,6 +62,10 @@ export const useCategories = (page: number = 0, size: number = 50, companyId?: n
           onClick: () => console.log('Voir détails de', newCategory.designation)
         }
       })
+      // Close modal after successful creation
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('categoryCreated'))
+      }
     },
     onError: (error: any) => {
       console.error('Erreur création catégorie:', error)

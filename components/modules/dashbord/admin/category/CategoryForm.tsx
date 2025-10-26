@@ -34,10 +34,7 @@ const categoryFormSchema = z.object({
   }),
   companyId: z.number().int().positive({
     message: "Company ID must be a positive number.",
-  }),
-  description: z.string().optional(),
-  isActive: z.boolean().default(true),
-  image: z.string().optional()
+  })
 })
 
 type CategoryFormValues = z.infer<typeof categoryFormSchema>
@@ -64,9 +61,6 @@ export const CategoryForm = ({
       designation: category?.designation || "",
       code: category?.code || "",
       companyId: category?.companyId || 0,
-      isActive: category?.isActive ?? true,
-      description: category?.description || "",
-      image: category?.image || "",
     },
     mode: "onChange",
   });
@@ -133,7 +127,7 @@ export const CategoryForm = ({
                       <SelectValue placeholder="Select a company" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="max-h-[200px] overflow-y-auto" position="popper" sideOffset={4}>
                     {companiesData.map((company) => (
                       <SelectItem key={company.id} value={company.id.toString()}>
                         {company.name}

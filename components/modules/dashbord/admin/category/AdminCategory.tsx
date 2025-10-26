@@ -43,6 +43,13 @@ export function AdminCategory() {
   
   const { createCategory } = useCategories()
 
+  // Listen for successful category creation to close modal
+  React.useEffect(() => {
+    const handleCategoryCreated = () => setIsCreateModalOpen(false)
+    window.addEventListener('categoryCreated', handleCategoryCreated)
+    return () => window.removeEventListener('categoryCreated', handleCategoryCreated)
+  }, [])
+
   const handleRetry = () => window.location.reload()
 
   console.log('AdminCategory render:', { mounted, authLoading, isAuthenticated, hasPermission, isLoading, isError, categoriesData })
@@ -81,12 +88,7 @@ export function AdminCategory() {
           </DialogHeader>
           <CategoryForm
             onSubmit={async (values) => {
-              try {
-                await createCategory.mutateAsync(values)
-                setIsCreateModalOpen(false)
-              } catch (error) {
-                console.error('Error creating category:', error)
-              }
+              await createCategory.mutateAsync(values)
             }}
             onCancel={() => setIsCreateModalOpen(false)}
             isSubmitting={createCategory.isPending}
