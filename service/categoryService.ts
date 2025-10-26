@@ -24,8 +24,15 @@ interface GetAllCategoriesParams {
 export const categoryService = {
   // Create a new category (ADMIN, MANAGER)
   create: async (data: CategoryRequest): Promise<CategoryResponse> => {
-    console.log('Creating category with data:', data)
-    return apiClient.post<CategoryResponse>(`${BASE_URL}/create`, data)
+    console.log('Creating category with data:', JSON.stringify(data, null, 2))
+    try {
+      const result = await apiClient.post<CategoryResponse>(`${BASE_URL}/create`, data)
+      console.log('Category created successfully:', result)
+      return result
+    } catch (error) {
+      console.error('Category creation failed:', error)
+      throw error
+    }
   },
 
   // Get all categories with pagination (ALL ROLES)
