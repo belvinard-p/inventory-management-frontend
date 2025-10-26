@@ -42,10 +42,13 @@ export function AdminCategory() {
 
   const handleRetry = () => window.location.reload()
 
+  console.log('AdminCategory render:', { mounted, authLoading, isAuthenticated, hasPermission, isLoading, isError, categoriesData })
+  
   if (!mounted || authLoading) return <LoadingSpinner />
   if (!isAuthenticated || !currentUser) return <AuthErrorState title="Non authentifié" description="Vous devez être connecté pour accéder à cette page." />
   if (!hasPermission) return <AuthErrorState title="Accès refusé" description="Vous n'avez pas les permissions nécessaires pour accéder à cette page." />
-  if (!isLoading && !isError && categoriesData.content.length === 0) return <EmptyCategoriesState currentUser={currentUser} isCreateModalOpen={isCreateModalOpen} setIsCreateModalOpen={setIsCreateModalOpen} />
+  // Always show the main content, even if categories list is empty
+  // if (!isLoading && !isError && categoriesData?.content?.length === 0) return <EmptyCategoriesState currentUser={currentUser} isCreateModalOpen={isCreateModalOpen} setIsCreateModalOpen={setIsCreateModalOpen} />
   if (isLoading) return <LoadingCategoriesState />
   if (isError) return <ErrorCategoriesState currentUser={currentUser} isCreateModalOpen={isCreateModalOpen} setIsCreateModalOpen={setIsCreateModalOpen} onRetry={handleRetry} />
 
@@ -53,9 +56,9 @@ export function AdminCategory() {
     <>
       <AdminCategoryContent
         categories={displayData}
-        totalItems={categoriesData.totalElements}
+        totalItems={categoriesData?.totalElements || 0}
         currentPage={currentPage + 1}
-        totalPages={categoriesData.totalPages}
+        totalPages={categoriesData?.totalPages || 0}
         onPageChange={(page) => setCurrentPage(page - 1)}
         onEditCategory={handleEditCategory}
         onDeleteCategory={handleDeleteCategory}

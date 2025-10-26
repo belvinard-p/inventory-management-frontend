@@ -50,11 +50,7 @@ export function AdminCategoryContent({
       <Card className="overflow-hidden">
         <CardContent className="p-0">
           <DataTable
-            columns={columns({
-              onEdit: onEditCategory,
-              onDelete: onDeleteCategory,
-              hasPermission,
-            })}
+            columns={columns}
             data={categories}
             totalItems={totalItems}
             currentPage={currentPage}
