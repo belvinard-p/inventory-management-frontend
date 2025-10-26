@@ -14,8 +14,16 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { toast } from "sonner"
 import { CategoryResponse as Category } from "@/types/category"
+import { useCompanies } from "@/hooks/useCompany"
 
 const categoryFormSchema = z.object({
   designation: z.string().min(2, {
@@ -47,6 +55,9 @@ export const CategoryForm = ({
   onCancel,
   isSubmitting,
 }: CategoryFormProps) => {
+  const { companies } = useCompanies(0, 100) // Get all companies
+  const companiesData = Array.isArray(companies?.content) ? companies.content : []
+  
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: {
@@ -115,15 +126,24 @@ export const CategoryForm = ({
             name="companyId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Company ID</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    placeholder="Company ID" 
-                    {...field} 
-                    onChange={e => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
+                <FormLabel>Company</FormLabel>
+                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a company" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {companiesData.map((company) => (
+                      <SelectItem key={company.id} value={company.id.toString()}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Choose the company for this category.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

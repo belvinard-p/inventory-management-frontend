@@ -10,6 +10,7 @@ import {
 } from "./AdminCategoryStates"
 import { AdminCategoryContent } from "./AdminCategoryContent"
 import { useAdminCategoryLogic } from "@/hooks/category/useAdminCategoryLogic"
+import { useCategories } from "@/hooks/category/useCategory"
 import { CategoryForm } from "./CategoryForm"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
@@ -39,6 +40,8 @@ export function AdminCategory() {
     setCurrentPage,
     setEditingCategory
   } = useAdminCategoryLogic()
+  
+  const { createCategory } = useCategories()
 
   const handleRetry = () => window.location.reload()
 
@@ -78,11 +81,15 @@ export function AdminCategory() {
           </DialogHeader>
           <CategoryForm
             onSubmit={async (values) => {
-              console.log('Creating category:', values)
-              setIsCreateModalOpen(false)
+              try {
+                await createCategory.mutateAsync(values)
+                setIsCreateModalOpen(false)
+              } catch (error) {
+                console.error('Error creating category:', error)
+              }
             }}
             onCancel={() => setIsCreateModalOpen(false)}
-            isSubmitting={false}
+            isSubmitting={createCategory.isPending}
           />
         </DialogContent>
       </Dialog>

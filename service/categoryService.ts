@@ -24,6 +24,7 @@ interface GetAllCategoriesParams {
 export const categoryService = {
   // Create a new category (ADMIN, MANAGER)
   create: async (data: CategoryRequest): Promise<CategoryResponse> => {
+    console.log('Creating category with data:', data)
     return apiClient.post<CategoryResponse>(`${BASE_URL}/create`, data)
   },
 

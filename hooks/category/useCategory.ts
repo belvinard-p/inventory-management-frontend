@@ -5,6 +5,7 @@ import { categoryService } from '@/service/categoryService'
 import { CategoryResponse, CategoryRequest } from '@/types/category'
 import { ApiError } from '@/types/common'
 import { useCompany } from '../useCompany'
+import { useAuth } from '../useAuth'
 
 // Cache keys for categories
 export const CategoriesCacheKeys = {
@@ -16,6 +17,7 @@ export const CategoriesCacheKeys = {
 // Hook principal pour les catégories avec pagination
 export const useCategories = (page: number = 0, size: number = 50, companyId?: number) => {
   const queryClient = useQueryClient()
+  const { isAuthenticated, accessToken } = useAuth()
 
   // Query pour récupérer toutes les catégories avec pagination
   const getCategories = useQuery({
@@ -43,7 +45,7 @@ export const useCategories = (page: number = 0, size: number = 50, companyId?: n
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 3,
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: typeof window !== 'undefined',
+    enabled: typeof window !== 'undefined' && isAuthenticated && !!accessToken,
     refetchOnWindowFocus: false,
     gcTime: 10 * 60 * 1000 // Keep data for 10 minutes
   })

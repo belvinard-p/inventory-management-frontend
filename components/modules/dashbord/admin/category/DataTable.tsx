@@ -56,23 +56,22 @@ export function DataTable<TData extends { id: string | number }, TValue>({
   pageCount = 1,
   onPageChange,
 }: DataTableProps<TData, TValue>) {
-  const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({})
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-
+  
   // Convert selected row IDs to row selection state
-  React.useEffect(() => {
+  const rowSelection = React.useMemo(() => {
     if (selectedRows && selectedRows.length > 0) {
-      const selectedState = selectedRows.reduce((acc, id) => ({
+      return selectedRows.reduce((acc, id) => ({
         ...acc,
         [id]: true
       }), {} as Record<string, boolean>);
-      setRowSelection(selectedState);
-    } else {
-      setRowSelection({});
     }
+    return {};
   }, [selectedRows]);
+  
+  const [internalRowSelection, setInternalRowSelection] = React.useState<Record<string, boolean>>(rowSelection);
 
   const table = useReactTable({
     data,
