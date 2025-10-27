@@ -52,7 +52,7 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
           {/* Informations de contact */}
           <div>
             <h3 className="text-lg font-semibold mb-4 text-foreground">Contact</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
               <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
                 <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
                   <Mail className="h-5 w-5" />
