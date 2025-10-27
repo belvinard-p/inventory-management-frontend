@@ -51,15 +51,18 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
         <div className="p-8 space-y-8">
           {/* Informations de contact */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-foreground">Contact</h3>
+            <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Contact
+            </h3>
             <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group cursor-pointer" onClick={() => window.open(`mailto:${company.email}`)}>
                 <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
                   <Mail className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-muted-foreground">Email</p>
-                  <p className="text-sm font-semibold">{company.email}</p>
+                  <p className="text-sm font-semibold break-all">{company.email}</p>
                 </div>
                 <CopyButton 
                   text={company.email} 
@@ -67,7 +70,7 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
                 />
               </div>
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group cursor-pointer" onClick={() => window.open(`tel:${company.phoneNumber}`)}>
                 <div className="p-2 rounded-lg bg-green-100 text-green-600">
                   <Phone className="h-5 w-5" />
                 </div>
@@ -111,21 +114,20 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
           {/* Site web */}
           {company.website && (
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-foreground">Site web</h3>
-              <div className="p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
+              <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" />
+                Site web
+              </h3>
+              <div className="p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group cursor-pointer" onClick={() => window.open(`https://${company.website}`, '_blank')}>
                 <div className="flex items-center gap-4">
                   <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
                     <Globe className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <a 
-                      href={`https://${company.website}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors"
-                    >
+                    <p className="text-sm font-medium text-muted-foreground">URL</p>
+                    <p className="text-blue-600 hover:text-blue-800 font-medium transition-colors break-all">
                       {company.website}
-                    </a>
+                    </p>
                   </div>
                   <CopyButton 
                     text={company.website} 
@@ -157,7 +159,10 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
           {/* Catégories */}
           {company.categories && company.categories.length > 0 && (
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-foreground">Catégories</h3>
+              <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                <Tag className="h-5 w-5 text-primary" />
+                Catégories
+              </h3>
               <div className="p-4 rounded-xl bg-muted/30">
                 <div className="flex items-start gap-4">
                   <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600">

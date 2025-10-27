@@ -40,10 +40,6 @@ export function AdminCategory() {
   return (
     <AdminCategoryContent
       categories={displayData}
-      totalItems={categoriesData?.totalElements || 0}
-      currentPage={currentPage + 1}
-      totalPages={categoriesData?.totalPages || 0}
-      onPageChange={(page) => setCurrentPage(page - 1)}
       hasPermission={hasPermission}
       isAuthenticated={isAuthenticated}
       isCreateModalOpen={isCreateModalOpen}

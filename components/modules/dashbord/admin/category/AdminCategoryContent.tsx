@@ -11,10 +11,6 @@ import { CategoryForm } from "./CategoryForm"
 
 interface AdminCategoryContentProps {
   categories: CategoryResponse[]
-  totalItems: number
-  currentPage: number
-  totalPages: number
-  onPageChange: (page: number) => void
   hasPermission: boolean
   isAuthenticated: boolean
   isCreateModalOpen: boolean
@@ -23,10 +19,6 @@ interface AdminCategoryContentProps {
 
 export function AdminCategoryContent({
   categories,
-  totalItems,
-  currentPage,
-  totalPages,
-  onPageChange,
   hasPermission,
   isCreateModalOpen,
   setIsCreateModalOpen,
@@ -48,18 +40,10 @@ export function AdminCategoryContent({
         )}
       </div>
 
-      <Card className="overflow-hidden">
-        <CardContent className="p-0">
-          <DataTable
-            columns={columns}
-            data={categories}
-            totalItems={totalItems}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-          />
-        </CardContent>
-      </Card>
+      <DataTable
+        columns={columns}
+        data={categories}
+      />
 
       <CategoryForm
         open={isCreateModalOpen}
