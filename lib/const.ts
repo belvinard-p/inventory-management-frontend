@@ -6,3 +6,8 @@ export const UsersCacheKeys =  Object.freeze({
 export const CompaniesCacheKeys = Object.freeze({
     Companies: 'companies'
 } as const)
+
+export const CategoriesCacheKeys = Object.freeze({
+    Categories: 'categories',
+    Category: 'category'
+} as const)
