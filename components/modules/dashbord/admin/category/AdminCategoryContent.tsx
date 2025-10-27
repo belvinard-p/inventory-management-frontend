@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Plus } from "lucide-react"
 import { DataTable } from "./DataTable"
 import { CategoryResponse } from "@/types/category"
-import { columns } from "./Columns"
+import { createColumns } from "./Columns"
 import { CategoryForm } from "./CategoryForm"
 
 interface AdminCategoryContentProps {
@@ -23,6 +23,15 @@ export function AdminCategoryContent({
   isCreateModalOpen,
   setIsCreateModalOpen,
 }: AdminCategoryContentProps) {
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false)
+  const [selectedCategory, setSelectedCategory] = React.useState<CategoryResponse | undefined>()
+
+  const handleEdit = (category: CategoryResponse) => {
+    setSelectedCategory(category)
+    setIsEditModalOpen(true)
+  }
+
+  const columns = createColumns({ onEdit: handleEdit })
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -49,6 +58,13 @@ export function AdminCategoryContent({
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         mode="create"
+      />
+
+      <CategoryForm
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        mode="edit"
+        category={selectedCategory}
       />
     </div>
   )

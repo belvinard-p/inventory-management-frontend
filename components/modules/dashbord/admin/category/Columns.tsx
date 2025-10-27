@@ -1,10 +1,24 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react"
 import { CategoryResponse } from "@/types/category"
 
-export const columns: ColumnDef<CategoryResponse>[] = [
+interface ColumnsProps {
+  onEdit: (category: CategoryResponse) => void
+}
+
+export const createColumns = ({ onEdit }: ColumnsProps): ColumnDef<CategoryResponse>[] => [
   {
     accessorKey: "code",
     header: "Code",
@@ -56,6 +70,44 @@ export const columns: ColumnDef<CategoryResponse>[] = [
         <div className="text-sm text-muted-foreground">
           {format(date, "PPp", { locale: fr })}
         </div>
+      )
+    },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => {
+      const category = row.original
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Ouvrir le menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => onEdit(category)}
+            >
+              <Edit className="mr-2 h-4 w-4" />
+              Modifier
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                // TODO: Implement delete functionality
+                console.log('Delete category:', category)
+              }}
+              className="text-red-600"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Supprimer
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )
     },
   },
