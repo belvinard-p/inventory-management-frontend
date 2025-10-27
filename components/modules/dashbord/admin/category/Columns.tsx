@@ -88,18 +88,25 @@ export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Cat
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-[160px]">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => onEdit(category)}
+              onClick={() => {
+                console.log('Edit clicked for category:', category)
+                onEdit(category)
+              }}
+              className="cursor-pointer"
             >
               <Edit className="mr-2 h-4 w-4" />
               Modifier
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => onDelete(category)}
-              className="text-red-600 hover:text-red-700 focus:text-red-700"
+              onClick={() => {
+                console.log('Delete clicked for category:', category)
+                onDelete(category)
+              }}
+              className="text-red-600 hover:text-red-700 focus:text-red-700 cursor-pointer"
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Supprimer
