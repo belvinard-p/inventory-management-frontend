@@ -90,7 +90,7 @@ export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFor
       if (mode === "create") {
         await createCategory.mutateAsync(values)
       } else if (category) {
-        await updateCategory({ id: category.id, data: values })
+        await updateCategory.mutateAsync({ id: category.id, data: values })
       }
       onOpenChange(false)
       form.reset()

@@ -112,8 +112,8 @@ export const useCategories = (page: number = 0, size: number = 50) => {
     
     // Mutations
     createCategory,
-    updateCategory: updateCategory.mutate,
-    deleteCategory: deleteCategory.mutate,
+    updateCategory,
+    deleteCategory,
     
     // Mutation States
     isCreating: createCategory.isPending,

@@ -16,9 +16,10 @@ import { CategoryResponse } from "@/types/category"
 
 interface ColumnsProps {
   onEdit: (category: CategoryResponse) => void
+  onDelete: (category: CategoryResponse) => void
 }
 
-export const createColumns = ({ onEdit }: ColumnsProps): ColumnDef<CategoryResponse>[] => [
+export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<CategoryResponse>[] => [
   {
     accessorKey: "code",
     header: "Code",
@@ -97,11 +98,8 @@ export const createColumns = ({ onEdit }: ColumnsProps): ColumnDef<CategoryRespo
               Modifier
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => {
-                // TODO: Implement delete functionality
-                console.log('Delete category:', category)
-              }}
-              className="text-red-600"
+              onClick={() => onDelete(category)}
+              className="text-red-600 hover:text-red-700 focus:text-red-700"
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Supprimer

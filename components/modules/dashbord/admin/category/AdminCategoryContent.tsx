@@ -8,6 +8,8 @@ import { DataTable } from "./DataTable"
 import { CategoryResponse } from "@/types/category"
 import { createColumns } from "./Columns"
 import { CategoryForm } from "./CategoryForm"
+import { DeleteConfirmDialog } from "@/components/global/DeleteConfirmDialog"
+import { useCategories } from "@/hooks/category/useCategory"
 
 interface AdminCategoryContentProps {
   categories: CategoryResponse[]
@@ -24,14 +26,33 @@ export function AdminCategoryContent({
   setIsCreateModalOpen,
 }: AdminCategoryContentProps) {
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
   const [selectedCategory, setSelectedCategory] = React.useState<CategoryResponse | undefined>()
+  const { deleteCategory, isDeleting } = useCategories()
 
   const handleEdit = (category: CategoryResponse) => {
     setSelectedCategory(category)
     setIsEditModalOpen(true)
   }
 
-  const columns = createColumns({ onEdit: handleEdit })
+  const handleDelete = (category: CategoryResponse) => {
+    setSelectedCategory(category)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (selectedCategory) {
+      try {
+        await deleteCategory.mutateAsync(selectedCategory.id)
+        setIsDeleteDialogOpen(false)
+        setSelectedCategory(undefined)
+      } catch (error) {
+        console.error('Delete error:', error)
+      }
+    }
+  }
+
+  const columns = createColumns({ onEdit: handleEdit, onDelete: handleDelete })
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -65,6 +86,14 @@ export function AdminCategoryContent({
         onOpenChange={setIsEditModalOpen}
         mode="edit"
         category={selectedCategory}
+      />
+
+      <DeleteConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        itemName={selectedCategory?.designation}
+        isLoading={isDeleting}
       />
     </div>
   )
