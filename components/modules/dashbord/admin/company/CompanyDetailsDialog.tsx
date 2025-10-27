@@ -9,6 +9,13 @@ import { Separator } from "@/components/ui/separator"
 import { CompanyImage } from "./CompanyImage"
 import { CopyButton } from "@/components/ui/copy-button"
 import { Mail, Phone, Globe, MapPin, Calendar, FileText, Tag } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface CompanyDetailsDialogProps {
   company: Company | null
@@ -156,20 +163,24 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
                   <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600">
                     <Tag className="h-5 w-5" />
                   </div>
-                  <div className="flex-1">
-                    <div className="flex flex-wrap gap-2">
-                      {company.categories.map((category) => (
-                        <span 
-                          key={category.id}
-                          className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20"
-                          title={`Code: ${category.code}`}
-                        >
-                          {category.designation}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {company.categories.length} catégorie{company.categories.length > 1 ? 's' : ''}
+                  <div className="flex-1 space-y-3">
+                    <Select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner une catégorie" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[200px] overflow-y-auto">
+                        {company.categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            <div className="flex items-center justify-between w-full">
+                              <span>{category.designation}</span>
+                              <span className="text-xs text-muted-foreground ml-2">{category.code}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {company.categories.length} catégorie{company.categories.length > 1 ? 's' : ''} disponible{company.categories.length > 1 ? 's' : ''}
                     </p>
                   </div>
                 </div>
