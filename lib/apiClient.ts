@@ -180,6 +180,16 @@ class ApiClient {
           errorMessage = errorRes.message || errorRes.details || errorMessage
           errorDetails = errorRes
           console.error('Erreur backend détaillée:', errorRes)
+          if (errorRes.errors) {
+            console.error('Détails de validation:', errorRes.errors)
+            // Log each validation error
+            Object.keys(errorRes.errors).forEach(field => {
+              console.error(`Validation error for ${field}:`, errorRes.errors[field])
+            })
+          }
+          if (errorRes.message) {
+            console.error('Message d\'erreur:', errorRes.message)
+          }
         } catch {
           errorMessage = responseText || errorMessage
           console.error('Réponse d\'erreur brute:', responseText)

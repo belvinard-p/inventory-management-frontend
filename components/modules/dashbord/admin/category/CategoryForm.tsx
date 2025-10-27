@@ -37,8 +37,8 @@ const categoryFormSchema = z.object({
   designation: z.string().min(2, {
     message: "Designation must be at least 2 characters.",
   }),
-  code: z.string().min(2, {
-    message: "Code must be at least 2 characters.",
+  code: z.string().regex(/^(CAT-\d{3}|CAT[A-Z]{3})$/, {
+    message: "Code must be in the format CAT-123 or CATEFT",
   }),
   companyId: z.number().int().positive({
     message: "Company ID must be a positive number.",
@@ -85,6 +85,7 @@ export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFor
   }, [category, mode, form])
 
   const handleSubmit = async (values: CategoryFormValues) => {
+    console.log('Form values before submit:', values)
     try {
       if (mode === "create") {
         await createCategory.mutateAsync(values)
@@ -94,7 +95,7 @@ export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFor
       onOpenChange(false)
       form.reset()
     } catch (error) {
-      // Error handling is done in the mutation
+      console.error('Form submission error:', error)
     }
   }
 
@@ -138,10 +139,10 @@ export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFor
                 <FormItem>
                   <FormLabel>Code</FormLabel>
                   <FormControl>
-                    <Input placeholder="Code de la catégorie (ex: CAT001)" {...field} />
+                    <Input placeholder="Code de la catégorie (ex: CAT-123 ou CATEFT)" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Un code unique pour cette catégorie.
+                    Format requis: CAT-123 (3 chiffres) ou CATEFT (3 lettres majuscules)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
