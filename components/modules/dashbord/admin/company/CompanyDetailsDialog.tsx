@@ -8,7 +8,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { CompanyImage } from "./CompanyImage"
 import { CopyButton } from "@/components/ui/copy-button"
-import { Mail, Phone, Globe, MapPin, Calendar, FileText } from "lucide-react"
+import { Mail, Phone, Globe, MapPin, Calendar, FileText, Tag } from "lucide-react"
 
 interface CompanyDetailsDialogProps {
   company: Company | null
@@ -142,6 +142,36 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     {company.description}
                   </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Catégories */}
+          {company.categories && company.categories.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Catégories</h3>
+              <div className="p-4 rounded-xl bg-muted/30">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600">
+                    <Tag className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex flex-wrap gap-2">
+                      {company.categories.map((category) => (
+                        <span 
+                          key={category.id}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20"
+                          title={`Code: ${category.code}`}
+                        >
+                          {category.designation}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {company.categories.length} catégorie{company.categories.length > 1 ? 's' : ''}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
