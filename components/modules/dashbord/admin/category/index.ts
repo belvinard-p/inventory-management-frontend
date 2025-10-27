@@ -1,0 +1,1 @@
+export { AdminCategory as AdminCategoryPage } from './AdminCategory'
