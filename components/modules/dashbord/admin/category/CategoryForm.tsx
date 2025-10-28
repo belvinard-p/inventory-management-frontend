@@ -29,9 +29,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { CategoryResponse } from "@/types/category"
+import { CategoryResponse, CategoryRequest } from "@/types/category"
 import { useCompanies } from "@/hooks/useCompany"
-import { useCategories } from "@/hooks/category/useCategory"
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { categoryService } from '@/service/categoryService'
+import { CategoriesCacheKeys } from '@/lib/const'
+import { toast } from 'sonner'
+import { enhancedToast } from '@/lib/toast-utils'
 
 const categoryFormSchema = z.object({
   designation: z.string().min(2, {
@@ -56,8 +60,39 @@ interface CategoryFormProps {
 
 export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFormProps) {
   const { companies } = useCompanies(0, 100)
-  const { createCategory, updateCategory, isCreating, isUpdating } = useCategories()
   const companiesData = Array.isArray(companies?.content) ? companies.content : []
+  const queryClient = useQueryClient()
+
+  const createCategory = useMutation({
+    mutationFn: (data: CategoryRequest) => categoryService.create(data),
+    onSuccess: (newCategory) => {
+      queryClient.invalidateQueries({ queryKey: [CategoriesCacheKeys.Categories] })
+      enhancedToast.success("Catégorie créée avec succès", {
+        description: `${newCategory.designation} a été ajoutée à votre liste`
+      })
+    },
+    onError: (error: any) => {
+      if (error?.details?.status === 409 || error?.message?.includes('409')) {
+        const conflictMessage = error?.details?.message || "Une catégorie avec ce code existe déjà"
+        toast.error("Conflit", { description: conflictMessage })
+        return
+      }
+      const message = error?.details?.message || error?.message || "Erreur lors de la création de la catégorie"
+      toast.error("Erreur de création", { description: message })
+    }
+  })
+
+  const updateCategory = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: CategoryRequest }) => 
+      categoryService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [CategoriesCacheKeys.Categories] })
+      toast.success("Catégorie mise à jour avec succès")
+    },
+    onError: () => {
+      toast.error("Erreur lors de la mise à jour")
+    }
+  })
   
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
@@ -85,7 +120,6 @@ export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFor
   }, [category, mode, form])
 
   const handleSubmit = async (values: CategoryFormValues) => {
-    console.log('Form values before submit:', values)
     try {
       if (mode === "create") {
         await createCategory.mutateAsync(values)
@@ -99,7 +133,7 @@ export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFor
     }
   }
 
-  const isSubmitting = isCreating || isUpdating
+  const isSubmitting = createCategory.isPending || updateCategory.isPending
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
