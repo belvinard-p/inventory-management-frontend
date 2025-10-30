@@ -5,7 +5,8 @@ import type { ApiError } from "./common";
 // Types pour Category et Supplier (références)
 export interface CategoryResponse {
     id: number;
-    name: string;
+    designation: string;
+    code: string;
 }
 
 export interface SupplierResponse {

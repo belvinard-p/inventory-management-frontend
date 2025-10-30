@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { userService } from "@/service/userService"
 import { companyService } from "@/service/companyService"
+import { categoryService } from "@/service/categoryService"
 
 export function AdminDashboard() {
     // Vérification des permissions admin
@@ -27,6 +28,7 @@ export function AdminDashboard() {
         totalCompanies: 0,
         totalProducts: 0,
         totalOrders: 0,
+        totalCategories: 0, // [NEW] add state
         monthlyRevenue: 0,
         activeManagers: 0,
         archivedItems: 0,
@@ -39,35 +41,34 @@ export function AdminDashboard() {
             setIsLoading(true)
             setError(null)
             
-            // Récupérer le nombre réel d'utilisateurs et d'entreprises
-            const [users, companies] = await Promise.all([
+            // Récupérer le nombre réel d'utilisateurs, d'entreprises, et de catégories
+            const [users, companies, categories] = await Promise.all([
                 userService.getAll(),
-                companyService.getAll({ page: 0, size: 1 }) // On ne récupère qu'une page pour avoir totalElements
+                companyService.getAll({ page: 0, size: 1 }),
+                categoryService.getAll({ page: 0, size: 1 }),
             ])
-            
             const usersCount = users.length
             const companiesCount = companies.totalElements
+            const categoriesCount = categories.totalElements
             
-            // Données avec les vrais nombres d'utilisateurs et d'entreprises
+            // Données avec les vrais nombres, y compris totalCategories
             setDashboardData({
                 totalUsers: usersCount,
                 totalCompanies: companiesCount,
                 totalProducts: 1247,
                 totalOrders: 89,
+                totalCategories: categoriesCount, // [NEW]
                 monthlyRevenue: 125000,
                 activeManagers: 8,
                 archivedItems: 23,
                 lockedAccounts: 3,
                 systemUptime: 99.9
             })
-            
             setLastFetch(new Date())
             setRetryCount(0)
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue'
             setError(`Échec du chargement des données: ${errorMessage}`)
-            
-            // Retry automatique après 3 secondes (max 3 tentatives)
             if (retryCount < 3) {
                 setTimeout(() => {
                     setRetryCount(prev => prev + 1)
@@ -90,6 +91,7 @@ export function AdminDashboard() {
         totalCompanies,
         totalProducts,
         totalOrders,
+        totalCategories, // [NEW]
         monthlyRevenue,
         activeManagers,
         archivedItems,
@@ -116,8 +118,9 @@ export function AdminDashboard() {
         companies: totalCompanies > 0,
         products: totalProducts > 0,
         orders: totalOrders > 0,
-        revenue: monthlyRevenue > 0
-    }), [totalUsers, totalCompanies, totalProducts, totalOrders, monthlyRevenue])
+        revenue: monthlyRevenue > 0,
+        categories: totalCategories > 0 // [NEW]
+    }), [totalUsers, totalCompanies, totalProducts, totalOrders, monthlyRevenue, totalCategories])
     
     const isDataStale = useMemo(() => {
         if (!lastFetch) return false
@@ -259,6 +262,21 @@ export function AdminDashboard() {
                     onClick={handleCompaniesClick}
                     isEmpty={!isLoading && !error && totalCompanies === 0}
                     emptyMessage="Aucune entreprise enregistrée dans le système"
+                />
+                
+                <MetricCard
+                    title="Catégories"
+                    value={totalCategories}
+                    description="Familles d'articles"
+                    icon={Archive}
+                    iconColor="text-purple-500"
+                    isLoading={isLoading}
+                    isError={!!error}
+                    errorMessage="Impossible de charger les catégories. Problème de connexion."
+                    onRetry={handleManualRetry}
+                    onClick={() => { console.log('Navigate to categories') }}
+                    isEmpty={!isLoading && !error && !hasData.categories}
+                    emptyMessage="Aucune catégorie trouvée. Ajoutez-en pour commencer."
                 />
                 
                 <MetricCard

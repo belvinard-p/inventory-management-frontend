@@ -8,7 +8,14 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { CompanyImage } from "./CompanyImage"
 import { CopyButton } from "@/components/ui/copy-button"
-import { Mail, Phone, Globe, MapPin, Calendar, FileText } from "lucide-react"
+import { Mail, Phone, Globe, MapPin, Calendar, FileText, Tag } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface CompanyDetailsDialogProps {
   company: Company | null
@@ -44,15 +51,18 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
         <div className="p-8 space-y-8">
           {/* Informations de contact */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-foreground">Contact</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
+            <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Contact
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group cursor-pointer" onClick={() => window.open(`mailto:${company.email}`)}>
                 <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
                   <Mail className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-muted-foreground">Email</p>
-                  <p className="text-sm font-semibold">{company.email}</p>
+                  <p className="text-sm font-semibold break-all">{company.email}</p>
                 </div>
                 <CopyButton 
                   text={company.email} 
@@ -60,7 +70,7 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
                 />
               </div>
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group cursor-pointer" onClick={() => window.open(`tel:${company.phoneNumber}`)}>
                 <div className="p-2 rounded-lg bg-green-100 text-green-600">
                   <Phone className="h-5 w-5" />
                 </div>
@@ -104,21 +114,20 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
           {/* Site web */}
           {company.website && (
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-foreground">Site web</h3>
-              <div className="p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
+              <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" />
+                Site web
+              </h3>
+              <div className="p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group cursor-pointer" onClick={() => window.open(`https://${company.website}`, '_blank')}>
                 <div className="flex items-center gap-4">
                   <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
                     <Globe className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <a 
-                      href={`https://${company.website}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors"
-                    >
+                    <p className="text-sm font-medium text-muted-foreground">URL</p>
+                    <p className="text-blue-600 hover:text-blue-800 font-medium transition-colors break-all">
                       {company.website}
-                    </a>
+                    </p>
                   </div>
                   <CopyButton 
                     text={company.website} 
@@ -142,6 +151,43 @@ export function CompanyDetailsDialog({ company, open, onOpenChange }: CompanyDet
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     {company.description}
                   </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Catégories */}
+          {company.categories && company.categories.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                <Tag className="h-5 w-5 text-primary" />
+                Catégories
+              </h3>
+              <div className="p-4 rounded-xl bg-muted/30">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600">
+                    <Tag className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <Select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner une catégorie" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[200px] overflow-y-auto">
+                        {company.categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            <div className="flex items-center justify-between w-full">
+                              <span>{category.designation}</span>
+                              <span className="text-xs text-muted-foreground ml-2">{category.code}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {company.categories.length} catégorie{company.categories.length > 1 ? 's' : ''} disponible{company.categories.length > 1 ? 's' : ''}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
