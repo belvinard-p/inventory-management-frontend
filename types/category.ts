@@ -10,6 +10,8 @@ export type Category = {
     articles?: ArticleResponse[];
     createdDate: string; 
     updatedDate: string; 
+    companyId?: number;
+    isActive?: boolean;
 }
 
 // Type pour créer/modifier une category (basé sur CategoryRequestDto)

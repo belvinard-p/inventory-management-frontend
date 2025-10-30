@@ -71,13 +71,21 @@ export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFor
         description: `${newCategory.designation} a été ajoutée à votre liste`
       })
     },
-    onError: (error: any) => {
-      if (error?.details?.status === 409 || error?.message?.includes('409')) {
-        const conflictMessage = error?.details?.message || "Une catégorie avec ce code existe déjà"
-        toast.error("Conflit", { description: conflictMessage })
+    onError: (error: unknown) => {
+      let status: number | undefined
+      let conflictMessage: string | undefined
+      let errMessage: string | undefined
+      if (typeof error === 'object' && error !== null) {
+        const withDetails = error as { details?: { status?: number; message?: string }; message?: string }
+        status = withDetails.details?.status
+        conflictMessage = withDetails.details?.message
+        errMessage = withDetails.message
+      }
+      if (status === 409 || (errMessage && errMessage.includes('409'))) {
+        toast.error("Conflit", { description: conflictMessage || "Une catégorie avec ce code existe déjà" })
         return
       }
-      const message = error?.details?.message || error?.message || "Erreur lors de la création de la catégorie"
+      const message = conflictMessage || errMessage || "Erreur lors de la création de la catégorie"
       toast.error("Erreur de création", { description: message })
     }
   })
@@ -207,7 +215,7 @@ export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFor
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Choisissez l'entreprise pour cette catégorie.
+                    Choisissez l&apos;entreprise pour cette catégorie.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
