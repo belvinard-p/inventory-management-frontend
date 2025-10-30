@@ -11,6 +11,8 @@ import { CategoryForm } from "./CategoryForm"
 import { DeleteConfirmDialog } from "@/components/global/DeleteConfirmDialog"
 import { useCategories } from "@/hooks/category/useCategory"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { format } from "date-fns"
+import { fr } from "date-fns/locale"
 
 interface AdminCategoryContentProps {
   categories: CategoryResponse[]
@@ -105,8 +107,8 @@ export function AdminCategoryContent({
             <div className="space-y-2 py-2 text-base">
               <div><strong>Code:</strong> {selectedCategory.code}</div>
               <div><strong>Désignation:</strong> {selectedCategory.designation}</div>
-              <div><strong>Date de création:</strong> {selectedCategory.createdDate}</div>
-              <div><strong>Dernière mise à jour:</strong> {selectedCategory.updatedDate}</div>
+              <div><strong>Date de création:</strong> {selectedCategory.createdDate ? format(new Date(selectedCategory.createdDate), "PP", { locale: fr }) : "-"}</div>
+              <div><strong>Dernière mise à jour:</strong> {selectedCategory.updatedDate ? format(new Date(selectedCategory.updatedDate), "PP", { locale: fr }) : "-"}</div>
               {/* Ajoutez d'autres champs au besoin */}
             </div>
           )}

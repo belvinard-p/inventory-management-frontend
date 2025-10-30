@@ -53,7 +53,7 @@ export const createColumns = ({ onEdit, onDelete, onDetails }: ColumnsProps): Co
       
       return (
         <div className="text-sm text-muted-foreground">
-          {format(date, "PPp", { locale: fr })}
+          {format(date, "PP", { locale: fr })}
         </div>
       )
     },
@@ -70,7 +70,7 @@ export const createColumns = ({ onEdit, onDelete, onDetails }: ColumnsProps): Co
       
       return (
         <div className="text-sm text-muted-foreground">
-          {format(date, "PPp", { locale: fr })}
+          {format(date, "PP", { locale: fr })}
         </div>
       )
     },
