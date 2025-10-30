@@ -10,6 +10,7 @@ import { createColumns } from "./Columns"
 import { CategoryForm } from "./CategoryForm"
 import { DeleteConfirmDialog } from "@/components/global/DeleteConfirmDialog"
 import { useCategories } from "@/hooks/category/useCategory"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 
 interface AdminCategoryContentProps {
   categories: CategoryResponse[]
@@ -28,6 +29,7 @@ export function AdminCategoryContent({
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
   const [selectedCategory, setSelectedCategory] = React.useState<CategoryResponse | undefined>()
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = React.useState(false)
   const { deleteCategory, isDeleting } = useCategories()
 
   const handleEdit = (category: CategoryResponse) => {
@@ -38,6 +40,11 @@ export function AdminCategoryContent({
   const handleDelete = (category: CategoryResponse) => {
     setSelectedCategory(category)
     setIsDeleteDialogOpen(true)
+  }
+
+  const handleDetails = (category: CategoryResponse) => {
+    setSelectedCategory(category)
+    setIsDetailsDialogOpen(true)
   }
 
   const confirmDelete = async () => {
@@ -52,7 +59,7 @@ export function AdminCategoryContent({
     }
   }
 
-  const columns = createColumns({ onEdit: handleEdit, onDelete: handleDelete })
+  const columns = createColumns({ onEdit: handleEdit, onDelete: handleDelete, onDetails: handleDetails })
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -87,6 +94,24 @@ export function AdminCategoryContent({
         mode="edit"
         category={selectedCategory}
       />
+
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Détails de la catégorie</DialogTitle>
+            <DialogDescription>Cliquez en dehors du dialogue pour fermer.</DialogDescription>
+          </DialogHeader>
+          {selectedCategory && (
+            <div className="space-y-2 py-2 text-base">
+              <div><strong>Code:</strong> {selectedCategory.code}</div>
+              <div><strong>Désignation:</strong> {selectedCategory.designation}</div>
+              <div><strong>Date de création:</strong> {selectedCategory.createdDate}</div>
+              <div><strong>Dernière mise à jour:</strong> {selectedCategory.updatedDate}</div>
+              {/* Ajoutez d'autres champs au besoin */}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <DeleteConfirmDialog
         open={isDeleteDialogOpen}
