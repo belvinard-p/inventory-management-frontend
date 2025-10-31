@@ -64,7 +64,7 @@ export const articleService = {
 
   // Mettre à jour un article (ADMIN, MANAGER)
   update: async (id: number, data: ArticleRequest): Promise<ArticleResponse> => {
-    return apiClient.put<ArticleResponse>(`${BASE_URL}/${id}`, data)
+    return apiClient.put<ArticleResponse>(`${BASE_URL}/update/${id}`, data)
   },
 
   // Supprimer un article (ADMIN only)
@@ -72,9 +72,32 @@ export const articleService = {
     return apiClient.delete(`${BASE_URL}/${id}`)
   },
 
-  // Récupérer les articles par catégorie (ALL ROLES)
-  getByCategory: async (categoryId: number): Promise<PaginatedResponse<ArticleResponse>> => {
-    return apiClient.get<PaginatedResponse<ArticleResponse>>(`${BASE_URL}/by-category/${categoryId}`)
+  // Récupérer un article par code (ALL ROLES)
+  getByCode: async (code: string): Promise<ArticleResponse> => {
+    return apiClient.get<ArticleResponse>(`${BASE_URL}/code/${code}`)
+  },
+
+  // Récupérer les articles archivés (ALL ROLES)
+  getArchived: async (): Promise<ArticleResponse[]> => {
+    return apiClient.get<ArticleResponse[]>(`${BASE_URL}/archived`)
+  },
+
+  // Restaurer un article archivé (ADMIN, MANAGER)
+  restore: async (id: number): Promise<ArticleResponse> => {
+    return apiClient.put<ArticleResponse>(`${BASE_URL}/${id}/restore`)
+  },
+
+  // Récupérer l'URL de l'image d'un article (ALL ROLES)
+  getImageUrl: async (id: number, expirationMinutes: number = 15): Promise<string> => {
+    return apiClient.get<string>(`${BASE_URL}/${id}/image_url?expirationMinutes=${expirationMinutes}`)
+  },
+
+  // Uploader l'image d'un article (ADMIN, MANAGER)
+  uploadImage: async (id: number, imageFile: File): Promise<void> => {
+    const formData = new FormData()
+    formData.append('image', imageFile)
+    // Don't set Content-Type header manually for FormData, let the browser set it
+    return apiClient.put<void>(`${BASE_URL}/${id}/image`, formData)
   }
 }
 
