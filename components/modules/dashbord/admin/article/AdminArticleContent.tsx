@@ -10,6 +10,7 @@ import { BulkActions } from "./BulkActions"
 import { DataTable } from "../company/DataTable"
 import { columns } from "./Columns"
 import { EmptyState } from "@/components/global"
+import { ArticleForm } from "./ArticleForm"
 import {
   Pagination,
   PaginationContent,
@@ -257,18 +258,18 @@ export function AdminArticleContent({
       </Card>
 
       {/* Modals */}
-      {/* TODO: Implement ArticleForm component */}
-      {isCreateModalOpen && (
-        <div className="text-muted-foreground text-sm">
-          Le formulaire de création d'article sera implémenté ici
-        </div>
-      )}
+      <ArticleForm
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        mode="create"
+      />
       
-      {editingArticle && (
-        <div className="text-muted-foreground text-sm">
-          Le formulaire d'édition d'article sera implémenté ici
-        </div>
-      )}
+      <ArticleForm
+        open={!!editingArticle}
+        onOpenChange={(open) => !open && setEditingArticle(null)}
+        article={editingArticle}
+        mode="edit"
+      />
     </div>
   )
 }

@@ -27,6 +27,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { EmptyState } from "@/components/global/EmptyState"
+import { getFrenchColumnHeader } from "@/components/global/getFrenchColumnHeader"
 
 import { DataTableToolbar } from "./DataTableToolbar"
 import { DataTablePagination } from "./DataTablePagination"
@@ -102,35 +103,7 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
-  // Fonction utilitaire pour obtenir l'en-tête d'une colonne en français
-  const getFrenchColumnHeader = (accessorKey: string) => {
-    const frenchHeaders: { [key: string]: string } = {
-      'username': 'Nom',
-      'userName': 'Nom',
-      'name': 'Nom de l\'entreprise',
-      'email': 'Email',
-      'phoneNumber': 'Téléphone',
-      'role': 'Rôle',
-      'roleName': 'Rôle',
-      'status': 'Statut',
-      'createdAt': 'Date de création',
-      'createdDate': 'Date de création',
-      'actions': 'Actions',
-      // Article columns
-      'codeArticle': 'Code Article',
-      'designation': 'Désignation',
-      'availableQuantity': 'Stock disponible',
-      'quantityInStock': 'Stock',
-      'reservedQuantity': 'Réservé',
-      'unitPriceExclTax': 'Prix unitaire HT',
-      'unitPriceAllTax': 'Prix unitaire TTC',
-      'rateTva': 'TVA',
-      'categoryDesignation': 'Catégorie',
-      'updatedDate': 'Date de mise à jour'
-    }
-    
-    return frenchHeaders[accessorKey] || accessorKey
-  }
+
 
   if (isMobile && safeData.length > 0) {
     return (
