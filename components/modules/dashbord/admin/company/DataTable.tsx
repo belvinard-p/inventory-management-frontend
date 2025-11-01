@@ -107,13 +107,26 @@ export function DataTable<TData, TValue>({
     const frenchHeaders: { [key: string]: string } = {
       'username': 'Nom',
       'userName': 'Nom',
+      'name': 'Nom de l\'entreprise',
       'email': 'Email',
+      'phoneNumber': 'Téléphone',
       'role': 'Rôle',
       'roleName': 'Rôle',
       'status': 'Statut',
       'createdAt': 'Date de création',
       'createdDate': 'Date de création',
-      'actions': 'Actions'
+      'actions': 'Actions',
+      // Article columns
+      'codeArticle': 'Code Article',
+      'designation': 'Désignation',
+      'availableQuantity': 'Stock disponible',
+      'quantityInStock': 'Stock',
+      'reservedQuantity': 'Réservé',
+      'unitPriceExclTax': 'Prix unitaire HT',
+      'unitPriceAllTax': 'Prix unitaire TTC',
+      'rateTva': 'TVA',
+      'categoryDesignation': 'Catégorie',
+      'updatedDate': 'Date de mise à jour'
     }
     
     return frenchHeaders[accessorKey] || accessorKey
@@ -209,10 +222,10 @@ export function DataTable<TData, TValue>({
                       <TableHead key={header.id} colSpan={header.colSpan}>
                         {header.isPlaceholder
                           ? null
-                          : accessorKey ? frenchHeader : flexRender(
+                          : flexRender(
                               header.column.columnDef.header,
                               header.getContext()
-                            )
+                            ) || (accessorKey ? frenchHeader : accessorKey)
                         }
                       </TableHead>
                     )
