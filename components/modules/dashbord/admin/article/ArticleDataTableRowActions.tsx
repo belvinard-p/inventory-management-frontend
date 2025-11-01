@@ -26,7 +26,7 @@ import {
 } from "lucide-react"
 import { useArticles } from "@/hooks/article/useArticle"
 import { useArticleContext } from "./ArticleContext"
-import { DeleteConfirmDialog } from "@/components/global/DeleteConfirmDialog"
+import { DeleteConfirmDialog } from "@/components/global"
 import { useState } from "react"
 
 interface ArticleDataTableRowActionsProps<TData> {

@@ -9,7 +9,7 @@ import { ArticleSearch } from "./ArticleSearch"
 import { BulkActions } from "./BulkActions"
 import { DataTable } from "../company/DataTable"
 import { columns } from "./Columns"
-import { EmptyState } from "@/components/global/EmptyState"
+import { EmptyState } from "@/components/global"
 import {
   Pagination,
   PaginationContent,

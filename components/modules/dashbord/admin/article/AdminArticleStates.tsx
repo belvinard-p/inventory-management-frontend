@@ -2,8 +2,10 @@
 
 import React from "react"
 import { Button } from "@/components/ui/button"
-import { Plus, Package } from "lucide-react"
+import { Plus, Package, AlertCircle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
+import { EmptyState, LoadingContent } from "@/components/global"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface LoadingStateProps {
   readonly title?: string
@@ -25,7 +27,7 @@ interface ErrorStateProps {
 export function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center h-96">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <LoadingContent size="lg" text="Chargement..." />
     </div>
   )
 }
@@ -35,8 +37,13 @@ export function AuthErrorState({ title, description }: LoadingStateProps) {
     <div className="flex items-center justify-center h-96">
       <Card>
         <CardContent className="p-6">
-          <h2 className="text-xl font-semibold mb-2">{title}</h2>
-          <p className="text-muted-foreground">{description}</p>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <h2 className="text-xl font-semibold mb-2">{title}</h2>
+              <p className="text-muted-foreground">{description}</p>
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
     </div>
@@ -64,15 +71,19 @@ export function EmptyArticlesState({ currentUser, isCreateModalOpen, setIsCreate
       </div>
 
       <Card>
-        <CardContent className="p-12 text-center">
-          <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Aucun article trouvé</h2>
-          <p className="text-muted-foreground mb-4">Commencez par créer votre premier article.</p>
+        <CardContent className="p-12">
+          <EmptyState
+            title="Aucun article trouvé"
+            description="Commencez par créer votre premier article."
+            icon={<Package className="h-12 w-12 text-muted-foreground" />}
+          />
           {hasPermission && (
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Créer un article
-            </Button>
+            <div className="flex justify-center mt-6">
+              <Button onClick={() => setIsCreateModalOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Créer un article
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -91,9 +102,7 @@ export function LoadingArticlesState() {
       </div>
       
       <div className="space-y-4">
-        <div className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
+        <LoadingContent size="lg" text="Chargement des articles..." className="py-12" />
       </div>
     </div>
   )
@@ -120,10 +129,12 @@ export function ErrorArticlesState({ currentUser, isCreateModalOpen, setIsCreate
       </div>
 
       <Card>
-        <CardContent className="p-12 text-center">
-          <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Erreur de chargement</h2>
-          <p className="text-muted-foreground mb-4">Impossible de charger les données des articles. Veuillez réessayer.</p>
+        <CardContent className="p-12">
+          <EmptyState
+            title="Erreur de chargement"
+            description="Impossible de charger les données des articles. Veuillez réessayer."
+            icon={<AlertCircle className="h-12 w-12 text-destructive" />}
+          />
         </CardContent>
       </Card>
     </div>

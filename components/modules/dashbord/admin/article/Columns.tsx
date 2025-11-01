@@ -35,7 +35,7 @@ export const columns: ColumnDef<ArticleResponse>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "codeArticle",
+    accessorKey: "Code article",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Code Article" />
     ),
@@ -54,7 +54,7 @@ export const columns: ColumnDef<ArticleResponse>[] = [
     },
   },
   {
-    accessorKey: "designation",
+    accessorKey: "Désignation",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Désignation" />
     ),
@@ -69,7 +69,7 @@ export const columns: ColumnDef<ArticleResponse>[] = [
     },
   },
   {
-    accessorKey: "availableQuantity",
+    accessorKey: "Quantité disponible",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Stock disponible" />
     ),
@@ -91,18 +91,18 @@ export const columns: ColumnDef<ArticleResponse>[] = [
     },
   },
   {
-    accessorKey: "unitPriceExclTax",
+    accessorKey: "Prix unitaire TTC",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Prix unitaire HT" />
+      <DataTableColumnHeader column={column} title="Prix unitaire TTC" />
     ),
     cell: ({ row }) => {
-      const price = row.getValue("unitPriceExclTax") as number
+      const price = row.getValue("unitPriceAllTax") as number
       const article = row.original
       return (
         <div className="flex flex-col">
-          <span className="font-medium">{price.toFixed(2)} €</span>
+          <span className="font-medium">{price.toFixed(2)} xaf</span>
           <span className="text-xs text-muted-foreground">
-            TTC: {article.unitPriceAllTax.toFixed(2)} € (TVA {article.rateTva}%)
+            HT: {article.unitPriceExclTax.toFixed(2)} xaf (TVA {article.rateTva}%)
           </span>
         </div>
       )
