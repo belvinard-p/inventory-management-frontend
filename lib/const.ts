@@ -11,3 +11,8 @@ export const CategoriesCacheKeys = Object.freeze({
     Categories: 'categories',
     Category: 'category'
 } as const)
+
+export const ArticlesCacheKeys = Object.freeze({
+    Articles: 'articles',
+    Article: 'article'
+} as const)
