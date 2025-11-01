@@ -61,7 +61,7 @@ export function useAdminArticleLogic() {
     active: articlesData.filter(a => a.status === 'ACTIVE')?.length || 0,
     archived: articlesData.filter(a => a.status === 'ARCHIVED')?.length || 0,
     withImage: articlesData.filter(a => a.image)?.length || 0,
-    lowStock: articlesData.filter(a => a.availableQuantity <= 10 && a.availableQuantity > 0)?.length || 0,
+    lowStock: articlesData.filter(a => a.quantityInStock < 10)?.length || 0,
     outOfStock: articlesData.filter(a => a.availableQuantity === 0)?.length || 0,
   }
 

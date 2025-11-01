@@ -132,7 +132,6 @@ export function DataTable<TData, TValue>({
     return frenchHeaders[accessorKey] || accessorKey
   }
 
-  // Version mobile avec cartes
   if (isMobile && safeData.length > 0) {
     return (
       <div className="space-y-4">
@@ -147,7 +146,6 @@ export function DataTable<TData, TValue>({
               <Card key={row.id} className={row.getIsSelected() ? "bg-muted/50 border-primary" : ""}>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex justify-between items-center text-base">
-                    {/* Première colonne (généralement le nom) */}
                     <span>
                       {row.getVisibleCells()[0] ? (
                         flexRender(
@@ -155,12 +153,10 @@ export function DataTable<TData, TValue>({
                           row.getVisibleCells()[0].getContext()
                         )
                       ) : (
-                        // Fallback si la cellule n'est pas disponible
                         String(row.getValue((safeColumns[0] as { accessorKey?: string }).accessorKey || '') || '')
                       )}
                     </span>
                     
-                    {/* Badge pour le statut (si disponible) */}
                     {statusCell && (
                       <Badge variant="secondary">
                         {flexRender(
@@ -172,10 +168,8 @@ export function DataTable<TData, TValue>({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                  {/* Toutes les colonnes sauf la première */}
                   {row.getVisibleCells().slice(1).map((cell) => {
                     const accessorKey = (cell.column.columnDef as { accessorKey?: string }).accessorKey
-                    // On saute la colonne status car déjà affichée dans le header
                     if (accessorKey === 'status') return null
 
                     return (
