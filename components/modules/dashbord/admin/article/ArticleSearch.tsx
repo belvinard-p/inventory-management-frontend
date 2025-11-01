@@ -40,7 +40,7 @@ export function ArticleSearch({
         case "without-image":
           return !article.image || article.image.trim() === ""
         case "low-stock":
-          return article.availableQuantity <= 10 && article.availableQuantity > 0
+          return article.availableQuantity < 10
         case "out-of-stock":
           return article.availableQuantity === 0
         case "in-stock":
