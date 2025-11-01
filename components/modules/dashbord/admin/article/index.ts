@@ -1,0 +1,1 @@
+export { AdminArticle as AdminArticlePage } from './AdminArticle'
