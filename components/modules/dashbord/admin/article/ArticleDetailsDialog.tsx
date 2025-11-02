@@ -11,6 +11,7 @@ import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
 import { ArticleStatus } from "@/types/article"
+import { ArticleImage } from "./ArticleImage"
 
 interface ArticleDetailsDialogProps {
   article: ArticleResponse | null
@@ -27,9 +28,13 @@ export function ArticleDetailsDialog({ article, open, onOpenChange }: ArticleDet
         {/* Header */}
         <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 p-8 pb-6">
           <div className="flex flex-col items-center text-center space-y-4">
-            <div className="h-48 w-48 rounded-2xl bg-primary/10 flex items-center justify-center border-4 border-white shadow-lg">
-              <Package className="h-24 w-24 text-primary/50" />
-            </div>
+            <ArticleImage
+              articleId={article.id}
+              articleName={article.designation}
+              className="h-48 w-48 rounded-2xl object-cover border-4 border-white shadow-lg"
+              fallbackClassName="h-48 w-48 rounded-2xl bg-primary/10 flex items-center justify-center border-4 border-white shadow-lg"
+              expirationMinutes={15}
+            />
             <div>
               <h2 className="text-2xl font-bold text-foreground">{article.designation}</h2>
               <p className="text-sm text-muted-foreground font-mono bg-white/50 px-3 py-1 rounded-full mt-2">

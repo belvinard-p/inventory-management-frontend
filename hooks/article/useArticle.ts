@@ -112,6 +112,8 @@ export const useArticles = (page: number = 0, size: number = 50) => {
       queryClient.invalidateQueries({ queryKey: [ArticlesCacheKeys.Articles] })
       queryClient.invalidateQueries({ queryKey: [ArticlesCacheKeys.Articles, variables.id] })
       queryClient.invalidateQueries({ queryKey: [ArticlesCacheKeys.Articles, variables.id, 'imageUrl'] })
+      // Invalider également les queries d'images génériques
+      queryClient.invalidateQueries({ queryKey: ['image', 'article', variables.id] })
       toast.success("Image mise à jour avec succès")
     },
     onError: (error: ApiError) => {

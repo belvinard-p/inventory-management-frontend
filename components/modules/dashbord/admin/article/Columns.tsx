@@ -125,20 +125,20 @@ export const columns: ColumnDef<ArticleResponse>[] = [
       return row.getValue(id) === value
     },
   },
-  {
-    accessorKey: "createdDate",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Date de création" />
-    ),
-    cell: ({ row }) => {
-      const date = row.getValue("createdDate") as string
-      return (
-        <div className="text-sm">
-          {date ? new Date(date).toLocaleDateString('fr-FR') : ""}
-        </div>
-      )
-    },
-  },
+  // {
+  //   accessorKey: "createdDate",
+  //   header: ({ column }) => (
+  //     <DataTableColumnHeader column={column} title="Date de création" />
+  //   ),
+  //   cell: ({ row }) => {
+  //     const date = row.getValue("createdDate") as string
+  //     return (
+  //       <div className="text-sm">
+  //         {date ? new Date(date).toLocaleDateString('fr-FR') : ""}
+  //       </div>
+  //     )
+  //   },
+  // },
   {
     id: "actions",
     cell: ({ row }) => <ArticleDataTableRowActions row={row} />,

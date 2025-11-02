@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -56,14 +57,40 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
     resolver: zodResolver(articleSchema),
     mode: "onChange",
     defaultValues: {
-      codeArticle: article?.codeArticle || "",
-      designation: article?.designation || "",
-      quantityInStock: article?.quantityInStock || 0,
-      unitPriceExclTax: article?.unitPriceExclTax || 0,
-      rateTva: article?.rateTva || 0,
-      categoryId: article?.categoryId || 0,
+      codeArticle: "",
+      designation: "",
+      quantityInStock: 0,
+      unitPriceExclTax: 0,
+      rateTva: 0,
+      categoryId: 0,
     },
   })
+
+  // Réinitialiser le formulaire avec les données de l'article quand le dialog s'ouvre ou que l'article change
+  useEffect(() => {
+    if (open && isEditMode && article) {
+      form.reset({
+        codeArticle: article.codeArticle || "",
+        designation: article.designation || "",
+        quantityInStock: article.quantityInStock || 0,
+        unitPriceExclTax: article.unitPriceExclTax || 0,
+        rateTva: article.rateTva || 0,
+        categoryId: article.categoryId || 0,
+        imageFile: undefined,
+      })
+    } else if (open && !isEditMode) {
+      // Réinitialiser pour un nouveau formulaire
+      form.reset({
+        codeArticle: "",
+        designation: "",
+        quantityInStock: 0,
+        unitPriceExclTax: 0,
+        rateTva: 0,
+        categoryId: 0,
+        imageFile: undefined,
+      })
+    }
+  }, [open, article, isEditMode, form])
 
   // Vérifier si tous les champs obligatoires sont remplis
   const watchedValues = form.watch()

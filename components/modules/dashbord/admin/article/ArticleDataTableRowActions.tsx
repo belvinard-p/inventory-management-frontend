@@ -28,6 +28,7 @@ import { useArticles } from "@/hooks/article/useArticle"
 import { useArticleContext } from "./ArticleContext"
 import { DeleteConfirmDialog } from "@/components/global"
 import { ArticleDetailsDialog } from "./ArticleDetailsDialog"
+import { ImageUploadDialog } from "./ImageUploadDialog"
 import { useState } from "react"
 
 interface ArticleDataTableRowActionsProps<TData> {
@@ -41,6 +42,7 @@ export function ArticleDataTableRowActions<TData>({
   const { onEditArticle } = useArticleContext()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false)
   const { deleteArticle } = useArticles()
 
   return (
@@ -80,10 +82,7 @@ export function ArticleDataTableRowActions<TData>({
           </DropdownMenuItem>
           
           <DropdownMenuItem 
-            onClick={() => {
-              // TODO: Implement image upload dialog
-              console.log('Upload image for article', article.id)
-            }}
+            onClick={() => setIsImageDialogOpen(true)}
             className="text-purple-600 hover:text-purple-700"
           >
             <Image className="mr-2 h-4 w-4" />
@@ -118,6 +117,12 @@ export function ArticleDataTableRowActions<TData>({
         article={article}
         open={isDetailsDialogOpen}
         onOpenChange={setIsDetailsDialogOpen}
+      />
+      
+      <ImageUploadDialog
+        open={isImageDialogOpen}
+        onOpenChange={setIsImageDialogOpen}
+        article={article}
       />
     </>
   )
