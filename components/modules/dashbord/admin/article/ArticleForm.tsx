@@ -21,13 +21,23 @@ import { useCategories } from "@/hooks/category/useCategory"
 import { ArticleResponse, ArticleRequest } from "@/types/article"
 
 const articleSchema = z.object({
-  codeArticle: z.string().min(2, "Le code doit contenir au moins 2 caractères").max(50, "Le code ne peut pas dépasser 50 caractères"),
-  designation: z.string().min(3, "La désignation doit contenir au moins 3 caractères").max(100, "La désignation ne peut pas dépasser 100 caractères"),
-  quantityInStock: z.number().min(0, "La quantité doit être positive").optional(),
-  unitPriceExclTax: z.number().min(0, "Le prix doit être positif"),
-  rateTva: z.number().min(0, "Le taux TVA doit être positif").max(100, "Le taux TVA ne peut pas dépasser 100%"),
+  codeArticle: z.string()
+    .min(4, "Le code doit contenir au moins 4 caractères")
+    .max(50, "Le code ne peut pas dépasser 50 caractères")
+    .regex(/^ART-\d{3}$|^ART[A-Z]{3}$/, "Le code doit être au format ART-XXX (ex: ART-001) ou ARTXXX (ex: ARTABC)"),
+  designation: z.string()
+    .min(3, "La désignation doit contenir au moins 3 caractères")
+    .max(100, "La désignation ne peut pas dépasser 100 caractères"),
+  quantityInStock: z.number().min(0, "La quantité ne peut pas être négative").optional(),
+  unitPriceExclTax: z.number()
+    .min(0.01, "Le prix unitaire HT doit être positif (supérieur à 0)"),
+  rateTva: z.number()
+    .min(0, "Le taux TVA ne peut pas être négatif"),
   categoryId: z.number().min(1, "Veuillez sélectionner une catégorie"),
-  imageFile: z.instanceof(File).optional(),
+  imageFile: z.instanceof(File).optional().refine(
+    (file) => !file || /^[^\s]+\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(file.name),
+    "Le nom du fichier doit se terminer par une extension d'image valide (jpg, jpeg, png, gif, webp, bmp)"
+  ),
 })
 
 interface ArticleFormProps {
@@ -55,6 +65,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
     },
   })
 
+  // Vérifier si tous les champs obligatoires sont remplis
   const watchedValues = form.watch()
   const isFormValid = form.formState.isValid
   const hasRequiredFields = watchedValues.codeArticle && watchedValues.designation && 
