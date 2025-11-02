@@ -89,11 +89,12 @@ export const articleService = {
   },
 
   
-  uploadImage: async (id: number, imageFile: File): Promise<void> => {
+  uploadImage: async (id: number, imageFile: File): Promise<ArticleResponse> => {
+    console.log('ArticleService - Uploading image for article:', id, 'File:', imageFile.name, 'Size:', imageFile.size)
     const formData = new FormData()
     formData.append('image', imageFile)
    
-    return apiClient.put<void>(`${BASE_URL}/${id}/image`, formData)
+    return apiClient.put<ArticleResponse>(`${BASE_URL}/${id}/image`, formData)
   },
 
   getLowStockCount: async (): Promise<number> => {

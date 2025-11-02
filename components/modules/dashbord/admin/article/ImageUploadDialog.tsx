@@ -28,18 +28,7 @@ export function ImageUploadDialog({ open, onOpenChange, article }: ImageUploadDi
   const [preview, setPreview] = useState<string | null>(null)
   const { updateArticleImage, isUpdatingImage } = useArticles()
 
-  // Fermer le dialog après succès de l'upload (quand la mutation se termine)
-  useEffect(() => {
-    if (!isUpdatingImage && selectedFile) {
-      // Réinitialiser après un court délai pour laisser le cache se mettre à jour
-      const timer = setTimeout(() => {
-        setSelectedFile(null)
-        setPreview(null)
-        onOpenChange(false)
-      }, 500)
-      return () => clearTimeout(timer)
-    }
-  }, [isUpdatingImage, selectedFile, onOpenChange])
+
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -68,13 +57,30 @@ export function ImageUploadDialog({ open, onOpenChange, article }: ImageUploadDi
     reader.readAsDataURL(file)
   }
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!selectedFile) {
       toast.error("Veuillez sélectionner une image")
       return
     }
 
-    updateArticleImage({ id: article.id, imageFile: selectedFile })
+    try {
+      await new Promise((resolve, reject) => {
+        updateArticleImage(
+          { id: article.id, imageFile: selectedFile },
+          {
+            onSuccess: () => {
+              setSelectedFile(null)
+              setPreview(null)
+              onOpenChange(false)
+              resolve(true)
+            },
+            onError: (error) => reject(error)
+          }
+        )
+      })
+    } catch (error) {
+      console.error('Upload failed:', error)
+    }
   }
 
   const handleClose = () => {

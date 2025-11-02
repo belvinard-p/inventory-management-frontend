@@ -106,19 +106,30 @@ export const useArticles = (page: number = 0, size: number = 50) => {
   })
 
   const updateArticleImage = useMutation({
-    mutationFn: ({ id, imageFile }: { id: number; imageFile: File }) => 
-      articleService.uploadImage(id, imageFile),
-    onSuccess: async (_, variables) => {
-      // Invalider toutes les queries liées à cet article
+    mutationFn: ({ id, imageFile }: { id: number; imageFile: File }) => {
+      console.log('Hook - Starting image upload for article:', id, 'File:', imageFile.name)
+      return articleService.uploadImage(id, imageFile)
+    },
+    onSuccess: async (result, variables) => {
+      console.log('Hook - Image upload successful for article:', variables.id, 'Result:', result)
+      
+      // Invalider et refetch immédiatement les queries liées à cet article
       await queryClient.invalidateQueries({ queryKey: [ArticlesCacheKeys.Articles] })
       await queryClient.invalidateQueries({ queryKey: [ArticlesCacheKeys.Articles, variables.id] })
-      // Forcer le refetch de l'URL d'image pour obtenir la nouvelle URL signée
-      await queryClient.refetchQueries({ queryKey: [ArticlesCacheKeys.Articles, variables.id, 'imageUrl'] })
-      // Invalider également les queries d'images génériques
+      await queryClient.invalidateQueries({ queryKey: [ArticlesCacheKeys.Articles, variables.id, 'imageUrl'] })
       await queryClient.invalidateQueries({ queryKey: ['image', 'article', variables.id] })
+      
+      // Forcer le refetch immédiat de l'URL d'image
+      await queryClient.refetchQueries({ 
+        queryKey: [ArticlesCacheKeys.Articles, variables.id, 'imageUrl'],
+        type: 'active'
+      })
+      
+      console.log('Hook - Cache invalidated and refetched for article:', variables.id)
       toast.success("Image mise à jour avec succès")
     },
     onError: (error: ApiError) => {
+      console.error('Hook - Erreur upload image:', error)
       toast.error("Erreur lors de la mise à jour de l'image")
     }
   })
