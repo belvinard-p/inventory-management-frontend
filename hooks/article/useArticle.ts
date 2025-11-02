@@ -108,12 +108,14 @@ export const useArticles = (page: number = 0, size: number = 50) => {
   const updateArticleImage = useMutation({
     mutationFn: ({ id, imageFile }: { id: number; imageFile: File }) => 
       articleService.uploadImage(id, imageFile),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [ArticlesCacheKeys.Articles] })
-      queryClient.invalidateQueries({ queryKey: [ArticlesCacheKeys.Articles, variables.id] })
-      queryClient.invalidateQueries({ queryKey: [ArticlesCacheKeys.Articles, variables.id, 'imageUrl'] })
+    onSuccess: async (_, variables) => {
+      // Invalider toutes les queries liées à cet article
+      await queryClient.invalidateQueries({ queryKey: [ArticlesCacheKeys.Articles] })
+      await queryClient.invalidateQueries({ queryKey: [ArticlesCacheKeys.Articles, variables.id] })
+      // Forcer le refetch de l'URL d'image pour obtenir la nouvelle URL signée
+      await queryClient.refetchQueries({ queryKey: [ArticlesCacheKeys.Articles, variables.id, 'imageUrl'] })
       // Invalider également les queries d'images génériques
-      queryClient.invalidateQueries({ queryKey: ['image', 'article', variables.id] })
+      await queryClient.invalidateQueries({ queryKey: ['image', 'article', variables.id] })
       toast.success("Image mise à jour avec succès")
     },
     onError: (error: ApiError) => {

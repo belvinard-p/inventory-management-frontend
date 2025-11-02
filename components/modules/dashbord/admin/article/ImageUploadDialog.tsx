@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ArticleResponse } from "@/types/article"
 import { useArticles } from "@/hooks/article/useArticle"
 import { Button } from "@/components/ui/button"
@@ -27,6 +27,19 @@ export function ImageUploadDialog({ open, onOpenChange, article }: ImageUploadDi
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const { updateArticleImage, isUpdatingImage } = useArticles()
+
+  // Fermer le dialog après succès de l'upload (quand la mutation se termine)
+  useEffect(() => {
+    if (!isUpdatingImage && selectedFile) {
+      // Réinitialiser après un court délai pour laisser le cache se mettre à jour
+      const timer = setTimeout(() => {
+        setSelectedFile(null)
+        setPreview(null)
+        onOpenChange(false)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [isUpdatingImage, selectedFile, onOpenChange])
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -55,19 +68,13 @@ export function ImageUploadDialog({ open, onOpenChange, article }: ImageUploadDi
     reader.readAsDataURL(file)
   }
 
-  const handleUpload = async () => {
+  const handleUpload = () => {
     if (!selectedFile) {
       toast.error("Veuillez sélectionner une image")
       return
     }
 
-    try {
-      updateArticleImage({ id: article.id, imageFile: selectedFile })
-      toast.success("Image mise à jour avec succès")
-      handleClose()
-    } catch (error) {
-      toast.error("Erreur lors de la mise à jour de l'image")
-    }
+    updateArticleImage({ id: article.id, imageFile: selectedFile })
   }
 
   const handleClose = () => {
