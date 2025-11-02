@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { CopyButton } from "@/components/ui/copy-button"
 import { Badge } from "@/components/ui/badge"
 import { ArticleStatus } from "@/types/article"
+import { ArticleImage } from "./ArticleImage"
 
 export const columns: ColumnDef<ArticleResponse>[] = [
   {
@@ -61,9 +62,17 @@ export const columns: ColumnDef<ArticleResponse>[] = [
     cell: ({ row }) => {
       const article = row.original
       return (
-        <div className="flex flex-col">
-          <span className="font-medium">{article.designation}</span>
-          <span className="text-xs text-muted-foreground">{article.categoryDesignation}</span>
+        <div className="flex items-center gap-3">
+          <ArticleImage
+            articleId={article.id}
+            articleName={article.designation}
+            className="h-10 w-10 rounded-lg object-cover border"
+            fallbackClassName="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"
+          />
+          <div className="flex flex-col">
+            <span className="font-medium">{article.designation}</span>
+            <span className="text-xs text-muted-foreground">{article.categoryDesignation}</span>
+          </div>
         </div>
       )
     },

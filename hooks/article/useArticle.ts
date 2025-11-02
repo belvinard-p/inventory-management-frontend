@@ -174,26 +174,7 @@ export const useArticles = (page: number = 0, size: number = 50) => {
   }
 }
 
-export const useArticleImageUrl = (articleId?: number, expirationMinutes: number = 15) => {
-  return useQuery({
-    queryKey: [ArticlesCacheKeys.Articles, articleId, 'imageUrl'],
-    queryFn: async () => {
-      try {
-        return await articleService.getImageUrl(articleId!, expirationMinutes)
-      } catch (error: any) {
 
-        if (error?.message?.includes('No image found')) {
-          return null
-        }
-    
-        throw error
-      }
-    },
-    enabled: !!articleId,
-    staleTime: 10 * 60 * 1000, // 10 minutes (moins que l'expiration de l'URL)
-    retry: false, 
-  })
-}
 
 
 export const useInfiniteArticles = (pageSize: number = 10) => {

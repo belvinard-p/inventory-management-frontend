@@ -21,16 +21,22 @@ export const useImageQuery = (options: UseImageQueryOptions) => {
         const blob = await companyService.getImage(filename)
         return URL.createObjectURL(blob)
       } else if (source === 'article' && articleId) {
-        // Pour les articles, on obtient directement l'URL signée
-        const url = await articleService.getImageUrl(articleId, expirationMinutes)
-        return url
+        try {
+          const url = await articleService.getImageUrl(articleId, expirationMinutes)
+          return url
+        } catch (error: any) {
+          if (error?.message?.includes('No image found')) {
+            return null
+          }
+          throw error
+        }
       }
       throw new Error('Invalid image query parameters')
     },
     enabled: (source === 'company' && !!filename) || (source === 'article' && !!articleId),
-    staleTime: (expirationMinutes - 1) * 60 * 1000, // Stale time légèrement inférieur à l'expiration
-    retry: 1,
-    gcTime: expirationMinutes * 60 * 1000 // Garbage collection time
+    staleTime: (expirationMinutes - 1) * 60 * 1000,
+    retry: false,
+    gcTime: expirationMinutes * 60 * 1000
   })
 }
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Package } from "lucide-react"
-import { useArticleImageUrl } from "@/hooks/article/useArticle"
+import { useArticleImageUrl } from "@/hooks/article/useArticleImageUrl"
 import { LazyImage } from "@/components/ui/lazy-image"
 
 interface ArticleImageProps {
