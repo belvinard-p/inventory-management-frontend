@@ -35,7 +35,7 @@ export const articleService = {
     if (params?.direction) searchParams.append('sortOrder', params.direction)
     
     const queryString = searchParams.toString()
-    const url = `${BASE_URL}/all${queryString ? `?${queryString}` : ''}`
+    const url = queryString ? `${BASE_URL}/all?${queryString}` : `${BASE_URL}/all`
     
     console.log('API Call:', { url, params, queryString })
     
@@ -94,6 +94,12 @@ export const articleService = {
     formData.append('image', imageFile)
    
     return apiClient.put<void>(`${BASE_URL}/${id}/image`, formData)
+  },
+
+  getLowStockCount: async (): Promise<number> => {
+    return apiClient.get<number>(`${BASE_URL}/low-stock/count`, {
+      showErrorToast: false
+    })
   }
 }
 

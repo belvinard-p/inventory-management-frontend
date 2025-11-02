@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tansta
 import { toast } from 'sonner'
 import { enhancedToast } from '@/lib/toast-utils'
 import { articleService } from '@/service/articleService'
+import { apiClient } from '@/lib/apiClient'
 import { ArticleResponse, ArticleRequest } from '@/types/article'
 import { ApiError } from '@/types'
 import { ArticlesCacheKeys } from '@/lib/const'
@@ -44,7 +45,7 @@ export const useArticles = (page: number = 0, size: number = 50) => {
         }
       })
     },
-    onError: (error: any) => {
+    onError: async (error: any) => {
       console.error('Erreur création article:', error)
       
       if (error?.details?.status === 409 || error?.message?.includes('409')) {
@@ -53,8 +54,20 @@ export const useArticles = (page: number = 0, size: number = 50) => {
         return
       }
       
+      // Fetch low stock count to display in error using apiClient directly
+      let lowStockCount = 0
+      try {
+        lowStockCount = await apiClient.get<number>('/articles/low-stock/count', {
+          showErrorToast: false
+        })
+      } catch (err) {
+        console.error('Failed to fetch low stock count:', err)
+      }
+      
       const message = error?.details?.message || error?.message || "Erreur lors de la création de l'article"
-      toast.error("Erreur de création", { description: message })
+      toast.error("Erreur de création", { 
+        description: `${message} (Articles en stock faible: ${lowStockCount})` 
+      })
     }
   })
 

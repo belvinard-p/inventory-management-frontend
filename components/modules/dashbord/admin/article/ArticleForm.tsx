@@ -127,14 +127,14 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                           {...field}
                           disabled={isCreating || isUpdating}
                           className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
-                            form.formState.errors.codeArticle 
+                            form.formState.errors.codeArticle && form.formState.touchedFields.codeArticle
                               ? "border-red-400 focus:border-red-500 bg-red-50/50" 
-                              : field.value && !form.formState.errors.codeArticle 
+                              : field.value && !form.formState.errors.codeArticle && form.formState.touchedFields.codeArticle
                               ? "border-green-400 focus:border-green-500 bg-green-50/50" 
                               : "border-border/40 focus:border-primary/60 focus:bg-background"
                           }`}
                         />
-                        {field.value && (
+                        {field.value && form.formState.touchedFields.codeArticle && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             {form.formState.errors.codeArticle ? (
                               <X className="h-4 w-4 text-red-500" />
@@ -163,14 +163,14 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                           {...field}
                           disabled={isCreating || isUpdating}
                           className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
-                            form.formState.errors.designation 
+                            form.formState.errors.designation && form.formState.touchedFields.designation
                               ? "border-red-400 focus:border-red-500 bg-red-50/50" 
-                              : field.value && !form.formState.errors.designation 
+                              : field.value && !form.formState.errors.designation && form.formState.touchedFields.designation
                               ? "border-green-400 focus:border-green-500 bg-green-50/50" 
                               : "border-border/40 focus:border-primary/60 focus:bg-background"
                           }`}
                         />
-                        {field.value && (
+                        {field.value && form.formState.touchedFields.designation && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             {form.formState.errors.designation ? (
                               <X className="h-4 w-4 text-red-500" />
@@ -225,14 +225,14 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                           onChange={(e) => field.onChange(Number(e.target.value))}
                           disabled={isCreating || isUpdating}
                           className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
-                            form.formState.errors.unitPriceExclTax 
+                            form.formState.errors.unitPriceExclTax && form.formState.touchedFields.unitPriceExclTax
                               ? "border-red-400 focus:border-red-500 bg-red-50/50" 
-                              : field.value && !form.formState.errors.unitPriceExclTax 
+                              : field.value && !form.formState.errors.unitPriceExclTax && form.formState.touchedFields.unitPriceExclTax
                               ? "border-green-400 focus:border-green-500 bg-green-50/50" 
                               : "border-border/40 focus:border-primary/60 focus:bg-background"
                           }`}
                         />
-                        {field.value && (
+                        {field.value && form.formState.touchedFields.unitPriceExclTax && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             {form.formState.errors.unitPriceExclTax ? (
                               <X className="h-4 w-4 text-red-500" />
@@ -264,14 +264,14 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                           onChange={(e) => field.onChange(Number(e.target.value))}
                           disabled={isCreating || isUpdating}
                           className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
-                            form.formState.errors.rateTva 
+                            form.formState.errors.rateTva && form.formState.touchedFields.rateTva
                               ? "border-red-400 focus:border-red-500 bg-red-50/50" 
-                              : field.value && !form.formState.errors.rateTva 
+                              : field.value && !form.formState.errors.rateTva && form.formState.touchedFields.rateTva
                               ? "border-green-400 focus:border-green-500 bg-green-50/50" 
                               : "border-border/40 focus:border-primary/60 focus:bg-background"
                           }`}
                         />
-                        {field.value && (
+                        {field.value && form.formState.touchedFields.rateTva && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             {form.formState.errors.rateTva ? (
                               <X className="h-4 w-4 text-red-500" />
@@ -297,9 +297,9 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                   <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger className={`h-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
-                        form.formState.errors.categoryId 
+                        form.formState.errors.categoryId && form.formState.touchedFields.categoryId
                           ? "border-red-400 focus:border-red-500 bg-red-50/50" 
-                          : field.value && !form.formState.errors.categoryId 
+                          : field.value && !form.formState.errors.categoryId && form.formState.touchedFields.categoryId
                           ? "border-green-400 focus:border-green-500 bg-green-50/50" 
                           : "border-border/40 focus:border-primary/60 focus:bg-background"
                       }`}>

@@ -1,9 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { useArticles } from "@/hooks/article/useArticle"
 import { useAuth } from "@/hooks/useAuth"
 import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
+import { articleService } from "@/service/articleService"
+import { ArticlesCacheKeys } from "@/lib/const"
 import type { ArticleResponse } from "@/types/article"
 import { toast } from "sonner"
 
@@ -22,6 +25,15 @@ export function useAdminArticleLogic() {
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER'
   const articlesData = Array.isArray(articles?.content) ? articles.content : []
   const displayData = hasFilter ? filteredArticles : articlesData
+
+  // Fetch low stock count from API
+  const { data: lowStockCount = 0 } = useQuery({
+    queryKey: [ArticlesCacheKeys.Articles, 'low-stock-count'],
+    queryFn: () => articleService.getLowStockCount(),
+    staleTime: 1 * 60 * 1000, // 1 minute
+    retry: 2,
+    enabled: typeof window !== 'undefined',
+  })
 
   useCommonShortcuts({
     onNew: hasPermission ? () => setIsCreateModalOpen(true) : undefined,
@@ -61,7 +73,7 @@ export function useAdminArticleLogic() {
     active: articlesData.filter(a => a.status === 'ACTIVE')?.length || 0,
     archived: articlesData.filter(a => a.status === 'ARCHIVED')?.length || 0,
     withImage: articlesData.filter(a => a.image)?.length || 0,
-    lowStock: articlesData.filter(a => a.quantityInStock < 10)?.length || 0,
+    lowStock: lowStockCount, // Use API value instead of calculating from local data
     outOfStock: articlesData.filter(a => a.availableQuantity === 0)?.length || 0,
   }
 
