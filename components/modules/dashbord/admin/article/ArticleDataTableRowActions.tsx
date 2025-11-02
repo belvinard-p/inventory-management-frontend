@@ -27,6 +27,7 @@ import {
 import { useArticles } from "@/hooks/article/useArticle"
 import { useArticleContext } from "./ArticleContext"
 import { DeleteConfirmDialog } from "@/components/global"
+import { ArticleDetailsDialog } from "./ArticleDetailsDialog"
 import { useState } from "react"
 
 interface ArticleDataTableRowActionsProps<TData> {
@@ -39,6 +40,7 @@ export function ArticleDataTableRowActions<TData>({
   const article = row.original as ArticleResponse
   const { onEditArticle } = useArticleContext()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
   const { deleteArticle } = useArticles()
 
   return (
@@ -65,7 +67,7 @@ export function ArticleDataTableRowActions<TData>({
         </TooltipProvider>
         <DropdownMenuContent align="end" className="w-[200px] shadow-lg border-border/50">
           <DropdownMenuItem 
-            onClick={() => onEditArticle(article)}
+            onClick={() => setIsDetailsDialogOpen(true)}
             className="text-blue-600 hover:text-blue-700"
           >
             <Eye className="mr-2 h-4 w-4" />
@@ -110,6 +112,12 @@ export function ArticleDataTableRowActions<TData>({
         }}
         itemName={article.designation}
         isLoading={false}
+      />
+      
+      <ArticleDetailsDialog
+        article={article}
+        open={isDetailsDialogOpen}
+        onOpenChange={setIsDetailsDialogOpen}
       />
     </>
   )
