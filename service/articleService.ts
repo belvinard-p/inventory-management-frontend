@@ -20,13 +20,13 @@ interface GetAllArticlesParams {
 }
 
 export const articleService = {
-  // Créer un article (ADMIN, MANAGER)
+
   create: async (data: ArticleRequest): Promise<ArticleResponse> => {
     console.log('ArticleService - Creating with data:', JSON.stringify(data, null, 2))
     return apiClient.post<ArticleResponse>(`${BASE_URL}/create`, data)
   },
 
-  // Récupérer tous les articles avec pagination (ALL ROLES)
+
   getAll: async (params?: GetAllArticlesParams): Promise<PaginatedResponse<ArticleResponse>> => {
     const searchParams = new URLSearchParams()
     if (params?.page !== undefined) searchParams.append('pageNumber', params.page.toString())
@@ -35,16 +35,15 @@ export const articleService = {
     if (params?.direction) searchParams.append('sortOrder', params.direction)
     
     const queryString = searchParams.toString()
-    const url = `${BASE_URL}/all${queryString ? `?${queryString}` : ''}`
+    const url = queryString ? `${BASE_URL}/all?${queryString}` : `${BASE_URL}/all`
     
     console.log('API Call:', { url, params, queryString })
     
     return apiClient.get<PaginatedResponse<ArticleResponse>>(url, {
-      showErrorToast: false // Désactiver les toasts d'erreur pour cet endpoint
+      showErrorToast: false 
     })
   },
 
-  // Récupérer les articles avec pagination infinie
   getInfinite: async (pageParam: number = 0, size: number = 10): Promise<PaginatedResponse<ArticleResponse>> => {
     const searchParams = new URLSearchParams()
     searchParams.append('pageNumber', pageParam.toString())
@@ -57,24 +56,55 @@ export const articleService = {
     })
   },
 
-  // Récupérer un article par ID (ALL ROLES)
   getById: async (id: number): Promise<ArticleResponse> => {
     return apiClient.get<ArticleResponse>(`${BASE_URL}/${id}`)
   },
 
-  // Mettre à jour un article (ADMIN, MANAGER)
+
   update: async (id: number, data: ArticleRequest): Promise<ArticleResponse> => {
-    return apiClient.put<ArticleResponse>(`${BASE_URL}/${id}`, data)
+    return apiClient.put<ArticleResponse>(`${BASE_URL}/update/${id}`, data)
   },
 
-  // Supprimer un article (ADMIN only)
   delete: async (id: number): Promise<void> => {
     return apiClient.delete(`${BASE_URL}/${id}`)
   },
 
-  // Récupérer les articles par catégorie (ALL ROLES)
-  getByCategory: async (categoryId: number): Promise<PaginatedResponse<ArticleResponse>> => {
-    return apiClient.get<PaginatedResponse<ArticleResponse>>(`${BASE_URL}/by-category/${categoryId}`)
+
+  getByCode: async (code: string): Promise<ArticleResponse> => {
+    return apiClient.get<ArticleResponse>(`${BASE_URL}/code/${code}`)
+  },
+
+  getArchived: async (): Promise<ArticleResponse[]> => {
+    return apiClient.get<ArticleResponse[]>(`${BASE_URL}/archived`)
+  },
+
+
+  restore: async (id: number): Promise<ArticleResponse> => {
+    return apiClient.put<ArticleResponse>(`${BASE_URL}/${id}/restore`)
+  },
+
+  archive: async (id: number): Promise<ArticleResponse> => {
+    return apiClient.put<ArticleResponse>(`${BASE_URL}/${id}/archive`)
+  },
+
+  
+  getImageUrl: async (id: number, expirationMinutes: number = 15): Promise<string> => {
+    return apiClient.get<string>(`${BASE_URL}/${id}/image_url?expirationMinutes=${expirationMinutes}`)
+  },
+
+  
+  uploadImage: async (id: number, imageFile: File): Promise<ArticleResponse> => {
+    console.log('ArticleService - Uploading image for article:', id, 'File:', imageFile.name, 'Size:', imageFile.size)
+    const formData = new FormData()
+    formData.append('image', imageFile)
+   
+    return apiClient.put<ArticleResponse>(`${BASE_URL}/${id}/image`, formData)
+  },
+
+  getLowStockCount: async (): Promise<number> => {
+    return apiClient.get<number>(`${BASE_URL}/low-stock/count`, {
+      showErrorToast: false
+    })
   }
 }
 

@@ -27,6 +27,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { EmptyState } from "@/components/global/EmptyState"
+import { getFrenchColumnHeader } from "@/components/global/getFrenchColumnHeader"
 
 import { DataTableToolbar } from "./DataTableToolbar"
 import { DataTablePagination } from "./DataTablePagination"
@@ -102,24 +103,8 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
-  // Fonction utilitaire pour obtenir l'en-tête d'une colonne en français
-  const getFrenchColumnHeader = (accessorKey: string) => {
-    const frenchHeaders: { [key: string]: string } = {
-      'username': 'Nom',
-      'userName': 'Nom',
-      'email': 'Email',
-      'role': 'Rôle',
-      'roleName': 'Rôle',
-      'status': 'Statut',
-      'createdAt': 'Date de création',
-      'createdDate': 'Date de création',
-      'actions': 'Actions'
-    }
-    
-    return frenchHeaders[accessorKey] || accessorKey
-  }
 
-  // Version mobile avec cartes
+
   if (isMobile && safeData.length > 0) {
     return (
       <div className="space-y-4">
@@ -134,7 +119,6 @@ export function DataTable<TData, TValue>({
               <Card key={row.id} className={row.getIsSelected() ? "bg-muted/50 border-primary" : ""}>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex justify-between items-center text-base">
-                    {/* Première colonne (généralement le nom) */}
                     <span>
                       {row.getVisibleCells()[0] ? (
                         flexRender(
@@ -142,12 +126,10 @@ export function DataTable<TData, TValue>({
                           row.getVisibleCells()[0].getContext()
                         )
                       ) : (
-                        // Fallback si la cellule n'est pas disponible
                         String(row.getValue((safeColumns[0] as { accessorKey?: string }).accessorKey || '') || '')
                       )}
                     </span>
                     
-                    {/* Badge pour le statut (si disponible) */}
                     {statusCell && (
                       <Badge variant="secondary">
                         {flexRender(
@@ -159,10 +141,8 @@ export function DataTable<TData, TValue>({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                  {/* Toutes les colonnes sauf la première */}
                   {row.getVisibleCells().slice(1).map((cell) => {
                     const accessorKey = (cell.column.columnDef as { accessorKey?: string }).accessorKey
-                    // On saute la colonne status car déjà affichée dans le header
                     if (accessorKey === 'status') return null
 
                     return (
@@ -209,10 +189,10 @@ export function DataTable<TData, TValue>({
                       <TableHead key={header.id} colSpan={header.colSpan}>
                         {header.isPlaceholder
                           ? null
-                          : accessorKey ? frenchHeader : flexRender(
+                          : flexRender(
                               header.column.columnDef.header,
                               header.getContext()
-                            )
+                            ) || (accessorKey ? frenchHeader : accessorKey)
                         }
                       </TableHead>
                     )

@@ -11,7 +11,7 @@ interface AuthenticatedImageProps {
 }
 
 export function AuthenticatedImage({ filename, alt, className, onError, onLoad }: AuthenticatedImageProps) {
-  const { data: imageSrc, isLoading, isError } = useImageQuery(filename)
+  const { data: imageSrc, isLoading, isError } = useImageQuery({ source: 'company', filename })
 
   if (isLoading) {
     return <div className={`${className} animate-pulse bg-gray-200 rounded-full`} />
