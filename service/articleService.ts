@@ -83,6 +83,10 @@ export const articleService = {
     return apiClient.put<ArticleResponse>(`${BASE_URL}/${id}/restore`)
   },
 
+  archive: async (id: number): Promise<ArticleResponse> => {
+    return apiClient.put<ArticleResponse>(`${BASE_URL}/${id}/archive`)
+  },
+
   
   getImageUrl: async (id: number, expirationMinutes: number = 15): Promise<string> => {
     return apiClient.get<string>(`${BASE_URL}/${id}/image_url?expirationMinutes=${expirationMinutes}`)

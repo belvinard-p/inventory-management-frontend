@@ -145,6 +145,17 @@ export const useArticles = (page: number = 0, size: number = 50) => {
     }
   })
 
+  const archiveArticle = useMutation({
+    mutationFn: (id: number) => articleService.archive(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ArticlesCacheKeys.Articles] })
+      toast.success("Article archivé avec succès")
+    },
+    onError: (error: ApiError) => {
+      toast.error("Erreur lors de l'archivage de l'article")
+    }
+  })
+
   const getArchivedArticles = useQuery({
     queryKey: [ArticlesCacheKeys.Articles, 'archived'],
     queryFn: () => articleService.getArchived(),
@@ -169,12 +180,14 @@ export const useArticles = (page: number = 0, size: number = 50) => {
     deleteArticle: deleteArticle.mutate,
     updateArticleImage: updateArticleImage.mutate,
     restoreArticle: restoreArticle.mutate,
+    archiveArticle: archiveArticle.mutate,
     
     isCreating: createArticle.isPending,
     isUpdating: updateArticle.isPending,
     isDeleting: deleteArticle.isPending,
     isUpdatingImage: updateArticleImage.isPending,
     isRestoring: restoreArticle.isPending,
+    isArchiving: archiveArticle.isPending,
     
     // Mutation Results
     createError: createArticle.error,
@@ -182,6 +195,7 @@ export const useArticles = (page: number = 0, size: number = 50) => {
     deleteError: deleteArticle.error,
     imageError: updateArticleImage.error,
     restoreError: restoreArticle.error,
+    archiveError: archiveArticle.error,
   }
 }
 

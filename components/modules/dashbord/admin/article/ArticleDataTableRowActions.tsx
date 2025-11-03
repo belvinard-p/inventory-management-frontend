@@ -22,7 +22,9 @@ import {
   Edit, 
   Trash2, 
   Image,
-  Eye
+  Eye,
+  Archive,
+  ArchiveRestore
 } from "lucide-react"
 import { useArticles } from "@/hooks/article/useArticle"
 import { useArticleContext } from "./ArticleContext"
@@ -43,7 +45,7 @@ export function ArticleDataTableRowActions<TData>({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false)
-  const { deleteArticle } = useArticles()
+  const { deleteArticle, archiveArticle, restoreArticle } = useArticles()
 
   return (
     <>
@@ -88,6 +90,24 @@ export function ArticleDataTableRowActions<TData>({
             <Image className="mr-2 h-4 w-4" />
             <span>Changer image</span>
           </DropdownMenuItem>
+          
+          {article.status === 'ACTIVE' ? (
+            <DropdownMenuItem 
+              onClick={() => archiveArticle(article.id)}
+              className="text-orange-600 hover:text-orange-700"
+            >
+              <Archive className="mr-2 h-4 w-4" />
+              <span>Archiver</span>
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem 
+              onClick={() => restoreArticle(article.id)}
+              className="text-green-600 hover:text-green-700"
+            >
+              <ArchiveRestore className="mr-2 h-4 w-4" />
+              <span>Restaurer</span>
+            </DropdownMenuItem>
+          )}
           
           <DropdownMenuSeparator />
           
