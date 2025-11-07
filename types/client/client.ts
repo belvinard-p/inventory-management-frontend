@@ -1,5 +1,5 @@
 import { UseMutationResult } from "@tanstack/react-query";
-import type { ApiError, AddressDto } from "./common";
+import type { ApiError, AddressDto } from "../common";
 import type { ClientOrder } from "./clientOrder";
 
 export type Client = {

@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/apiClient"
-import { ClientOrderResponse, ClientOrderRequest, OrderStatus } from "@/types/clientOrder"
+import { ClientOrderResponse, ClientOrderRequest, OrderStatus } from "@/types/client/clientOrder"
 
 const BASE_URL = "/orders"
 

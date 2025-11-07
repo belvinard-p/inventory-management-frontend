@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/apiClient"
-import { OrderClientLineResponse, OrderClientLineRequest } from "@/types/orderClientLine"
+import { OrderClientLineResponse, OrderClientLineRequest } from "@/types/client/orderClientLine"
 
 const BASE_URL = "/order-lines"
 

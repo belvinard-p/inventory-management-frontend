@@ -1,5 +1,5 @@
 import { UseMutationResult } from "@tanstack/react-query";
-import type { ApiError } from "./common";
+import type { ApiError } from "../common";
 
 export type OrderClientLine = {
   id: number;

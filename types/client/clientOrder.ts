@@ -1,5 +1,5 @@
 import { UseMutationResult } from "@tanstack/react-query";
-import type { ApiError } from "./common";
+import type { ApiError } from "../common";
 import type { OrderClientLine } from "./orderClientLine";
 
 export enum OrderStatus {
