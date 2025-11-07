@@ -1,18 +1,27 @@
-
-import { useUsers } from './useUsers';
-import { useState } from 'react';
+import { useState } from 'react'
+import { useSearchUsers } from './useUsers'
 
 export const useUserSearch = () => {
-  const { useSearchUsers } = useUsers();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState('')
+  const searchQuery = useSearchUsers(searchTerm)
   
-  const searchQuery = useSearchUsers(searchTerm);
+  const executeSearch = (keyword: string) => {
+    setSearchTerm(keyword.trim())
+  }
+  
+  const clearSearch = () => {
+    setSearchTerm('')
+  }
   
   return {
-    searchResults: searchQuery.data,
-    isLoading: searchQuery.isLoading,
+    searchResults: searchQuery.data || [],
     searchTerm,
-    setSearchTerm,
-    executeSearch: setSearchTerm,
-  };
-};
+    executeSearch,
+    clearSearch,
+    isLoading: searchQuery.isLoading,
+    isError: searchQuery.isError,
+    isFetching: searchQuery.isFetching,
+    hasResults: !!searchQuery.data && searchQuery.data.length > 0,
+    resultsCount: searchQuery.data?.length || 0,
+  }
+}
