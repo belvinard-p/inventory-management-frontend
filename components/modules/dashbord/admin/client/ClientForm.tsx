@@ -25,13 +25,16 @@ const clientSchema = z.object({
     .max(100, "Le nom ne peut pas dépasser 100 caractères"),
   email: z.string()
     .email("L'email doit être valide")
-    .min(1, "L'email est requis"),
+    .optional()
+    .or(z.literal("")),
   phoneNumber: z.string()
-    .min(1, "Le numéro de téléphone est requis")
+
     .regex(
       /^(?:(?:\+237|237)[-.\s]?)?(?:[67][25-9]\d{7}|2\d{2}\d{6})$/,
       "Le numéro de téléphone doit être un numéro camerounais valide (mobile ou fixe). Exemples: 671234567, 222123456, +237-233123456"
-    ),
+    )
+    .optional()
+    .or(z.literal("")),
   address: z.object({
     address1: z.string().max(100).optional().or(z.literal("")),
     address2: z.string().max(100).optional().or(z.literal("")),
@@ -41,9 +44,9 @@ const clientSchema = z.object({
   }).optional(),
 }).refine(
   (data) => {
-    // If address is provided, validate required fields
+    
     if (data.address) {
-      // If any address field is filled, address1 and city become required
+  
       const hasAnyAddressField = data.address.address1 || data.address.address2 || data.address.city || data.address.postalCode || data.address.country
       if (hasAnyAddressField) {
         if (data.address.address1 && data.address.address1.length < 5) {
@@ -98,7 +101,7 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
     },
   })
 
-  // Réinitialiser le formulaire avec les données du client quand le dialog s'ouvre ou que le client change
+
   useEffect(() => {
     if (open) {
       if (isEditMode && client) {
@@ -121,7 +124,6 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
           },
         })
       } else {
-        // Réinitialiser pour un nouveau formulaire
         form.reset({
           name: "",
           email: "",
@@ -138,18 +140,18 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
     }
   }, [open, client, isEditMode, form])
 
-  // Vérifier si tous les champs obligatoires sont remplis
+  
   const watchedValues = form.watch()
   const isFormValid = form.formState.isValid
-  const hasRequiredFields = watchedValues.name && watchedValues.email && watchedValues.phoneNumber
+  const hasRequiredFields = watchedValues.name
   
   const isSubmitDisabled = !isFormValid || !hasRequiredFields || isCreating || isUpdating
 
   async function onSubmit(data: z.infer<typeof clientSchema>) {
     const requestData: ClientRequest = {
       name: data.name,
-      email: data.email,
-      phoneNumber: data.phoneNumber,
+      email: data.email || undefined,
+      phoneNumber: data.phoneNumber || undefined,
       address: data.address && (data.address.address1 || data.address.city) ? {
         address1: data.address.address1 || undefined,
         address2: data.address.address2 || undefined,
@@ -164,13 +166,11 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
         id: client.id,
         data: requestData
       })
-      // Form will close on success via mutation onSuccess callback
+
       form.reset()
       onOpenChange(false)
     } else {
-      // Use async version and only close on success
-      // apiClient handles errors automatically via toast, so we catch to prevent unhandled rejection
-      // but don't show error since apiClient already did
+      
       try {
         const result = await createClientAsync(requestData)
         if (result) {
@@ -178,14 +178,14 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
           onOpenChange(false)
         }
       } catch {
-        // Error already handled by apiClient via toast, form stays open
+        
       }
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto z-[9999]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -242,7 +242,7 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
                 name="email"
                 render={({ field }) => (
                   <FormItem className="group">
-                    <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Email</FormLabel>
+                    <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Email(optionnel)</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -280,7 +280,7 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
               name="phoneNumber"
               render={({ field }) => (
                 <FormItem className="group">
-                  <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Numéro de téléphone</FormLabel>
+                  <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Numéro de téléphone (optionnel)</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
