@@ -16,7 +16,8 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Check, X, User } from "lucide-react"
-import { useClients } from "@/hooks/client/useClient"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { apiClient } from "@/lib/apiClient"
 import { ClientResponse, ClientRequest } from "@/types/client/client"
 
 const clientSchema = z.object({
@@ -35,7 +36,7 @@ const clientSchema = z.object({
     )
     .optional()
     .or(z.literal("")),
-  address: z.object({
+   address: z.object({
     address1: z.string().max(100).optional().or(z.literal("")),
     address2: z.string().max(100).optional().or(z.literal("")),
     city: z.string().max(50).optional().or(z.literal("")),
@@ -79,8 +80,33 @@ interface ClientFormProps {
 }
 
 export function ClientForm({ open, onOpenChange, client, mode = 'create' }: ClientFormProps) {
-  const { createClient, createClientAsync, updateClient, isCreating, isUpdating } = useClients()
+  const queryClient = useQueryClient()
   const isEditMode = mode === 'edit' && client
+
+  const createMutation = useMutation({
+    mutationFn: (data: ClientRequest) => apiClient.post<ClientResponse>('/clients/create', data, {
+      showSuccessToast: true,
+      successMessage: 'Client créé avec succès'
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      form.reset()
+      onOpenChange(false)
+    }
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: ClientRequest }) => 
+      apiClient.put<ClientResponse>(`/clients/${id}`, data, {
+        showSuccessToast: true,
+        successMessage: 'Client modifié avec succès'
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      form.reset()
+      onOpenChange(false)
+    }
+  })
   
 
   
@@ -145,41 +171,34 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
   const isFormValid = form.formState.isValid
   const hasRequiredFields = watchedValues.name
   
-  const isSubmitDisabled = !isFormValid || !hasRequiredFields || isCreating || isUpdating
+  const isSubmitDisabled = !isFormValid || !hasRequiredFields || createMutation.isPending || updateMutation.isPending
 
-  async function onSubmit(data: z.infer<typeof clientSchema>) {
-    const requestData: ClientRequest = {
+  function onSubmit(data: z.infer<typeof clientSchema>) {
+    const requestData: Partial<ClientRequest> = {
       name: data.name,
-      email: data.email || undefined,
-      phoneNumber: data.phoneNumber || undefined,
-      address: data.address && (data.address.address1 || data.address.city) ? {
-        address1: data.address.address1 || undefined,
-        address2: data.address.address2 || undefined,
-        city: data.address.city || undefined,
-        postalCode: data.address.postalCode || undefined,
-        country: data.address.country || undefined,
-      } : undefined,
+    }
+    
+    if (data.email && data.email.trim()) {
+      requestData.email = data.email
+    }
+    
+    if (data.phoneNumber && data.phoneNumber.trim()) {
+      requestData.phoneNumber = data.phoneNumber
+    }
+    
+    if (data.address && (data.address.address1 || data.address.city)) {
+      requestData.address = {}
+      if (data.address.address1) requestData.address.address1 = data.address.address1
+      if (data.address.address2) requestData.address.address2 = data.address.address2
+      if (data.address.city) requestData.address.city = data.address.city
+      if (data.address.postalCode) requestData.address.postalCode = data.address.postalCode
+      if (data.address.country) requestData.address.country = data.address.country
     }
     
     if (isEditMode) {
-      updateClient({
-        id: client.id,
-        data: requestData
-      })
-
-      form.reset()
-      onOpenChange(false)
+      updateMutation.mutate({ id: client.id, data: requestData as ClientRequest })
     } else {
-      
-      try {
-        const result = await createClientAsync(requestData)
-        if (result) {
-          form.reset()
-          onOpenChange(false)
-        }
-      } catch {
-        
-      }
+      createMutation.mutate(requestData as ClientRequest)
     }
   }
 
@@ -212,7 +231,7 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
                         <Input
                           placeholder="Nom du client"
                           {...field}
-                          disabled={isCreating || isUpdating}
+                          disabled={createMutation.isPending || updateMutation.isPending}
                           className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
                             form.formState.errors.name && form.formState.touchedFields.name
                               ? "border-red-400 focus:border-red-500 bg-red-50/50" 
@@ -249,7 +268,7 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
                           type="email"
                           placeholder="email@example.com"
                           {...field}
-                          disabled={isCreating || isUpdating}
+                          disabled={createMutation.isPending || updateMutation.isPending}
                           className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
                             form.formState.errors.email && form.formState.touchedFields.email
                               ? "border-red-400 focus:border-red-500 bg-red-50/50" 
@@ -286,7 +305,8 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
                       <Input
                         placeholder="671234567"
                         {...field}
-                        disabled={isCreating || isUpdating}
+                        value={field.value || ""}
+                        disabled={createMutation.isPending || updateMutation.isPending}
                         className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
                           form.formState.errors.phoneNumber && form.formState.touchedFields.phoneNumber
                             ? "border-red-400 focus:border-red-500 bg-red-50/50" 
@@ -328,7 +348,8 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
                         <Input
                           placeholder="123 Rue Example"
                           {...field}
-                          disabled={isCreating || isUpdating}
+                          value={field.value || ""}
+                          disabled={createMutation.isPending || updateMutation.isPending}
                           className="h-10 pl-4 pr-4 bg-background/50 border-2 border-border/40 focus:border-primary/60 focus:bg-background transition-all duration-300 rounded-lg hover:border-border/60"
                         />
                       </FormControl>
@@ -347,7 +368,8 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
                         <Input
                           placeholder="Appartement, suite, etc."
                           {...field}
-                          disabled={isCreating || isUpdating}
+                          value={field.value || ""}
+                          disabled={createMutation.isPending || updateMutation.isPending}
                           className="h-10 pl-4 pr-4 bg-background/50 border-2 border-border/40 focus:border-primary/60 focus:bg-background transition-all duration-300 rounded-lg hover:border-border/60"
                         />
                       </FormControl>
@@ -366,7 +388,8 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
                         <Input
                           placeholder="Yaoundé"
                           {...field}
-                          disabled={isCreating || isUpdating}
+                          value={field.value || ""}
+                          disabled={createMutation.isPending || updateMutation.isPending}
                           className="h-10 pl-4 pr-4 bg-background/50 border-2 border-border/40 focus:border-primary/60 focus:bg-background transition-all duration-300 rounded-lg hover:border-border/60"
                         />
                       </FormControl>
@@ -385,7 +408,8 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
                         <Input
                           placeholder="00000"
                           {...field}
-                          disabled={isCreating || isUpdating}
+                          value={field.value || ""}
+                          disabled={createMutation.isPending || updateMutation.isPending}
                           className="h-10 pl-4 pr-4 bg-background/50 border-2 border-border/40 focus:border-primary/60 focus:bg-background transition-all duration-300 rounded-lg hover:border-border/60"
                         />
                       </FormControl>
@@ -404,7 +428,8 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
                         <Input
                           placeholder="Cameroun"
                           {...field}
-                          disabled={isCreating || isUpdating}
+                          value={field.value || ""}
+                          disabled={createMutation.isPending || updateMutation.isPending}
                           className="h-10 pl-4 pr-4 bg-background/50 border-2 border-border/40 focus:border-primary/60 focus:bg-background transition-all duration-300 rounded-lg hover:border-border/60"
                         />
                       </FormControl>
@@ -416,7 +441,7 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
             </div>
             
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCreating || isUpdating} className="relative">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={createMutation.isPending || updateMutation.isPending} className="relative">
                 <Badge variant="secondary" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0">
                   <X className="h-3 w-3" />
                 </Badge>
@@ -428,14 +453,14 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
                     <Badge variant="outline" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-yellow-100 text-yellow-800 border-yellow-200">
                       <span className="text-xs">✏️</span>
                     </Badge>
-                    {isUpdating ? "Modification..." : "Modifier le client"}
+                    {updateMutation.isPending ? "Modification..." : "Modifier le client"}
                   </>
                 ) : (
                   <>
                     <Badge variant="outline" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-green-100 text-green-800 border-green-200">
                       <span className="text-xs">+</span>
                     </Badge>
-                    {isCreating ? "Création..." : "Créer le client"}
+                    {createMutation.isPending ? "Création..." : "Créer le client"}
                   </>
                 )}
               </Button>
@@ -446,4 +471,3 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
     </Dialog>
   )
 }
-
