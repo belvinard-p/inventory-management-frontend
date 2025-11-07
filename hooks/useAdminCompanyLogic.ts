@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useCompanies } from "@/hooks/useCompany"
+import { useQuery } from "@tanstack/react-query"
+import { apiClient } from "@/lib/apiClient"
 import { useAuth } from "@/hooks/useAuth"
 import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
 import type { Company } from "@/types"
@@ -18,8 +19,21 @@ export function useAdminCompanyLogic() {
   const [currentPage, setCurrentPage] = useState(0)
   
   const pageSize = 10
-  const { companies, isLoading, isError } = useCompanies(currentPage, pageSize)
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER'
+  
+  const { data: companies, isLoading, isError } = useQuery<{
+    content: Company[]
+    totalElements: number
+    totalPages: number
+    size: number
+    number: number
+  }>({
+    queryKey: ['companies', currentPage, pageSize],
+    queryFn: () => apiClient.get(`/companies/all?pageNumber=${currentPage}&pageSize=${pageSize}`),
+    staleTime: 5 * 60 * 1000,
+    enabled: hasPermission && !!accessToken
+  })
+  
   const companiesData = Array.isArray(companies?.content) ? companies.content : []
   const displayData = hasFilter ? filteredCompanies : companiesData
 
