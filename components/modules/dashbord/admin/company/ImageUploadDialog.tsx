@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Company } from "@/types"
-import { useCompanies } from "@/hooks/useCompany"
+import { useUpdateCompanyImage } from "@/hooks/useCompany"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -26,7 +26,7 @@ interface ImageUploadDialogProps {
 export function ImageUploadDialog({ open, onOpenChange, company }: ImageUploadDialogProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
-  const { updateCompanyImage, isUpdatingImage } = useCompanies()
+  const { mutate: updateCompanyImage, isPending: isUpdatingImage } = useUpdateCompanyImage()
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -54,8 +54,14 @@ export function ImageUploadDialog({ open, onOpenChange, company }: ImageUploadDi
       return
     }
 
-    updateCompanyImage({ id: company.id, imageFile: selectedFile })
-    handleClose()
+    updateCompanyImage(
+      { id: company.id, imageFile: selectedFile },
+      {
+        onSuccess: () => {
+          handleClose()
+        }
+      }
+    )
   }
 
   const handleClose = () => {

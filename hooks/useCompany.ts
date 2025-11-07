@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/apiClient'
 import { Company, CompanyRequest } from '@/types'
 
@@ -12,6 +12,29 @@ export const useCompanies = (page: number = 0, size: number = 50) => {
   }>({
     queryKey: ['companies', page, size],
     queryFn: () => apiClient.get(`/companies/all?pageNumber=${page}&pageSize=${size}`),
+    staleTime: 5 * 60 * 1000,
+    enabled: typeof window !== 'undefined',
+  })
+}
+
+export const useInfiniteCompanies = (pageSize: number = 20) => {
+  return useInfiniteQuery<{
+    content: Company[]
+    totalElements: number
+    totalPages: number
+    size: number
+    number: number
+  }>({
+    queryKey: ['companies', 'infinite', pageSize],
+    queryFn: ({ pageParam = 0 }) => 
+      apiClient.get(`/companies/all?pageNumber=${pageParam}&pageSize=${pageSize}`),
+    getNextPageParam: (lastPage) => {
+      if (lastPage.number < lastPage.totalPages - 1) {
+        return lastPage.number + 1
+      }
+      return undefined
+    },
+    initialPageParam: 0,
     staleTime: 5 * 60 * 1000,
     enabled: typeof window !== 'undefined',
   })

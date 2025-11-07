@@ -25,7 +25,7 @@ import {
   ExternalLink,
   Eye
 } from "lucide-react"
-import { useCompanies } from "@/hooks/useCompany"
+import { useDeleteCompany } from "@/hooks/useCompany"
 import { useCompanyContext } from "./CompanyContext"
 import { DeleteConfirmDialog } from "@/components/global/DeleteConfirmDialog"
 import { ImageUploadDialog } from "./ImageUploadDialog"
@@ -44,7 +44,7 @@ export function DataTableRowActions<TData>({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
-  const { deleteCompany } = useCompanies()
+  const { mutate: deleteCompany, isPending: isDeleting } = useDeleteCompany()
 
   return (
     <>
@@ -121,7 +121,7 @@ export function DataTableRowActions<TData>({
           setIsDeleteDialogOpen(false)
         }}
         itemName={company.name}
-        isLoading={false}
+        isLoading={isDeleting}
       />
       
       <ImageUploadDialog

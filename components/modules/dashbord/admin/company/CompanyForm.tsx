@@ -16,11 +16,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Check, X, Building2 } from "lucide-react"
-import { useCompanies } from "@/hooks/useCompany"
+import { useCreateCompany, useUpdateCompany, useUpdateCompanyImage } from "@/hooks/useCompany"
 import { Company } from "@/types"
-import { useQueryClient } from "@tanstack/react-query"
-import { CompaniesCacheKeys } from "@/lib/const"
-import { companyService } from "@/service/companyService"
+
 
 const companySchema = z.object({
   name: z.string().min(4, "Le nom doit contenir au moins 4 caractères").max(100, "Le nom ne peut pas dépasser 100 caractères"),
@@ -45,8 +43,10 @@ interface CompanyFormProps {
 }
 
 export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: CompanyFormProps) {
-  const { createCompany, createCompanyAsync, updateCompany, updateCompanyImage, isCreating, isUpdating, isUpdatingImage } = useCompanies()
-  const queryClient = useQueryClient()
+  const { mutate: createCompany, mutateAsync: createCompanyAsync, isPending: isCreating } = useCreateCompany()
+  const { mutate: updateCompany, isPending: isUpdating } = useUpdateCompany()
+  const { mutate: updateCompanyImage, isPending: isUpdatingImage } = useUpdateCompanyImage()
+
   const isEditMode = mode === 'edit' && company
   
   const form = useForm<z.infer<typeof companySchema>>({
@@ -75,33 +75,11 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
   
   const isSubmitDisabled = !isFormValid || !hasRequiredFields || isCreating || isUpdating || isUpdatingImage
 
-  async function uploadImageToSignedUrl(imageFile: File, companyId: number) {
-    try {
-      // Get signed URL from API using the service
-      const signedUrl = await companyService.getImageUrl(companyId, 15)
-      
-      // Upload image to signed URL
-      const uploadResponse = await fetch(signedUrl, {
-        method: 'PUT',
-        body: imageFile,
-        headers: {
-          'Content-Type': imageFile.type,
-        },
-      })
-      
-      if (!uploadResponse.ok) throw new Error('Failed to upload image')
-      
-      return true
-    } catch (error) {
-      console.error('Error uploading image:', error)
-      return false
-    }
-  }
 
-  async function onSubmit(data: z.infer<typeof companySchema>) {
+
+  function onSubmit(data: z.infer<typeof companySchema>) {
     const { address1, address2, city, postalCode, country, imageFile, ...baseData } = data
     
-    // Toujours créer un objet address, même vide
     const address = {
       address1: address1 || "",
       address2: address2 || "",
@@ -110,46 +88,50 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
       country: country || "",
     }
 
-    // Envoyer des chaînes vides comme le curl qui fonctionne
     const companyData = {
       ...baseData,
       fiscalCode: baseData.fiscalCode || "",
       website: baseData.website || "",
-      image: "", // Always empty since we handle image separately
+      image: "",
       address,
     }
     
     if (isEditMode) {
-      updateCompany({
-        id: company.id,
-        data: companyData
-      })
-      
-      // Upload image separately if provided
-      if (imageFile) {
-        updateCompanyImage({ id: company.id, imageFile })
-      }
-    } else {
-      try {
-        // Create company first
-        const result = await createCompanyAsync(companyData)
-        
-        // If company creation successful and image provided, upload image
-        if (result && imageFile) {
-          const uploadSuccess = await uploadImageToSignedUrl(imageFile, result.id)
-          if (uploadSuccess) {
-            // Invalider le cache de l'image pour forcer le rechargement
-            queryClient.invalidateQueries({ queryKey: [CompaniesCacheKeys.Companies, result.id, 'imageUrl'] })
+      updateCompany(
+        { id: company.id, data: companyData },
+        {
+          onSuccess: () => {
+            if (imageFile) {
+              updateCompanyImage({ id: company.id, imageFile })
+            }
+            form.reset()
+            onOpenChange(false)
           }
         }
-      } catch (error) {
-        console.error('Error creating company:', error)
-        return // Don't close dialog on error
-      }
+      )
+    } else {
+      createCompany(
+        companyData,
+        {
+          onSuccess: (result) => {
+            if (result && imageFile) {
+              updateCompanyImage(
+                { id: result.id, imageFile },
+                {
+                  onSuccess: () => {
+                    form.reset()
+                    onOpenChange(false)
+                  }
+                }
+              )
+            } else {
+              form.reset()
+              onOpenChange(false)
+            }
+          }
+        }
+      )
     }
-    
-    form.reset()
-    onOpenChange(false)
   }
 
   return (
