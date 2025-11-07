@@ -31,11 +31,7 @@ import {
 } from "@/components/ui/select"
 import { CategoryResponse, CategoryRequest } from "@/types/category"
 import { useCompanies } from "@/hooks/useCompany"
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { categoryService } from '@/service/categoryService'
-import { CategoriesCacheKeys } from '@/lib/const'
-import { toast } from 'sonner'
-import { enhancedToast } from '@/lib/toast-utils'
+import { useCreateCategory, useUpdateCategory } from '@/hooks/category/useCategory'
 
 const categoryFormSchema = z.object({
   designation: z.string().min(2, {
@@ -61,46 +57,9 @@ interface CategoryFormProps {
 export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFormProps) {
   const { companies } = useCompanies(0, 100)
   const companiesData = Array.isArray(companies?.content) ? companies.content : []
-  const queryClient = useQueryClient()
-
-  const createCategory = useMutation({
-    mutationFn: (data: CategoryRequest) => categoryService.create(data),
-    onSuccess: (newCategory) => {
-      queryClient.invalidateQueries({ queryKey: [CategoriesCacheKeys.Categories] })
-      enhancedToast.success("Catégorie créée avec succès", {
-        description: `${newCategory.designation} a été ajoutée à votre liste`
-      })
-    },
-    onError: (error: unknown) => {
-      let status: number | undefined
-      let conflictMessage: string | undefined
-      let errMessage: string | undefined
-      if (typeof error === 'object' && error !== null) {
-        const withDetails = error as { details?: { status?: number; message?: string }; message?: string }
-        status = withDetails.details?.status
-        conflictMessage = withDetails.details?.message
-        errMessage = withDetails.message
-      }
-      if (status === 409 || (errMessage && errMessage.includes('409'))) {
-        toast.error("Conflit", { description: conflictMessage || "Une catégorie avec ce code existe déjà" })
-        return
-      }
-      const message = conflictMessage || errMessage || "Erreur lors de la création de la catégorie"
-      toast.error("Erreur de création", { description: message })
-    }
-  })
-
-  const updateCategory = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: CategoryRequest }) => 
-      categoryService.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [CategoriesCacheKeys.Categories] })
-      toast.success("Catégorie mise à jour avec succès")
-    },
-    onError: () => {
-      toast.error("Erreur lors de la mise à jour")
-    }
-  })
+  
+  const createMutation = useCreateCategory()
+  const updateMutation = useUpdateCategory()
   
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
@@ -127,21 +86,25 @@ export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFor
     }
   }, [category, mode, form])
 
-  const handleSubmit = async (values: CategoryFormValues) => {
-    try {
-      if (mode === "create") {
-        await createCategory.mutateAsync(values)
-      } else if (category) {
-        await updateCategory.mutateAsync({ id: category.id, data: values })
-      }
-      onOpenChange(false)
-      form.reset()
-    } catch (error) {
-      console.error('Form submission error:', error)
+  const handleSubmit = (values: CategoryFormValues) => {
+    if (mode === "create") {
+      createMutation.mutate(values, {
+        onSuccess: () => {
+          onOpenChange(false)
+          form.reset()
+        }
+      })
+    } else if (category) {
+      updateMutation.mutate({ id: category.id, data: values }, {
+        onSuccess: () => {
+          onOpenChange(false)
+          form.reset()
+        }
+      })
     }
   }
 
-  const isSubmitting = createCategory.isPending || updateCategory.isPending
+  const isSubmitting = createMutation.isPending || updateMutation.isPending
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

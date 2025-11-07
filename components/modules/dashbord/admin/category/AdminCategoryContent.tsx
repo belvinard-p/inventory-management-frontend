@@ -9,7 +9,7 @@ import { CategoryResponse } from "@/types/category"
 import { createColumns } from "./Columns"
 import { CategoryForm } from "./CategoryForm"
 import { DeleteConfirmDialog } from "@/components/global/DeleteConfirmDialog"
-import { useCategories } from "@/hooks/category/useCategory"
+import { useDeleteCategory } from "@/hooks/category/useCategory"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 
 interface AdminCategoryContentProps {
@@ -30,7 +30,7 @@ export function AdminCategoryContent({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
   const [selectedCategory, setSelectedCategory] = React.useState<CategoryResponse | undefined>()
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = React.useState(false)
-  const { deleteCategory, isDeleting } = useCategories()
+  const deleteMutation = useDeleteCategory()
 
   const handleEdit = (category: CategoryResponse) => {
     setSelectedCategory(category)
@@ -47,15 +47,14 @@ export function AdminCategoryContent({
     setIsDetailsDialogOpen(true)
   }
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (selectedCategory) {
-      try {
-        await deleteCategory.mutateAsync(selectedCategory.id)
-        setIsDeleteDialogOpen(false)
-        setSelectedCategory(undefined)
-      } catch (error) {
-        console.error('Delete error:', error)
-      }
+      deleteMutation.mutate(selectedCategory.id, {
+        onSuccess: () => {
+          setIsDeleteDialogOpen(false)
+          setSelectedCategory(undefined)
+        }
+      })
     }
   }
 
@@ -107,7 +106,7 @@ export function AdminCategoryContent({
               <div><strong>Désignation:</strong> {selectedCategory.designation}</div>
               <div><strong>Date de création:</strong> {selectedCategory.createdDate}</div>
               <div><strong>Dernière mise à jour:</strong> {selectedCategory.updatedDate}</div>
-              {/* Ajoutez d'autres champs au besoin */}
+             
             </div>
           )}
         </DialogContent>
@@ -118,7 +117,7 @@ export function AdminCategoryContent({
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={confirmDelete}
         itemName={selectedCategory?.designation}
-        isLoading={isDeleting}
+        isLoading={deleteMutation.isPending}
       />
     </div>
   )

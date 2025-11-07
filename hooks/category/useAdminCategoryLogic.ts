@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useCategories } from "@/hooks/category/useCategory"
+import { useQuery } from "@tanstack/react-query"
+import { apiClient } from "@/lib/apiClient"
 import { useAuth } from "@/hooks/useAuth"
 import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
 import type { CategoryResponse } from "@/types/category"
@@ -18,8 +19,21 @@ export function useAdminCategoryLogic() {
   const [currentPage, setCurrentPage] = useState(0)
   
   const pageSize = 10
-  const { categories, isLoading, isError } = useCategories(currentPage, pageSize)
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER'
+  
+  const { data: categories, isLoading, isError } = useQuery<{
+    content: CategoryResponse[]
+    totalElements: number
+    totalPages: number
+    size: number
+    number: number
+  }>({
+    queryKey: ['categories', currentPage, pageSize],
+    queryFn: () => apiClient.get(`/categories/all?pageNumber=${currentPage}&pageSize=${pageSize}`),
+    staleTime: 5 * 60 * 1000,
+    enabled: hasPermission && !!accessToken
+  })
+  
   const categoriesData = categories || { content: [], totalElements: 0, totalPages: 0 }
   const displayData = hasFilter ? filteredCategories : categoriesData.content
 
