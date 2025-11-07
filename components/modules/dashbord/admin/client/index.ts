@@ -1,0 +1,1 @@
+export { AdminClient  as AdminClientPage } from './AdminClient'
