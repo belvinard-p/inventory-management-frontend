@@ -162,7 +162,10 @@ export function AdminClientContent({
           </p>
         </div>
         {hasPermission && (
-          <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Button onClick={() => {
+            console.log('Opening create client form, isCreateModalOpen:', isCreateModalOpen)
+            setIsCreateModalOpen(true)
+          }}>
             <Plus className="h-4 w-4 mr-2" />
             Nouveau Client
           </Button>
@@ -252,12 +255,14 @@ export function AdminClientContent({
 
       {/* Modals */}
       <ClientForm
+        key="create-client-form"
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         mode="create"
       />
       
       <ClientForm
+        key="edit-client-form"
         open={!!editingClient}
         onOpenChange={(open) => !open && setEditingClient(null)}
         client={editingClient}

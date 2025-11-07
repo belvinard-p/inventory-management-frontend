@@ -27,7 +27,7 @@ interface BulkActionsProps {
 
 export function BulkActions({ selectedClients, onClearSelection }: BulkActionsProps) {
   const [isDeleting, setIsDeleting] = useState(false)
-  const { deleteClient } = useClients()
+  const { deleteClientAsync } = useClients()
 
   if (selectedClients.length === 0) return null
 
@@ -38,10 +38,11 @@ export function BulkActions({ selectedClients, onClearSelection }: BulkActionsPr
 
     setIsDeleting(true)
     
+    // apiClient handles errors automatically via toast
+    // We catch to prevent unhandled rejection but don't show error since apiClient already did
     try {
-      // Supprimer tous les clients sélectionnés
       await Promise.all(
-        selectedClients.map(client => deleteClient(client.id))
+        selectedClients.map(client => deleteClientAsync(client.id))
       )
       
       enhancedToast.success(`${selectedClients.length} client(s) supprimé(s)`, {
@@ -50,9 +51,7 @@ export function BulkActions({ selectedClients, onClearSelection }: BulkActionsPr
       
       onClearSelection()
     } catch {
-      enhancedToast.error("Erreur lors de la suppression", {
-        description: "Certains clients n'ont pas pu être supprimés"
-      })
+      // Error already handled by apiClient via toast
     } finally {
       setIsDeleting(false)
     }

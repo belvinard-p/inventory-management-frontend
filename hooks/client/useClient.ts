@@ -13,14 +13,10 @@ export const useClients = (page: number = 0, size: number = 50) => {
     queryKey: [ClientsCacheKeys.Clients, page, size],
     queryFn: async () => {
       console.log('Fetching clients...', { page, size })
-      try {
-        const result = await clientService.getAll({ page, size })
-        console.log('Clients fetched successfully:', result)
-        return result
-      } catch (error) {
-        console.error('Error fetching clients:', error)
-        return { content: [], pageNumber: 0, pageSize: size, totalElements: 0, totalPages: 0, last: true }
-      }
+      // apiClient handles errors automatically via toast
+      const result = await clientService.getAll({ page, size })
+      console.log('Clients fetched successfully:', result)
+      return result
     },
     staleTime: 5 * 60 * 1000,
     retry: 3,
@@ -101,6 +97,7 @@ export const useClients = (page: number = 0, size: number = 50) => {
     createClientAsync: createClient.mutateAsync,
     updateClient: updateClient.mutate,
     deleteClient: deleteClient.mutate,
+    deleteClientAsync: deleteClient.mutateAsync,
     
     isCreating: createClient.isPending,
     isUpdating: updateClient.isPending,

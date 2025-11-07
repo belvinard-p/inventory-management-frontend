@@ -33,13 +33,40 @@ const clientSchema = z.object({
       "Le numéro de téléphone doit être un numéro camerounais valide (mobile ou fixe). Exemples: 671234567, 222123456, +237-233123456"
     ),
   address: z.object({
-    address1: z.string().min(5, "L'adresse doit contenir au moins 5 caractères").max(100).optional().or(z.literal("")),
+    address1: z.string().max(100).optional().or(z.literal("")),
     address2: z.string().max(100).optional().or(z.literal("")),
-    city: z.string().min(4, "La ville doit contenir au moins 4 caractères").max(50).optional().or(z.literal("")),
-    postalCode: z.string().min(3, "Le code postal doit contenir au moins 3 caractères").max(10).optional().or(z.literal("")),
-    country: z.string().min(2, "Le pays doit contenir au moins 2 caractères").max(50).optional().or(z.literal("")),
+    city: z.string().max(50).optional().or(z.literal("")),
+    postalCode: z.string().max(10).optional().or(z.literal("")),
+    country: z.string().max(50).optional().or(z.literal("")),
   }).optional(),
-})
+}).refine(
+  (data) => {
+    // If address is provided, validate required fields
+    if (data.address) {
+      // If any address field is filled, address1 and city become required
+      const hasAnyAddressField = data.address.address1 || data.address.address2 || data.address.city || data.address.postalCode || data.address.country
+      if (hasAnyAddressField) {
+        if (data.address.address1 && data.address.address1.length < 5) {
+          return false
+        }
+        if (data.address.city && data.address.city.length < 4) {
+          return false
+        }
+        if (data.address.postalCode && data.address.postalCode.length < 3) {
+          return false
+        }
+        if (data.address.country && data.address.country.length < 2) {
+          return false
+        }
+      }
+    }
+    return true
+  },
+  {
+    message: "Les champs d'adresse doivent respecter les longueurs minimales",
+    path: ["address"],
+  }
+)
 
 interface ClientFormProps {
   open: boolean
@@ -51,6 +78,8 @@ interface ClientFormProps {
 export function ClientForm({ open, onOpenChange, client, mode = 'create' }: ClientFormProps) {
   const { createClient, createClientAsync, updateClient, isCreating, isUpdating } = useClients()
   const isEditMode = mode === 'edit' && client
+  
+  console.log('ClientForm rendered, open:', open, 'mode:', mode, 'client:', client)
   
   const form = useForm<z.infer<typeof clientSchema>>({
     resolver: zodResolver(clientSchema),
@@ -71,33 +100,41 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
 
   // Réinitialiser le formulaire avec les données du client quand le dialog s'ouvre ou que le client change
   useEffect(() => {
-    if (open && isEditMode && client) {
-      form.reset({
-        name: client.name || "",
-        email: client.email || "",
-        phoneNumber: client.phoneNumber || "",
-        address: client.address ? {
-          address1: client.address.address1 || "",
-          address2: client.address.address2 || "",
-          city: client.address.city || "",
-          postalCode: client.address.postalCode || "",
-          country: client.address.country || "",
-        } : undefined,
-      })
-    } else if (open && !isEditMode) {
-      // Réinitialiser pour un nouveau formulaire
-      form.reset({
-        name: "",
-        email: "",
-        phoneNumber: "",
-        address: {
-          address1: "",
-          address2: "",
-          city: "",
-          postalCode: "",
-          country: "",
-        },
-      })
+    if (open) {
+      if (isEditMode && client) {
+        form.reset({
+          name: client.name || "",
+          email: client.email || "",
+          phoneNumber: client.phoneNumber || "",
+          address: client.address ? {
+            address1: client.address.address1 || "",
+            address2: client.address.address2 || "",
+            city: client.address.city || "",
+            postalCode: client.address.postalCode || "",
+            country: client.address.country || "",
+          } : {
+            address1: "",
+            address2: "",
+            city: "",
+            postalCode: "",
+            country: "",
+          },
+        })
+      } else {
+        // Réinitialiser pour un nouveau formulaire
+        form.reset({
+          name: "",
+          email: "",
+          phoneNumber: "",
+          address: {
+            address1: "",
+            address2: "",
+            city: "",
+            postalCode: "",
+            country: "",
+          },
+        })
+      }
     }
   }, [open, client, isEditMode, form])
 
@@ -127,17 +164,23 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
         id: client.id,
         data: requestData
       })
+      // Form will close on success via mutation onSuccess callback
+      form.reset()
+      onOpenChange(false)
     } else {
+      // Use async version and only close on success
+      // apiClient handles errors automatically via toast, so we catch to prevent unhandled rejection
+      // but don't show error since apiClient already did
       try {
-        await createClientAsync(requestData)
-      } catch (error) {
-        console.error('Error creating client:', error)
-        return
+        const result = await createClientAsync(requestData)
+        if (result) {
+          form.reset()
+          onOpenChange(false)
+        }
+      } catch {
+        // Error already handled by apiClient via toast, form stays open
       }
     }
-    
-    form.reset()
-    onOpenChange(false)
   }
 
   return (
