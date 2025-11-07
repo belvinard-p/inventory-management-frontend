@@ -6,6 +6,7 @@ import { Plus, User, AlertCircle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { EmptyState, LoadingContent } from "@/components/global"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ClientForm } from "./ClientForm"
 
 interface LoadingStateProps {
   readonly title?: string
@@ -63,7 +64,11 @@ export function EmptyClientsState({ currentUser, isCreateModalOpen, setIsCreateM
           </p>
         </div>
         {hasPermission && (
-          <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Button onClick={() => {
+            console.log('EmptyState - Nouveau Client clicked, current state:', isCreateModalOpen)
+            setIsCreateModalOpen(true)
+            console.log('EmptyState - State should now be true')
+          }}>
             <Plus className="h-4 w-4 mr-2" />
             Nouveau Client
           </Button>
@@ -79,7 +84,11 @@ export function EmptyClientsState({ currentUser, isCreateModalOpen, setIsCreateM
           />
           {hasPermission && (
             <div className="flex justify-center mt-6">
-              <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Button onClick={() => {
+                console.log('EmptyState - Créer un client clicked, current state:', isCreateModalOpen)
+                setIsCreateModalOpen(true)
+                console.log('EmptyState - State should now be true')
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Créer un client
               </Button>
@@ -87,6 +96,13 @@ export function EmptyClientsState({ currentUser, isCreateModalOpen, setIsCreateM
           )}
         </CardContent>
       </Card>
+      
+      {/* Client Form Modal */}
+      <ClientForm
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        mode="create"
+      />
     </div>
   )
 }
@@ -137,6 +153,13 @@ export function ErrorClientsState({ currentUser, isCreateModalOpen, setIsCreateM
           />
         </CardContent>
       </Card>
+      
+      {/* Client Form Modal */}
+      <ClientForm
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        mode="create"
+      />
     </div>
   )
 }
