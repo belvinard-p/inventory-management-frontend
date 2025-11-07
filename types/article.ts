@@ -6,7 +6,7 @@ export enum ArticleStatus {
   ARCHIVED = "ARCHIVED"
 }
 
-// Type principal Article (basé sur ArticleResponseDto)
+
 export type Article = {
   id: number;
   codeArticle: string;
@@ -25,7 +25,6 @@ export type Article = {
   updatedDate: string; 
 }
 
-// Type pour créer/modifier un article (basé sur ArticleRequestDto)
 export interface ArticleRequest {
   codeArticle: string;
   designation: string;
@@ -36,15 +35,12 @@ export interface ArticleRequest {
   image?: string;
 }
 
-// Types pour les mutations
 export type CreateArticleMutation = UseMutationResult<Article, ApiError, ArticleRequest, unknown>;
 export type UpdateArticleMutation = UseMutationResult<Article, ApiError, { id: number; data: ArticleRequest }, unknown>;
 export type DeleteArticleMutation = UseMutationResult<unknown, ApiError, number, unknown>;
 
-// Type pour la mise à jour partielle
 export interface UpdateArticleRequest extends Partial<ArticleRequest> {
     id: number;
 }
 
-// Alias pour compatibilité
 export type ArticleResponse = Article;
