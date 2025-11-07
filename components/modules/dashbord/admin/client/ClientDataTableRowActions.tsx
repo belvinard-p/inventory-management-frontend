@@ -23,7 +23,7 @@ import {
   Trash2, 
   Eye,
 } from "lucide-react"
-import { useClients } from "@/hooks/client/useClient"
+import { useDeleteClient } from "@/hooks/client/useClient"
 import { useClientContext } from "./ClientContext"
 import { DeleteConfirmDialog } from "@/components/global"
 import { ClientDetailsDialog } from "./ClientDetailsDialog"
@@ -40,7 +40,7 @@ export function ClientDataTableRowActions<TData>({
   const { onEditClient } = useClientContext()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
-  const { deleteClient } = useClients()
+  const deleteMutation = useDeleteClient()
 
   return (
     <>
@@ -95,11 +95,12 @@ export function ClientDataTableRowActions<TData>({
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={() => {
-          deleteClient(client.id)
-          setIsDeleteDialogOpen(false)
+          deleteMutation.mutate(client.id, {
+            onSuccess: () => setIsDeleteDialogOpen(false)
+          })
         }}
         itemName={client.name}
-        isLoading={false}
+        isLoading={deleteMutation.isPending}
       />
       
       <ClientDetailsDialog

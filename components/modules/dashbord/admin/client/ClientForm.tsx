@@ -16,8 +16,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Check, X, User } from "lucide-react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { apiClient } from "@/lib/apiClient"
+import { useCreateClient, useUpdateClient } from "@/hooks/client/useClient"
 import { ClientResponse, ClientRequest } from "@/types/client/client"
 
 const clientSchema = z.object({
@@ -80,33 +79,10 @@ interface ClientFormProps {
 }
 
 export function ClientForm({ open, onOpenChange, client, mode = 'create' }: ClientFormProps) {
-  const queryClient = useQueryClient()
   const isEditMode = mode === 'edit' && client
-
-  const createMutation = useMutation({
-    mutationFn: (data: ClientRequest) => apiClient.post<ClientResponse>('/clients/create', data, {
-      showSuccessToast: true,
-      successMessage: 'Client créé avec succès'
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] })
-      form.reset()
-      onOpenChange(false)
-    }
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ClientRequest }) => 
-      apiClient.put<ClientResponse>(`/clients/${id}`, data, {
-        showSuccessToast: true,
-        successMessage: 'Client modifié avec succès'
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] })
-      form.reset()
-      onOpenChange(false)
-    }
-  })
+  
+  const createMutation = useCreateClient()
+  const updateMutation = useUpdateClient()
   
 
   
@@ -196,9 +172,19 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
     }
     
     if (isEditMode) {
-      updateMutation.mutate({ id: client.id, data: requestData as ClientRequest })
+      updateMutation.mutate({ id: client.id, data: requestData as ClientRequest }, {
+        onSuccess: () => {
+          form.reset()
+          onOpenChange(false)
+        }
+      })
     } else {
-      createMutation.mutate(requestData as ClientRequest)
+      createMutation.mutate(requestData as ClientRequest, {
+        onSuccess: () => {
+          form.reset()
+          onOpenChange(false)
+        }
+      })
     }
   }
 

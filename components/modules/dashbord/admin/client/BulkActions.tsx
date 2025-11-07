@@ -17,7 +17,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react"
 import { ClientResponse } from "@/types/client/client"
-import { useClients } from "@/hooks/client/useClient"
+import { useDeleteClient } from "@/hooks/client/useClient"
 import { enhancedToast } from "@/lib/toast-utils"
 
 interface BulkActionsProps {
@@ -27,7 +27,7 @@ interface BulkActionsProps {
 
 export function BulkActions({ selectedClients, onClearSelection }: BulkActionsProps) {
   const [isDeleting, setIsDeleting] = useState(false)
-  const { deleteClientAsync } = useClients()
+  const deleteMutation = useDeleteClient()
 
   if (selectedClients.length === 0) return null
 
@@ -38,12 +38,15 @@ export function BulkActions({ selectedClients, onClearSelection }: BulkActionsPr
 
     setIsDeleting(true)
     
-    // apiClient handles errors automatically via toast
-    // We catch to prevent unhandled rejection but don't show error since apiClient already did
     try {
-      await Promise.all(
-        selectedClients.map(client => deleteClientAsync(client.id))
-      )
+      for (const client of selectedClients) {
+        await new Promise<void>((resolve, reject) => {
+          deleteMutation.mutate(client.id, {
+            onSuccess: () => resolve(),
+            onError: (error) => reject(error)
+          })
+        })
+      }
       
       enhancedToast.success(`${selectedClients.length} client(s) supprimé(s)`, {
         description: "Les clients sélectionnés ont été supprimés"

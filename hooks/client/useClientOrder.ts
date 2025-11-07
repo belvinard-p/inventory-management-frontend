@@ -1,130 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { enhancedToast } from '@/lib/toast-utils'
-import { clientOrderService } from '@/service/client/clientOrderService'
+import { apiClient } from '@/lib/apiClient'
 import { ClientOrderResponse, ClientOrderRequest, OrderStatus } from '@/types/client/clientOrder'
-import { ApiError } from '@/types'
-import { ClientOrdersCacheKeys } from '@/lib/const'
 
 export const useClientOrders = () => {
-  const queryClient = useQueryClient()
-
-  const getAllOrders = useQuery({
-    queryKey: [ClientOrdersCacheKeys.ClientOrders, 'all'],
-    queryFn: async () => {
-      console.log('Fetching all client orders...')
-      try {
-        const result = await clientOrderService.getAllOrders()
-        console.log('Client orders fetched successfully:', result)
-        return result
-      } catch (error) {
-        console.error('Error fetching client orders:', error)
-        return []
-      }
-    },
+  return useQuery({
+    queryKey: ['client-orders', 'all'],
+    queryFn: () => apiClient.get<ClientOrderResponse[]>('/orders/all'),
     staleTime: 5 * 60 * 1000,
-    retry: 3,
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     enabled: typeof window !== 'undefined',
-    refetchOnWindowFocus: false,
-    gcTime: 10 * 60 * 1000
   })
-
-  const createClientOrder = useMutation({
-    mutationFn: (data: ClientOrderRequest) => clientOrderService.create(data),
-    onSuccess: (newOrder) => {
-      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
-      enhancedToast.success("Commande créée avec succès", {
-        description: `Commande ${newOrder.code} a été créée`,
-        action: {
-          label: "Voir détails",
-          onClick: () => console.log('Voir détails de', newOrder.code)
-        }
-      })
-    },
-    onError: async (error: any) => {
-      console.error('Erreur création commande:', error)
-      
-      if (error?.details?.status === 409 || error?.message?.includes('409')) {
-        const conflictMessage = error?.details?.message || error?.details?.errors?.error || "Une commande avec ce code existe déjà"
-        toast.error("Conflit", { description: conflictMessage })
-        return
-      }
-      
-      const message = error?.details?.message || error?.message || "Erreur lors de la création de la commande"
-      toast.error("Erreur de création", { description: message })
-    }
-  })
-
-  const updateClientOrder = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ClientOrderRequest }) => 
-      clientOrderService.update(id, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
-      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrder, variables.id] })
-      toast.success("Commande mise à jour avec succès")
-    },
-    onError: (error: ApiError) => {
-      toast.error("Erreur lors de la mise à jour")
-    }
-  })
-
-  const deleteClientOrder = useMutation({
-    mutationFn: (id: number) => clientOrderService.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
-      enhancedToast.actionWithUndo("Commande supprimée", () => {
-        enhancedToast.info("Fonction de restauration à implémenter")
-      }, {
-        description: "La commande a été supprimée"
-      })
-    },
-    onError: (error: ApiError) => {
-      enhancedToast.error("Erreur lors de la suppression", {
-        description: "La commande n'a pas pu être supprimée",
-        action: {
-          label: "Réessayer",
-          onClick: () => window.location.reload()
-        }
-      })
-    }
-  })
-
-  return {
-    orders: getAllOrders.data,
-    isLoading: getAllOrders.isLoading,
-    isError: getAllOrders.isError,
-    error: getAllOrders.error,
-    refetch: getAllOrders.refetch,
-    
-    createClientOrder: createClientOrder.mutate,
-    createClientOrderAsync: createClientOrder.mutateAsync,
-    updateClientOrder: updateClientOrder.mutate,
-    deleteClientOrder: deleteClientOrder.mutate,
-    
-    isCreating: createClientOrder.isPending,
-    isUpdating: updateClientOrder.isPending,
-    isDeleting: deleteClientOrder.isPending,
-    
-    createError: createClientOrder.error,
-    updateError: updateClientOrder.error,
-    deleteError: deleteClientOrder.error,
-  }
 }
 
 export const useClientOrder = (id?: number) => {
   const queryClient = useQueryClient()
   
   const orderQuery = useQuery({
-    queryKey: [ClientOrdersCacheKeys.ClientOrder, id],
-    queryFn: () => clientOrderService.getById(id!),
+    queryKey: ['client-order', id],
+    queryFn: () => apiClient.get<ClientOrderResponse>(`/orders/${id}`),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   })
 
   const getOrdersByClientQuery = useQuery({
-    queryKey: [ClientOrdersCacheKeys.ClientOrders, 'by-client', id],
-    queryFn: () => clientOrderService.getOrdersByClient(id!),
+    queryKey: ['client-orders', 'by-client', id],
+    queryFn: () => apiClient.get<ClientOrderResponse[]>(`/orders/client/${id}`),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   })
@@ -132,65 +31,55 @@ export const useClientOrder = (id?: number) => {
   const updateMutation = useMutation({
     mutationFn: (data: ClientOrderRequest) => {
       if (!id) throw new Error("ID requis")
-      return clientOrderService.update(id, data)
+      return apiClient.put<ClientOrderResponse>(`/orders/${id}`, data, {
+        showSuccessToast: true,
+        successMessage: 'Commande mise à jour avec succès'
+      })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
-      if (id) {
-        queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrder, id] })
-      }
-      toast.success("Commande mise à jour avec succès")
-    },
-    onError: () => {
-      toast.error("Erreur lors de la mise à jour")
+      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['client-order', id] })
     }
   })
   
   const deleteMutation = useMutation({
     mutationFn: () => {
       if (!id) throw new Error("ID requis")
-      return clientOrderService.delete(id)
+      return apiClient.delete(`/orders/${id}`, {
+        showSuccessToast: true,
+        successMessage: 'Commande supprimée avec succès'
+      })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
-      toast.success("Commande supprimée avec succès")
-    },
-    onError: () => {
-      toast.error("Erreur lors de la suppression")
+      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
     }
   })
 
   const updateStatusMutation = useMutation({
     mutationFn: (status: OrderStatus) => {
       if (!id) throw new Error("ID requis")
-      return clientOrderService.updateOrderStatus(id, status)
+      return apiClient.patch<ClientOrderResponse>(`/orders/${id}/status?status=${status}`, undefined, {
+        showSuccessToast: true,
+        successMessage: 'Statut mis à jour avec succès'
+      })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
-      if (id) {
-        queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrder, id] })
-      }
-      toast.success("Statut de la commande mis à jour avec succès")
-    },
-    onError: () => {
-      toast.error("Erreur lors de la mise à jour du statut")
+      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['client-order', id] })
     }
   })
 
   const cancelOrderMutation = useMutation({
     mutationFn: () => {
       if (!id) throw new Error("ID requis")
-      return clientOrderService.cancelOrder(id)
+      return apiClient.patch<ClientOrderResponse>(`/orders/${id}/cancel`, undefined, {
+        showSuccessToast: true,
+        successMessage: 'Commande annulée avec succès'
+      })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
-      if (id) {
-        queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrder, id] })
-      }
-      toast.success("Commande annulée avec succès")
-    },
-    onError: () => {
-      toast.error("Erreur lors de l'annulation de la commande")
+      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['client-order', id] })
     }
   })
   
@@ -222,10 +111,55 @@ export const useClientOrder = (id?: number) => {
   }
 }
 
+export const useCreateClientOrder = () => {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: (data: ClientOrderRequest) => 
+      apiClient.post<ClientOrderResponse>('/orders/create', data, {
+        showSuccessToast: true,
+        successMessage: 'Commande créée avec succès'
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
+    }
+  })
+}
+
+export const useUpdateClientOrder = () => {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: ClientOrderRequest }) => 
+      apiClient.put<ClientOrderResponse>(`/orders/${id}`, data, {
+        showSuccessToast: true,
+        successMessage: 'Commande modifiée avec succès'
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
+    }
+  })
+}
+
+export const useDeleteClientOrder = () => {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: (id: number) => 
+      apiClient.delete(`/orders/${id}`, {
+        showSuccessToast: true,
+        successMessage: 'Commande supprimée avec succès'
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
+    }
+  })
+}
+
 export const useClientOrdersByClient = (clientId?: number) => {
   return useQuery({
-    queryKey: [ClientOrdersCacheKeys.ClientOrders, 'by-client', clientId],
-    queryFn: () => clientOrderService.getOrdersByClient(clientId!),
+    queryKey: ['client-orders', 'by-client', clientId],
+    queryFn: () => apiClient.get<ClientOrderResponse[]>(`/orders/client/${clientId}`),
     enabled: !!clientId,
     staleTime: 5 * 60 * 1000,
   })
@@ -233,10 +167,9 @@ export const useClientOrdersByClient = (clientId?: number) => {
 
 export const useClientOrdersByStatus = (status: OrderStatus) => {
   return useQuery({
-    queryKey: [ClientOrdersCacheKeys.ClientOrders, 'by-status', status],
-    queryFn: () => clientOrderService.getOrdersByStatus(status),
+    queryKey: ['client-orders', 'by-status', status],
+    queryFn: () => apiClient.get<ClientOrderResponse[]>(`/orders/status/${status}`),
     enabled: true,
     staleTime: 5 * 60 * 1000,
   })
 }
-

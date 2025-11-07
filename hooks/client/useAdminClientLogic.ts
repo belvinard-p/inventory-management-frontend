@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useClients } from "@/hooks/client/useClient"
+import { useQuery } from "@tanstack/react-query"
+import { apiClient } from "@/lib/apiClient"
 import { useAuth } from "@/hooks/useAuth"
 import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
 import type { ClientResponse } from "@/types/client/client"
@@ -18,8 +19,20 @@ export function useAdminClientLogic() {
   const [currentPage, setCurrentPage] = useState(0)
   
   const pageSize = 10
-  const { clients, isLoading, isError } = useClients(currentPage, pageSize)
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
+  
+  const { data: clients, isLoading, isError } = useQuery<{
+    content: ClientResponse[]
+    totalElements: number
+    totalPages: number
+    size: number
+    number: number
+  }>({
+    queryKey: ['clients', currentPage, pageSize],
+    queryFn: () => apiClient.get(`/clients/all?pageNumber=${currentPage}&pageSize=${pageSize}`),
+    staleTime: 5 * 60 * 1000,
+    enabled: hasPermission && !!accessToken
+  })
   const clientsData = Array.isArray(clients?.content) ? clients.content : []
   const displayData = hasFilter ? filteredClients : clientsData
 
