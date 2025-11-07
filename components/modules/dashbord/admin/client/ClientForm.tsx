@@ -79,7 +79,7 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
   const { createClient, createClientAsync, updateClient, isCreating, isUpdating } = useClients()
   const isEditMode = mode === 'edit' && client
   
-  console.log('ClientForm rendered, open:', open, 'mode:', mode, 'client:', client)
+
   
   const form = useForm<z.infer<typeof clientSchema>>({
     resolver: zodResolver(clientSchema),

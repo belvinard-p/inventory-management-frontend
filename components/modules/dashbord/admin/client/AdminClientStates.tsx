@@ -64,11 +64,7 @@ export function EmptyClientsState({ currentUser, isCreateModalOpen, setIsCreateM
           </p>
         </div>
         {hasPermission && (
-          <Button onClick={() => {
-            console.log('EmptyState - Nouveau Client clicked, current state:', isCreateModalOpen)
-            setIsCreateModalOpen(true)
-            console.log('EmptyState - State should now be true')
-          }}>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Nouveau Client
           </Button>
@@ -84,11 +80,7 @@ export function EmptyClientsState({ currentUser, isCreateModalOpen, setIsCreateM
           />
           {hasPermission && (
             <div className="flex justify-center mt-6">
-              <Button onClick={() => {
-                console.log('EmptyState - Créer un client clicked, current state:', isCreateModalOpen)
-                setIsCreateModalOpen(true)
-                console.log('EmptyState - State should now be true')
-              }}>
+              <Button onClick={() => setIsCreateModalOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Créer un client
               </Button>

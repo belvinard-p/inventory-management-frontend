@@ -11,7 +11,6 @@ import { DataTable } from "../company/DataTable"
 import { columns } from "./Columns"
 import { EmptyState } from "@/components/global"
 import { ClientForm } from "./ClientForm"
-import { TestModal } from "./TestModal"
 import {
   Pagination,
   PaginationContent,
@@ -152,11 +151,7 @@ export function AdminClientContent({
 }: AdminClientContentProps) {
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
   
-  console.log('AdminClientContent render:', {
-    hasPermission,
-    currentUserRole: currentUser?.roleName,
-    isCreateModalOpen
-  })
+
 
   return (
     <div className="space-y-6">
@@ -168,20 +163,11 @@ export function AdminClientContent({
             Gérez les clients de votre système
           </p>
         </div>
-        <div style={{ backgroundColor: 'yellow', padding: '10px' }}>
-          <p>hasPermission: {String(hasPermission)}</p>
-          <p>currentUserRole: {currentUser?.roleName}</p>
-        </div>
+
         {hasPermission && (
           <Button 
             type="button"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              console.log('Button clicked! Current state:', isCreateModalOpen)
-              setIsCreateModalOpen(true)
-              console.log('State should now be true')
-            }}
+onClick={() => setIsCreateModalOpen(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
             Nouveau Client
@@ -270,15 +256,7 @@ export function AdminClientContent({
         </CardContent>
       </Card>
 
-      {/* Test Modal */}
-      <div style={{ padding: '20px', backgroundColor: 'red', color: 'white' }}>
-        <button onClick={() => {
-          console.log('Simple test button clicked')
-          alert('Test button works!')
-        }}>
-          SIMPLE TEST BUTTON
-        </button>
-      </div>
+
       
       {/* Modals */}
       <ClientForm
