@@ -28,13 +28,12 @@ const clientSchema = z.object({
     .optional()
     .or(z.literal("")),
   phoneNumber: z.string()
-
-    .regex(
-      /^(?:(?:\+237|237)[-.\s]?)?(?:[67][25-9]\d{7}|2\d{2}\d{6})$/,
-      "Le numéro de téléphone doit être un numéro camerounais valide (mobile ou fixe). Exemples: 671234567, 222123456, +237-233123456"
-    )
     .optional()
-    .or(z.literal("")),
+    .or(z.literal(""))
+    .refine(
+      (val) => !val || /^(?:(?:\+237|237)[-.\s]?)?(?:[67][25-9]\d{7}|2\d{2}\d{6})$/.test(val),
+      "Le numéro de téléphone doit être un numéro camerounais valide (mobile ou fixe). Exemples: 671234567, 222123456, +237-233123456"
+    ),
    address: z.object({
     address1: z.string().max(100).optional().or(z.literal("")),
     address2: z.string().max(100).optional().or(z.literal("")),
@@ -152,14 +151,8 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
   function onSubmit(data: z.infer<typeof clientSchema>) {
     const requestData: Partial<ClientRequest> = {
       name: data.name,
-    }
-    
-    if (data.email && data.email.trim()) {
-      requestData.email = data.email
-    }
-    
-    if (data.phoneNumber && data.phoneNumber.trim()) {
-      requestData.phoneNumber = data.phoneNumber
+      email: data.email || "",
+      phoneNumber: data.phoneNumber || "",
     }
     
     if (data.address && (data.address.address1 || data.address.city)) {

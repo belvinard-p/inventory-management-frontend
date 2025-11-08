@@ -42,14 +42,15 @@ export function AdminDashboard() {
             setError(null)
             
             // Récupérer le nombre réel d'utilisateurs, d'entreprises, et de catégories
-            const [users, companies, categories] = await Promise.all([
+            const [users, companies, categories] = await Promise.allSettled([
                 userService.getAll(),
                 companyService.getAll({ page: 0, size: 1 }),
                 categoryService.getAll({ page: 0, size: 1 }),
             ])
-            const usersCount = users.length
-            const companiesCount = companies.totalElements
-            const categoriesCount = categories.totalElements
+            
+            const usersCount = users.status === 'fulfilled' ? users.value.length : 0
+            const companiesCount = companies.status === 'fulfilled' ? companies.value.totalElements : 0
+            const categoriesCount = categories.status === 'fulfilled' ? categories.value.totalElements : 0
             
             // Données avec les vrais nombres, y compris totalCategories
             setDashboardData({
@@ -66,9 +67,16 @@ export function AdminDashboard() {
             })
             setLastFetch(new Date())
             setRetryCount(0)
+            
+            // Log des erreurs non critiques pour débogage
+            if (users.status === 'rejected') console.warn('Users API failed:', users.reason)
+            if (companies.status === 'rejected') console.warn('Companies API failed:', companies.reason)
+            if (categories.status === 'rejected') console.warn('Categories API failed:', categories.reason)
+            
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue'
-            setError(`Échec du chargement des données: ${errorMessage}`)
+            console.error('Critical dashboard error:', err)
+            setError(`Échec critique du chargement: ${errorMessage}`)
             if (retryCount < 3) {
                 setTimeout(() => {
                     setRetryCount(prev => prev + 1)
