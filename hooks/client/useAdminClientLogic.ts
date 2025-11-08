@@ -6,6 +6,7 @@ import { apiClient } from "@/lib/apiClient"
 import { useAuth } from "@/hooks/useAuth"
 import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
 import type { ClientResponse } from "@/types/client/client"
+import { ClientsCacheKeys } from "@/lib/const"
 import { toast } from "sonner"
 
 export function useAdminClientLogic() {
@@ -28,7 +29,7 @@ export function useAdminClientLogic() {
     size: number
     number: number
   }>({
-    queryKey: ['clients', currentPage, pageSize],
+    queryKey: [ClientsCacheKeys.Clients, currentPage, pageSize],
     queryFn: () => apiClient.get(`/clients/all?pageNumber=${currentPage}&pageSize=${pageSize}`),
     staleTime: 5 * 60 * 1000,
     enabled: hasPermission && !!accessToken
