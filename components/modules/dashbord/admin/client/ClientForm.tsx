@@ -21,7 +21,7 @@ import { ClientResponse, ClientRequest } from "@/types/client/client"
 
 const clientSchema = z.object({
   name: z.string()
-    .min(4, "Le nom doit contenir au moins 4 caractères")
+    .min(3, "Le nom doit contenir au moins 3 caractères")
     .max(100, "Le nom ne peut pas dépasser 100 caractères"),
   email: z.string()
     .email("L'email doit être valide")
