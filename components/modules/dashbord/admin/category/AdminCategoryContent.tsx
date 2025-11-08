@@ -20,6 +20,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface StatsCardProps {
   readonly title: string
@@ -246,7 +253,7 @@ export function AdminCategoryContent({
       />
 
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="w-[95vw] max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl max-h-[85vh] sm:max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogContent className="w-[95vw] max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl max-h-[85vh] sm:max-h-[80vh] overflow-hidden flex flex-col z-[100]">
           <DialogHeader>
             <DialogTitle>Détails de la catégorie</DialogTitle>
             <DialogDescription>Informations complètes et articles associés</DialogDescription>
@@ -260,8 +267,8 @@ export function AdminCategoryContent({
                   <div><strong>Nombre d'articles:</strong> {selectedCategory.articles?.length || 0}</div>
                 </div>
                 <div className="space-y-2">
-                  <div><strong>Date de création:</strong> {new Date(selectedCategory.createdDate).toLocaleDateString('fr-FR')}</div>
-                  <div><strong>Dernière mise à jour:</strong> {new Date(selectedCategory.updatedDate).toLocaleDateString('fr-FR')}</div>
+                  <div><strong>Date de création:</strong> {new Date(selectedCategory.createdDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                  <div><strong>Dernière mise à jour:</strong> {new Date(selectedCategory.updatedDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                 </div>
               </div>
               
@@ -272,23 +279,24 @@ export function AdminCategoryContent({
                   Articles associés ({selectedCategory.articles?.length || 0})
                 </h3>
                 {selectedCategory.articles && selectedCategory.articles.length > 0 ? (
-                  <div className="border rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto max-h-96">
-                      <table className="w-full text-sm">
-                        <thead className="bg-muted sticky top-0">
-                          <tr>
-                            <th className="text-left p-2 sm:p-3 font-semibold">Code Article</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {selectedCategory.articles.map((article, index) => (
-                            <tr key={article.id} className={index % 2 === 0 ? "bg-background" : "bg-muted/50"}>
-                              <td className="p-2 sm:p-3 font-mono text-xs sm:text-sm">{article.codeArticle}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Sélectionner code article</label>
+                    <Select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Choisir un code article" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {selectedCategory.articles.map((article) => (
+                          <SelectItem 
+                            key={article.id} 
+                            value={article.codeArticle}
+                            className="font-mono text-sm"
+                          >
+                            {article.codeArticle}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground border rounded-lg bg-muted/30">
