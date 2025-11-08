@@ -283,7 +283,6 @@ export function AdminCategoryContent({
                             <th className="text-right p-3 font-semibold">Stock</th>
                             <th className="text-right p-3 font-semibold">Disponible</th>
                             <th className="text-right p-3 font-semibold">Prix HT</th>
-                            <th className="text-center p-3 font-semibold">Statut</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -293,14 +292,7 @@ export function AdminCategoryContent({
                               <td className="p-3">{article.designation}</td>
                               <td className="p-3 text-right">{article.quantityInStock}</td>
                               <td className="p-3 text-right">{article.availableQuantity}</td>
-                              <td className="p-3 text-right">{article.unitPriceExclTax.toFixed(2)} €</td>
-                              <td className="p-3 text-center">
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
-                                  article.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {article.status === 'ACTIVE' ? 'Actif' : 'Archivé'}
-                                </span>
-                              </td>
+                              <td className="p-3 text-right">{article.unitPriceExclTax.toFixed(2)} XAF</td>
                             </tr>
                           ))}
                         </tbody>
