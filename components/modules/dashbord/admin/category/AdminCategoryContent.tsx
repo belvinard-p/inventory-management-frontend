@@ -246,7 +246,7 @@ export function AdminCategoryContent({
       />
 
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogContent className="w-[95vw] max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl max-h-[85vh] sm:max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Détails de la catégorie</DialogTitle>
             <DialogDescription>Informations complètes et articles associés</DialogDescription>
@@ -257,12 +257,11 @@ export function AdminCategoryContent({
                 <div className="space-y-2">
                   <div><strong>Code:</strong> {selectedCategory.code}</div>
                   <div><strong>Désignation:</strong> {selectedCategory.designation}</div>
-                  <div><strong>Statut:</strong> <span className={selectedCategory.isActive ? "text-green-600" : "text-red-600"}>{selectedCategory.isActive ? "Active" : "Inactive"}</span></div>
+                  <div><strong>Nombre d'articles:</strong> {selectedCategory.articles?.length || 0}</div>
                 </div>
                 <div className="space-y-2">
                   <div><strong>Date de création:</strong> {new Date(selectedCategory.createdDate).toLocaleDateString('fr-FR')}</div>
                   <div><strong>Dernière mise à jour:</strong> {new Date(selectedCategory.updatedDate).toLocaleDateString('fr-FR')}</div>
-                  <div><strong>Nombre d'articles:</strong> {selectedCategory.articles?.length || 0}</div>
                 </div>
               </div>
               
@@ -278,21 +277,13 @@ export function AdminCategoryContent({
                       <table className="w-full text-sm">
                         <thead className="bg-muted sticky top-0">
                           <tr>
-                            <th className="text-left p-3 font-semibold">Code</th>
-                            <th className="text-left p-3 font-semibold">Désignation</th>
-                            <th className="text-right p-3 font-semibold">Stock</th>
-                            <th className="text-right p-3 font-semibold">Disponible</th>
-                            <th className="text-right p-3 font-semibold">Prix HT</th>
+                            <th className="text-left p-2 sm:p-3 font-semibold">Code Article</th>
                           </tr>
                         </thead>
                         <tbody>
                           {selectedCategory.articles.map((article, index) => (
                             <tr key={article.id} className={index % 2 === 0 ? "bg-background" : "bg-muted/50"}>
-                              <td className="p-3 font-mono text-xs">{article.codeArticle}</td>
-                              <td className="p-3">{article.designation}</td>
-                              <td className="p-3 text-right">{article.quantityInStock}</td>
-                              <td className="p-3 text-right">{article.availableQuantity}</td>
-                              <td className="p-3 text-right">{article.unitPriceExclTax.toFixed(2)} XAF</td>
+                              <td className="p-2 sm:p-3 font-mono text-xs sm:text-sm">{article.codeArticle}</td>
                             </tr>
                           ))}
                         </tbody>
