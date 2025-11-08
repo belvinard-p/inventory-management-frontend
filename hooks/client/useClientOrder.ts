@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/apiClient'
 import { ClientOrderResponse, ClientOrderRequest, OrderStatus } from '@/types/client/clientOrder'
+import { ClientOrdersCacheKeys } from '@/lib/const'
 
 export const useClientOrders = () => {
   return useQuery({
-    queryKey: ['client-orders', 'all'],
+    queryKey: [ClientOrdersCacheKeys.ClientOrders, 'all'],
     queryFn: () => apiClient.get<ClientOrderResponse[]>('/orders/all'),
     staleTime: 5 * 60 * 1000,
     enabled: typeof window !== 'undefined',
@@ -15,14 +16,14 @@ export const useClientOrder = (id?: number) => {
   const queryClient = useQueryClient()
   
   const orderQuery = useQuery({
-    queryKey: ['client-order', id],
+    queryKey: [ClientOrdersCacheKeys.ClientOrder, id],
     queryFn: () => apiClient.get<ClientOrderResponse>(`/orders/${id}`),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   })
 
   const getOrdersByClientQuery = useQuery({
-    queryKey: ['client-orders', 'by-client', id],
+    queryKey: [ClientOrdersCacheKeys.ClientOrders, 'by-client', id],
     queryFn: () => apiClient.get<ClientOrderResponse[]>(`/orders/client/${id}`),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
@@ -37,8 +38,8 @@ export const useClientOrder = (id?: number) => {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['client-order', id] })
+      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
+      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrder, id] })
     }
   })
   
@@ -51,7 +52,7 @@ export const useClientOrder = (id?: number) => {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
+      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
     }
   })
 
@@ -64,8 +65,8 @@ export const useClientOrder = (id?: number) => {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['client-order', id] })
+      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
+      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrder, id] })
     }
   })
 
@@ -78,8 +79,8 @@ export const useClientOrder = (id?: number) => {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
-      queryClient.invalidateQueries({ queryKey: ['client-order', id] })
+      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
+      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrder, id] })
     }
   })
   
@@ -121,7 +122,7 @@ export const useCreateClientOrder = () => {
         successMessage: 'Commande créée avec succès'
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
+      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
     }
   })
 }
@@ -136,7 +137,7 @@ export const useUpdateClientOrder = () => {
         successMessage: 'Commande modifiée avec succès'
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
+      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
     }
   })
 }
@@ -151,14 +152,14 @@ export const useDeleteClientOrder = () => {
         successMessage: 'Commande supprimée avec succès'
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-orders'] })
+      queryClient.invalidateQueries({ queryKey: [ClientOrdersCacheKeys.ClientOrders] })
     }
   })
 }
 
 export const useClientOrdersByClient = (clientId?: number) => {
   return useQuery({
-    queryKey: ['client-orders', 'by-client', clientId],
+    queryKey: [ClientOrdersCacheKeys.ClientOrders, 'by-client', clientId],
     queryFn: () => apiClient.get<ClientOrderResponse[]>(`/orders/client/${clientId}`),
     enabled: !!clientId,
     staleTime: 5 * 60 * 1000,
@@ -167,7 +168,7 @@ export const useClientOrdersByClient = (clientId?: number) => {
 
 export const useClientOrdersByStatus = (status: OrderStatus) => {
   return useQuery({
-    queryKey: ['client-orders', 'by-status', status],
+    queryKey: [ClientOrdersCacheKeys.ClientOrders, 'by-status', status],
     queryFn: () => apiClient.get<ClientOrderResponse[]>(`/orders/status/${status}`),
     enabled: true,
     staleTime: 5 * 60 * 1000,

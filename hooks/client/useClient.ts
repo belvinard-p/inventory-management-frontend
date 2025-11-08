@@ -51,7 +51,7 @@ export const useClient = (id?: number) => {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      queryClient.invalidateQueries({ queryKey: [ClientsCacheKeys.Clients] })
     }
   })
   
@@ -83,7 +83,7 @@ export const useCreateClient = () => {
         successMessage: 'Client créé avec succès'
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      queryClient.invalidateQueries({ queryKey: [ClientsCacheKeys.Clients] })
     }
   })
 }
@@ -98,7 +98,7 @@ export const useUpdateClient = () => {
         successMessage: 'Client modifié avec succès'
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      queryClient.invalidateQueries({ queryKey: [ClientsCacheKeys.Clients] })
     }
   })
 }
@@ -113,7 +113,7 @@ export const useDeleteClient = () => {
         successMessage: 'Client supprimé avec succès'
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      queryClient.invalidateQueries({ queryKey: [ClientsCacheKeys.Clients] })
     }
   })
 }
