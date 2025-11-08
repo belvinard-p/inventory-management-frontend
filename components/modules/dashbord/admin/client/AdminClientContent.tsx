@@ -57,14 +57,14 @@ interface AdminClientContentProps {
 function StatsCard({ title, value, icon, colorClass }: StatsCardProps) {
   return (
     <Card className={`group relative overflow-hidden transition-all duration-300 ease-out hover:shadow-xl hover:shadow-${colorClass}/10 hover:-translate-y-1 before:absolute before:inset-0 before:bg-gradient-to-r before:from-${colorClass}/5 before:to-transparent before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100`}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className={`text-sm font-medium group-hover:text-${colorClass} transition-colors duration-300`}>{title}</CardTitle>
-        <div className={`group-hover:scale-110 group-hover:text-${colorClass} transition-all duration-300`}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
+        <CardTitle className={`text-xs sm:text-sm font-medium group-hover:text-${colorClass} transition-colors duration-300 truncate`}>{title}</CardTitle>
+        <div className={`group-hover:scale-110 group-hover:text-${colorClass} transition-all duration-300 flex-shrink-0`}>
           {icon}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className={`text-2xl font-bold text-${colorClass} group-hover:scale-105 transition-transform duration-300`}>{value}</div>
+      <CardContent className="px-4 sm:px-6">
+        <div className={`text-xl sm:text-2xl font-bold text-${colorClass} group-hover:scale-105 transition-transform duration-300`}>{value}</div>
       </CardContent>
     </Card>
   )
@@ -78,9 +78,10 @@ function PaginationComponent({ clients, currentPage, setCurrentPage }: {
   if (!clients || clients.totalPages <= 1) return null
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="text-sm text-muted-foreground">
-        Page {currentPage + 1} sur {clients.totalPages} ({clients.totalElements} clients)
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+        <span className="hidden sm:inline">Page {currentPage + 1} sur {clients.totalPages} ({clients.totalElements} clients)</span>
+        <span className="sm:hidden">{currentPage + 1}/{clients.totalPages}</span>
       </div>
       <Pagination>
         <PaginationContent>
@@ -156,10 +157,10 @@ export function AdminClientContent({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Clients</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gérez les clients de votre système
           </p>
         </div>
@@ -167,16 +168,18 @@ export function AdminClientContent({
         {hasPermission && (
           <Button 
             type="button"
-onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => setIsCreateModalOpen(true)}
+            className="w-full sm:w-auto"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Nouveau Client
+            <span className="hidden sm:inline">Nouveau Client</span>
+            <span className="sm:hidden">Nouveau</span>
           </Button>
         )}
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
         <StatsCard 
           title="Total" 
           value={stats.total} 
@@ -211,11 +214,11 @@ onClick={() => setIsCreateModalOpen(true)}
 
       {/* Data Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Liste des Clients</CardTitle>
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-lg sm:text-xl">Liste des Clients</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
+        <CardContent className="space-y-4 px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <ClientSearch 
               data={clientsData}
               onFilteredData={(filtered, hasFilter = true) => {
@@ -231,22 +234,24 @@ onClick={() => setIsCreateModalOpen(true)}
             onClearSelection={clearSelection}
           />
           
-          {displayData.length === 0 ? (
-            <EmptyState 
-              title="Aucun résultat"
-              description="Aucun client ne correspond aux filtres actuels"
-            />
-          ) : (
-            <ClientProvider onEditClient={handleEditClient}>
-              <DataTable 
-                columns={columns} 
-                data={displayData}
-                onRowSelectionChange={handleRowSelectionChange}
-                enablePagination={false}
-                enableToolbar={true}
+          <div className="overflow-x-auto">
+            {displayData.length === 0 ? (
+              <EmptyState 
+                title="Aucun résultat"
+                description="Aucun client ne correspond aux filtres actuels"
               />
-            </ClientProvider>
-          )}
+            ) : (
+              <ClientProvider onEditClient={handleEditClient}>
+                <DataTable 
+                  columns={columns} 
+                  data={displayData}
+                  onRowSelectionChange={handleRowSelectionChange}
+                  enablePagination={false}
+                  enableToolbar={true}
+                />
+              </ClientProvider>
+            )}
+          </div>
           
           <PaginationComponent 
             clients={clients}

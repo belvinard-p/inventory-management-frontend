@@ -46,24 +46,26 @@ export function AdminClient() {
   if (isError) return <ErrorClientsState currentUser={currentUser} isCreateModalOpen={isCreateModalOpen} setIsCreateModalOpen={setIsCreateModalOpen} />
 
   return (
-    <AdminClientContent
-      currentUser={currentUser}
-      clientsData={clientsData}
-      displayData={displayData}
-      stats={stats}
-      clients={clients}
-      currentPage={currentPage}
-      selectedClients={selectedClients}
-      isCreateModalOpen={isCreateModalOpen}
-      editingClient={editingClient}
-      setIsCreateModalOpen={setIsCreateModalOpen}
-      setFilteredClients={setFilteredClients}
-      setHasFilter={setHasFilter}
-      handleEditClient={handleEditClient}
-      handleRowSelectionChange={handleRowSelectionChange}
-      clearSelection={clearSelection}
-      setCurrentPage={setCurrentPage}
-      setEditingClient={setEditingClient}
-    />
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <AdminClientContent
+        currentUser={currentUser}
+        clientsData={clientsData}
+        displayData={displayData}
+        stats={stats}
+        clients={clients}
+        currentPage={currentPage}
+        selectedClients={selectedClients}
+        isCreateModalOpen={isCreateModalOpen}
+        editingClient={editingClient}
+        setIsCreateModalOpen={setIsCreateModalOpen}
+        setFilteredClients={setFilteredClients}
+        setHasFilter={setHasFilter}
+        handleEditClient={handleEditClient}
+        handleRowSelectionChange={handleRowSelectionChange}
+        clearSelection={clearSelection}
+        setCurrentPage={setCurrentPage}
+        setEditingClient={setEditingClient}
+      />
+    </div>
   )
 }
