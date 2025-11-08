@@ -69,7 +69,6 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
     },
   })
 
-  // Réinitialiser le formulaire avec les données de l'article quand le dialog s'ouvre ou que l'article change
   useEffect(() => {
     if (open && isEditMode && article) {
       form.reset({
@@ -82,7 +81,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
         imageFile: undefined,
       })
     } else if (open && !isEditMode) {
-      // Réinitialiser pour un nouveau formulaire
+      
       form.reset({
         codeArticle: "",
         designation: "",
@@ -95,7 +94,6 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
     }
   }, [open, article, isEditMode, form])
 
-  // Vérifier si tous les champs obligatoires sont remplis
   const watchedValues = form.watch()
   const isFormValid = form.formState.isValid
   const hasRequiredFields = watchedValues.codeArticle && watchedValues.designation && 
