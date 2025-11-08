@@ -20,6 +20,7 @@ export function AdminCategory() {
     hasPermission,
     categoriesData,
     displayData,
+    stats,
     categories,
     currentPage,
     isLoading,
@@ -27,6 +28,8 @@ export function AdminCategory() {
     isCreateModalOpen,
     setIsCreateModalOpen,
     setCurrentPage,
+    setFilteredCategories,
+    setHasFilter,
   } = useAdminCategoryLogic()
 
   const handleRetry = () => window.location.reload()
@@ -48,6 +51,9 @@ export function AdminCategory() {
       isAuthenticated={isAuthenticated}
       isCreateModalOpen={isCreateModalOpen}
       setIsCreateModalOpen={setIsCreateModalOpen}
+      stats={stats}
+      setFilteredCategories={setFilteredCategories}
+      setHasFilter={setHasFilter}
     />
   )
 }

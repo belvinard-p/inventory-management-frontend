@@ -2,7 +2,8 @@
 
 import React from "react"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Plus, FolderOpen, CheckCircle, XCircle, Search } from "lucide-react"
+import { Input } from "@/components/ui/input"
 import { DataTable } from "./DataTable"
 import { CategoryResponse } from "@/types/category"
 import { createColumns } from "./Columns"
@@ -20,6 +21,13 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 
+interface StatsCardProps {
+  readonly title: string
+  readonly value: number
+  readonly icon: React.ReactNode
+  readonly colorClass: string
+}
+
 interface AdminCategoryContentProps {
   categories: CategoryResponse[]
   categoriesPaginated: { totalPages: number; totalElements: number } | null | undefined
@@ -29,6 +37,62 @@ interface AdminCategoryContentProps {
   isAuthenticated: boolean
   isCreateModalOpen: boolean
   setIsCreateModalOpen: (open: boolean) => void
+  stats: {
+    readonly total: number
+    readonly active: number
+    readonly inactive: number
+  }
+  setFilteredCategories: (categories: CategoryResponse[]) => void
+  setHasFilter: (hasFilter: boolean) => void
+}
+
+function StatsCard({ title, value, icon, colorClass }: StatsCardProps) {
+  return (
+    <Card className={`group relative overflow-hidden transition-all duration-300 ease-out hover:shadow-xl hover:shadow-${colorClass}/10 hover:-translate-y-1 before:absolute before:inset-0 before:bg-gradient-to-r before:from-${colorClass}/5 before:to-transparent before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100`}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6">
+        <CardTitle className={`text-xs sm:text-sm font-medium group-hover:text-${colorClass} transition-colors duration-300 truncate`}>{title}</CardTitle>
+        <div className={`group-hover:scale-110 group-hover:text-${colorClass} transition-all duration-300 flex-shrink-0`}>
+          {icon}
+        </div>
+      </CardHeader>
+      <CardContent className="px-4 sm:px-6">
+        <div className={`text-xl sm:text-2xl font-bold text-${colorClass} group-hover:scale-105 transition-transform duration-300`}>{value}</div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function CategorySearch({ data, onFilteredData, placeholder }: {
+  readonly data: CategoryResponse[]
+  readonly onFilteredData: (filtered: CategoryResponse[], hasFilter?: boolean) => void
+  readonly placeholder: string
+}) {
+  const [searchTerm, setSearchTerm] = React.useState("")
+
+  React.useEffect(() => {
+    if (!searchTerm.trim()) {
+      onFilteredData(data, false)
+      return
+    }
+
+    const filtered = data.filter(category => 
+      category.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      category.code?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    onFilteredData(filtered, true)
+  }, [searchTerm, data, onFilteredData])
+
+  return (
+    <div className="relative w-full max-w-sm">
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+      <Input
+        placeholder={placeholder}
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="pl-10"
+      />
+    </div>
+  )
 }
 
 function PaginationComponent({ categories, currentPage, setCurrentPage }: {
@@ -100,6 +164,9 @@ export function AdminCategoryContent({
   hasPermission,
   isCreateModalOpen,
   setIsCreateModalOpen,
+  stats,
+  setFilteredCategories,
+  setHasFilter,
 }: AdminCategoryContentProps) {
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
@@ -152,12 +219,45 @@ export function AdminCategoryContent({
         )}
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <StatsCard 
+          title="Total" 
+          value={stats.total} 
+          icon={<FolderOpen className="h-4 w-4 text-primary" />}
+          colorClass="primary"
+        />
+        <StatsCard 
+          title="Actives" 
+          value={stats.active} 
+          icon={<CheckCircle className="h-4 w-4 text-green-600" />}
+          colorClass="green-600"
+        />
+        <StatsCard 
+          title="Inactives" 
+          value={stats.inactive} 
+          icon={<XCircle className="h-4 w-4 text-red-600" />}
+          colorClass="red-600"
+        />
+      </div>
+
       {/* Data Table */}
       <Card>
         <CardHeader className="px-4 sm:px-6">
           <CardTitle className="text-lg sm:text-xl">Liste des Catégories</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CategorySearch 
+              data={categories}
+              onFilteredData={(filtered, hasFilter = true) => {
+                setFilteredCategories(filtered)
+                setHasFilter(hasFilter)
+              }}
+              placeholder="Rechercher catégorie"
+            />
+          </div>
+          
           <div className="overflow-x-auto">
             <DataTable
               columns={columns}
