@@ -6,6 +6,7 @@ import { Plus, Package, AlertCircle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { EmptyState, LoadingContent } from "@/components/global"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ArticleForm } from "./ArticleForm"
 
 interface LoadingStateProps {
   readonly title?: string
@@ -87,6 +88,13 @@ export function EmptyArticlesState({ currentUser, isCreateModalOpen, setIsCreate
           )}
         </CardContent>
       </Card>
+
+      {/* Create Article Modal */}
+      <ArticleForm
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        mode="create"
+      />
     </div>
   )
 }
