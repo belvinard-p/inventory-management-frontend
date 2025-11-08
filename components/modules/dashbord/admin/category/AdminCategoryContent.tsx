@@ -10,17 +10,93 @@ import { CategoryForm } from "./CategoryForm"
 import { DeleteConfirmDialog } from "@/components/global/DeleteConfirmDialog"
 import { useCategories } from "@/hooks/category/useCategory"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 interface AdminCategoryContentProps {
   categories: CategoryResponse[]
+  categoriesPaginated: { totalPages: number; totalElements: number } | null | undefined
+  currentPage: number
+  setCurrentPage: (page: number) => void
   hasPermission: boolean
   isAuthenticated: boolean
   isCreateModalOpen: boolean
   setIsCreateModalOpen: (open: boolean) => void
 }
 
+function PaginationComponent({ categories, currentPage, setCurrentPage }: {
+  readonly categories: { totalPages: number; totalElements: number } | null | undefined
+  readonly currentPage: number
+  readonly setCurrentPage: (page: number) => void
+}) {
+  if (!categories || categories.totalPages <= 1) return null
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+        <span className="hidden sm:inline">Page {currentPage + 1} sur {categories.totalPages} ({categories.totalElements} catégories)</span>
+        <span className="sm:hidden">{currentPage + 1}/{categories.totalPages}</span>
+      </div>
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious 
+              onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+              className={currentPage === 0 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+              size="default"
+            />
+          </PaginationItem>
+          
+          {Array.from({ length: Math.min(categories.totalPages, 5) }, (_, i) => {
+            let pageIndex = i
+            if (categories.totalPages > 5) {
+              if (currentPage < 3) {
+                pageIndex = i
+              } else if (currentPage > categories.totalPages - 4) {
+                pageIndex = categories.totalPages - 5 + i
+              } else {
+                pageIndex = currentPage - 2 + i
+              }
+            }
+            
+            return (
+              <PaginationItem key={pageIndex}>
+                <PaginationLink
+                  onClick={() => setCurrentPage(pageIndex)}
+                  isActive={currentPage === pageIndex}
+                  className="cursor-pointer"
+                >
+                  {pageIndex + 1}
+                </PaginationLink>
+              </PaginationItem>
+            )
+          })}
+          
+          <PaginationItem>
+            <PaginationNext 
+              onClick={() => setCurrentPage(Math.min(categories.totalPages - 1, currentPage + 1))}
+              className={currentPage === categories.totalPages - 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+              size="default"
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    </div>
+  )
+}
+
 export function AdminCategoryContent({
   categories,
+  categoriesPaginated,
+  currentPage,
+  setCurrentPage,
   hasPermission,
   isCreateModalOpen,
   setIsCreateModalOpen,
@@ -76,10 +152,27 @@ export function AdminCategoryContent({
         )}
       </div>
 
-      <DataTable
-        columns={columns}
-        data={categories}
-      />
+      {/* Data Table */}
+      <Card>
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-lg sm:text-xl">Liste des Catégories</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 px-4 sm:px-6">
+          <div className="overflow-x-auto">
+            <DataTable
+              columns={columns}
+              data={categories}
+              enablePagination={false}
+            />
+          </div>
+          
+          <PaginationComponent 
+            categories={categoriesPaginated}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+          />
+        </CardContent>
+      </Card>
 
       <CategoryForm
         open={isCreateModalOpen}
