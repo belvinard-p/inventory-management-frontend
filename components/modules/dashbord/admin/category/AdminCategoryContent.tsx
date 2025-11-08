@@ -280,7 +280,7 @@ export function AdminCategoryContent({
                 </h3>
                 {selectedCategory.articles && selectedCategory.articles.length > 0 ? (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Sélectionner code article</label>
+                    <label className="text-sm font-medium">Voir code article</label>
                     <Select>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Choisir un code article" />
@@ -290,7 +290,7 @@ export function AdminCategoryContent({
                           <SelectItem 
                             key={article.id} 
                             value={article.codeArticle}
-                            className="font-mono text-sm"
+                            className="font-mono text-sm mt-4"
                           >
                             {article.codeArticle}
                           </SelectItem>
