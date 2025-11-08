@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { User } from "@/types"
-import { useUsers } from "@/hooks/user"
+import { useUpdateUserRole } from "@/hooks/user/useUsers"
 
 interface RoleChangeDialogProps {
   open: boolean
@@ -28,7 +28,7 @@ interface RoleChangeDialogProps {
 
 export function RoleChangeDialog({ open, onOpenChange, user, roles }: RoleChangeDialogProps) {
   const [selectedRole, setSelectedRole] = useState<string>(user.roleName)
-  const { updateRole } = useUsers()
+  const updateRole = useUpdateUserRole()
 
   const handleRoleChange = () => {
     if (selectedRole && selectedRole !== user.roleName) {

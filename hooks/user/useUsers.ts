@@ -14,7 +14,7 @@ import {
 export const useUsers = () => {
   return useQuery<User[]>({
     queryKey: ['users'],
-    queryFn: () => apiClient.get('/users'),
+    queryFn: () => apiClient.get('/users/all'),
     staleTime: 2 * 60 * 1000,
   })
 }
@@ -50,7 +50,7 @@ export const useCreateUser = () => {
   
   return useMutation({
     mutationFn: (data: RegisterRequest) => 
-      apiClient.post<User>('/users/register', data, {
+      apiClient.post<User>('/users/create', data, {
         showSuccessToast: true,
         successMessage: 'Utilisateur créé avec succès'
       }),
@@ -65,7 +65,7 @@ export const useUpdateUser = () => {
   
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateUserRequest }) => 
-      apiClient.put<User>(`/users/${id}`, data, {
+      apiClient.put<User>(`/users/${id}/update`, data, {
         showSuccessToast: true,
         successMessage: 'Utilisateur mis à jour avec succès'
       }),
@@ -173,4 +173,33 @@ export const useUpdateUserCredentialsExpiryStatus = () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
     }
   })
+}
+
+export const useUsersAdmin = () => {
+  const usersQuery = useUsers()
+  const rolesQuery = useRoles()
+  const createUser = useCreateUser()
+  const updateUser = useUpdateUser()
+  const deleteUser = useDeleteUser()
+  const updateRole = useUpdateUserRole()
+  const updateLockStatus = useUpdateUserLockStatus()
+  const updateEnabledStatus = useUpdateUserEnabledStatus()
+  
+  return {
+    users: usersQuery.data,
+    roles: rolesQuery.data,
+    isLoading: usersQuery.isLoading,
+    isError: usersQuery.isError,
+    
+    createUser: createUser.mutate,
+    updateUser: updateUser.mutate,
+    deleteUser: deleteUser.mutate,
+    updateRole: updateRole.mutate,
+    updateLockStatus: updateLockStatus.mutate,
+    updateEnabledStatus: updateEnabledStatus.mutate,
+    
+    isCreating: createUser.isPending,
+    isUpdating: updateUser.isPending,
+    isDeleting: deleteUser.isPending,
+  }
 }

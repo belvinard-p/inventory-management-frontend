@@ -137,7 +137,7 @@ export function UserForm({ open, onOpenChange, user, mode = 'create' }: UserForm
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto z-[9999]">
         <DialogHeader>
             <DialogTitle>
               {isEditMode 

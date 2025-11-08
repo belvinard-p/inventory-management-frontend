@@ -28,7 +28,7 @@ import {
   UserCheck,
   UserX
 } from "lucide-react"
-import { useUsers } from "@/hooks/user"
+import { useRoles, useUpdateUserLockStatus, useUpdateUserEnabledStatus, useDeleteUser } from "@/hooks/user/useUsers"
 import { useUserContext } from "./UserContext"
 import { RoleChangeDialog } from "./RoleChangeDialog"
 import { DeleteConfirmDialog } from "@/components/global/DeleteConfirmDialog"
@@ -45,12 +45,10 @@ export function DataTableRowActions<TData>({
   const { onEditUser } = useUserContext()
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const {
-    updateLockStatus,
-    updateEnabledStatus,
-    deleteUser,
-    getRoles
-  } = useUsers()
+  const rolesQuery = useRoles()
+  const updateLockStatus = useUpdateUserLockStatus()
+  const updateEnabledStatus = useUpdateUserEnabledStatus()
+  const deleteUser = useDeleteUser()
 
   return (
     <>
@@ -137,7 +135,7 @@ export function DataTableRowActions<TData>({
         open={isRoleDialogOpen}
         onOpenChange={setIsRoleDialogOpen}
         user={user}
-        roles={getRoles.data || []}
+        roles={rolesQuery.data?.map((role, index) => ({ id: index, roleName: role })) || []}
       />
       
       <DeleteConfirmDialog
