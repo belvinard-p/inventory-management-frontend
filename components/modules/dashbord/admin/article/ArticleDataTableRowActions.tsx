@@ -87,7 +87,7 @@ export function ArticleDataTableRowActions<TData>({
             onClick={() => setIsImageDialogOpen(true)}
             className="text-purple-600 hover:text-purple-700"
           >
-            <Image className="mr-2 h-4 w-4" />
+            <Image className="mr-2 h-4 w-4" aria-hidden="true" />
             <span>Changer image</span>
           </DropdownMenuItem>
           

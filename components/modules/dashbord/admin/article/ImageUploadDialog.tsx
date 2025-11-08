@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { ArticleResponse } from "@/types/article"
 import { useArticles } from "@/hooks/article/useArticle"
 import { Button } from "@/components/ui/button"
@@ -94,7 +94,7 @@ export function ImageUploadDialog({ open, onOpenChange, article }: ImageUploadDi
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Image className="h-5 w-5" />
+            <Image className="h-5 w-5" aria-hidden="true" />
             Changer l&apos;image de {article.designation}
           </DialogTitle>
           <DialogDescription>
@@ -138,9 +138,10 @@ export function ImageUploadDialog({ open, onOpenChange, article }: ImageUploadDi
             <div className="space-y-2">
               <Label>Aperçu</Label>
               <div className="flex items-center justify-center w-full h-48 bg-muted rounded-lg border overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={preview}
-                  alt="Aperçu"
+                  alt="Aperçu de la nouvelle image"
                   className="max-w-full max-h-full object-contain"
                 />
               </div>

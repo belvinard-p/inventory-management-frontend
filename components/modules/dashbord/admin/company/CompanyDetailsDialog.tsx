@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog"
-import { Separator } from "@/components/ui/separator"
 import { CompanyImage } from "./CompanyImage"
 import { CopyButton } from "@/components/ui/copy-button"
 import { Mail, Phone, Globe, MapPin, Calendar, FileText, Tag } from "lucide-react"

@@ -10,7 +10,7 @@ interface ToggleGroupProps {
   className?: string
 }
 
-const ToggleGroup = ({ className, children, ...props }: ToggleGroupProps) => (
+const ToggleGroup = ({ className, children }: ToggleGroupProps) => (
   <div className={cn("flex items-center gap-1 rounded-md bg-muted p-1", className)}>
     {children}
   </div>

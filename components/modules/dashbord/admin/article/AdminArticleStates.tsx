@@ -145,6 +145,13 @@ export function ErrorArticlesState({ currentUser, isCreateModalOpen, setIsCreate
           />
         </CardContent>
       </Card>
+
+      {/* Create Article Modal */}
+      <ArticleForm
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        mode="create"
+      />
     </div>
   )
 }

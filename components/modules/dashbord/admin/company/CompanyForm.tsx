@@ -45,7 +45,7 @@ interface CompanyFormProps {
 }
 
 export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: CompanyFormProps) {
-  const { createCompany, createCompanyAsync, updateCompany, updateCompanyImage, isCreating, isUpdating, isUpdatingImage } = useCompanies()
+  const { createCompanyAsync, updateCompany, updateCompanyImage, isCreating, isUpdating, isUpdatingImage } = useCompanies()
   const queryClient = useQueryClient()
   const isEditMode = mode === 'edit' && company
   
@@ -368,7 +368,7 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
                 <FormField
                   control={form.control}
                   name="imageFile"
-                  render={({ field: { onChange, value, ...field } }) => (
+                  render={({ field: { value, onChange, ...field } }) => (
                     <FormItem className="group">
                       <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Fichier Image</FormLabel>
                       <FormControl>

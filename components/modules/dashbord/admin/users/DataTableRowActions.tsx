@@ -3,7 +3,6 @@
 import { Row } from "@tanstack/react-table"
 import { User } from "@/types"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -50,7 +50,7 @@ interface ArticleFormProps {
 }
 
 export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: ArticleFormProps) {
-  const { createArticle, createArticleAsync, updateArticle, updateArticleImage, isCreating, isUpdating, isUpdatingImage } = useArticles()
+  const { createArticleAsync, updateArticle, updateArticleImage, isCreating, isUpdating, isUpdatingImage } = useArticles()
   const { categories, isLoading: isCategoriesLoading } = useCategories()
   const isEditMode = mode === 'edit' && article
   const hasCategories = categories && categories.content && categories.content.length > 0
@@ -95,7 +95,6 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
   }, [open, article, isEditMode, form])
 
   const watchedValues = form.watch()
-  const isFormValid = form.formState.isValid
   const hasRequiredFields = watchedValues.codeArticle && watchedValues.designation && 
                            watchedValues.unitPriceExclTax > 0
   
@@ -361,7 +360,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                     <Alert variant="destructive" className="mt-2">
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription className="text-sm">
-                        Aucune catégorie disponible. Veuillez d'abord créer une catégorie avant de créer un article.
+                        Aucune catégorie disponible. Veuillez d&apos;abord créer une catégorie avant de créer un article.
                       </AlertDescription>
                     </Alert>
                   )}
@@ -379,7 +378,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
               <FormField
                 control={form.control}
                 name="imageFile"
-                render={({ field: { onChange, value, ...field } }) => (
+                render={({ field: { onChange, value: _value, ...field } }) => (
                   <FormItem className="group">
                     <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Fichier Image</FormLabel>
                     <FormControl>
