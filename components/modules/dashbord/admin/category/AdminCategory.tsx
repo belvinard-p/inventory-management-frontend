@@ -22,10 +22,8 @@ export function AdminCategory() {
     displayData,
     isLoading,
     isError,
-    currentPage,
     isCreateModalOpen,
     setIsCreateModalOpen,
-    setCurrentPage,
   } = useAdminCategoryLogic()
 
   const handleRetry = () => window.location.reload()

@@ -179,9 +179,36 @@ class ApiClient {
           const errorRes = isJson ? responseData : JSON.parse(responseText)
           errorMessage = errorRes.message || errorRes.details || errorMessage
           errorDetails = errorRes
+          
+          // Gérer les cas "No data found" comme des réponses valides
+          if (response.status === 400 && errorRes.errors) {
+            const errorText = errorRes.errors.error || errorRes.message || ''
+            if (errorText.includes('No categories found') || 
+                errorText.includes('No companies found') || 
+                errorText.includes('No users found') ||
+                errorText.includes('No articles found')) {
+              console.warn('Base de données vide:', errorText)
+              // Retourner une réponse vide au lieu de lancer une erreur
+              return {
+                content: [],
+                pageNumber: 0,
+                pageSize: 0,
+                totalElements: 0,
+                totalPages: 0,
+                last: true
+              } as T
+            }
+          }
+          
           console.error('Erreur backend détaillée:', errorRes)
+          
+          // Extraire le vrai message d'erreur pour l'affichage
           if (errorRes.errors) {
             console.error('Détails de validation:', errorRes.errors)
+            // Si c'est une erreur de validation avec un message spécifique
+            if (errorRes.errors.error) {
+              errorMessage = errorRes.errors.error
+            }
             // Log each validation error
             Object.keys(errorRes.errors).forEach(field => {
               console.error(`Validation error for ${field}:`, errorRes.errors[field])

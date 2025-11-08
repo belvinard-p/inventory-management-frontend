@@ -16,10 +16,11 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Check, X, Package } from "lucide-react"
+import { Check, X, Package, AlertCircle } from "lucide-react"
 import { useArticles } from "@/hooks/article/useArticle"
 import { useCategories } from "@/hooks/category/useCategory"
 import { ArticleResponse, ArticleRequest } from "@/types/article"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 const articleSchema = z.object({
   codeArticle: z.string()
@@ -49,9 +50,10 @@ interface ArticleFormProps {
 }
 
 export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: ArticleFormProps) {
-  const { createArticle, createArticleAsync, updateArticle, updateArticleImage, isCreating, isUpdating, isUpdatingImage } = useArticles()
-  const { categories } = useCategories()
+  const { createArticleAsync, updateArticle, updateArticleImage, isCreating, isUpdating, isUpdatingImage } = useArticles()
+  const { categories, isLoading: isCategoriesLoading } = useCategories()
   const isEditMode = mode === 'edit' && article
+  const hasCategories = categories && categories.content && categories.content.length > 0
   
   const form = useForm<z.infer<typeof articleSchema>>({
     resolver: zodResolver(articleSchema),
@@ -63,10 +65,10 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
       unitPriceExclTax: 0,
       rateTva: 0,
       categoryId: 0,
+      imageFile: undefined,
     },
   })
 
-  // Réinitialiser le formulaire avec les données de l'article quand le dialog s'ouvre ou que l'article change
   useEffect(() => {
     if (open && isEditMode && article) {
       form.reset({
@@ -79,7 +81,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
         imageFile: undefined,
       })
     } else if (open && !isEditMode) {
-      // Réinitialiser pour un nouveau formulaire
+      
       form.reset({
         codeArticle: "",
         designation: "",
@@ -92,13 +94,11 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
     }
   }, [open, article, isEditMode, form])
 
-  // Vérifier si tous les champs obligatoires sont remplis
   const watchedValues = form.watch()
-  const isFormValid = form.formState.isValid
   const hasRequiredFields = watchedValues.codeArticle && watchedValues.designation && 
-                           watchedValues.unitPriceExclTax && watchedValues.categoryId
+                           watchedValues.unitPriceExclTax > 0
   
-  const isSubmitDisabled = !isFormValid || !hasRequiredFields || isCreating || isUpdating || isUpdatingImage
+  const isSubmitDisabled = !hasRequiredFields || isCreating || isUpdating || isUpdatingImage
 
   async function onSubmit(data: z.infer<typeof articleSchema>) {
     const { imageFile, ...articleData } = data
@@ -332,7 +332,11 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Catégorie</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                  <Select 
+                    onValueChange={(value) => field.onChange(Number(value))} 
+                    value={field.value?.toString()}
+                    disabled={!hasCategories || isCreating || isUpdating}
+                  >
                     <FormControl>
                       <SelectTrigger className={`h-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
                         form.formState.errors.categoryId && form.formState.touchedFields.categoryId
@@ -341,7 +345,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                           ? "border-green-400 focus:border-green-500 bg-green-50/50" 
                           : "border-border/40 focus:border-primary/60 focus:bg-background"
                       }`}>
-                        <SelectValue placeholder="Sélectionner une catégorie" />
+                        <SelectValue placeholder={hasCategories ? "Sélectionner une catégorie" : "Aucune catégorie disponible"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -352,6 +356,14 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                       ))}
                     </SelectContent>
                   </Select>
+                  {!hasCategories && !isCategoriesLoading && (
+                    <Alert variant="destructive" className="mt-2">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription className="text-sm">
+                        Aucune catégorie disponible. Veuillez d&apos;abord créer une catégorie avant de créer un article.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -366,7 +378,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
               <FormField
                 control={form.control}
                 name="imageFile"
-                render={({ field: { onChange, value, ...field } }) => (
+                render={({ field: { onChange, value: _value, ...field } }) => (
                   <FormItem className="group">
                     <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Fichier Image</FormLabel>
                     <FormControl>
@@ -395,7 +407,11 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                 </Badge>
                 Annuler
               </Button>
-              <Button type="submit" disabled={isSubmitDisabled} className="relative">
+              <Button 
+                type="submit" 
+                disabled={isSubmitDisabled} 
+                className="relative"
+              >
                 {isEditMode ? (
                   <>
                     <Badge variant="outline" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-yellow-100 text-yellow-800 border-yellow-200">

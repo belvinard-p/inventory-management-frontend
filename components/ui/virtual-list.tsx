@@ -40,7 +40,7 @@ export function VirtualList<T>({
       totalHeight: items.length * itemHeight,
       offsetY: Math.max(0, startIndex - overscan) * itemHeight
     }
-  }, [scrollTop, itemHeight, containerHeight, items.length, overscan, items])
+  }, [scrollTop, itemHeight, containerHeight, overscan, items])
 
   useEffect(() => {
     const scrollElement = scrollElementRef.current

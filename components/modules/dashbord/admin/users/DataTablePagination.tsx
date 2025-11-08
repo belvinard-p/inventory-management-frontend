@@ -1,12 +1,6 @@
 "use client"
 
-import {
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react"
 import { Table } from "@tanstack/react-table"
-
-import { Button } from "@/components/ui/button"
 import {
   Pagination,
   PaginationContent,

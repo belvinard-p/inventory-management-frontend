@@ -1,7 +1,7 @@
 "use client"
 
 import { Row } from "@tanstack/react-table"
-import { ArticleResponse } from "@/types/article"
+import { ClientResponse } from "@/types/client/client"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -21,31 +21,26 @@ import {
   MoreHorizontal, 
   Edit, 
   Trash2, 
-  Image,
   Eye,
-  Archive,
-  ArchiveRestore
 } from "lucide-react"
-import { useArticles } from "@/hooks/article/useArticle"
-import { useArticleContext } from "./ArticleContext"
+import { useDeleteClient } from "@/hooks/client/useClient"
+import { useClientContext } from "./ClientContext"
 import { DeleteConfirmDialog } from "@/components/global"
-import { ArticleDetailsDialog } from "./ArticleDetailsDialog"
-import { ImageUploadDialog } from "./ImageUploadDialog"
+import { ClientDetailsDialog } from "./ClientDetailsDialog"
 import { useState } from "react"
 
-interface ArticleDataTableRowActionsProps<TData> {
+interface ClientDataTableRowActionsProps<TData> {
   row: Row<TData>
 }
 
-export function ArticleDataTableRowActions<TData>({
+export function ClientDataTableRowActions<TData>({
   row,
-}: ArticleDataTableRowActionsProps<TData>) {
-  const article = row.original as ArticleResponse
-  const { onEditArticle } = useArticleContext()
+}: ClientDataTableRowActionsProps<TData>) {
+  const client = row.original as ClientResponse
+  const { onEditClient } = useClientContext()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
-  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false)
-  const { deleteArticle, archiveArticle, restoreArticle } = useArticles()
+  const deleteMutation = useDeleteClient()
 
   return (
     <>
@@ -60,12 +55,12 @@ export function ArticleDataTableRowActions<TData>({
                   className="h-8 w-8 p-0 hover:bg-muted/50 data-[state=open]:bg-muted transition-colors duration-200 rounded-md"
                 >
                   <MoreHorizontal className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                  <span className="sr-only">Actions pour {article.designation}</span>
+                  <span className="sr-only">Actions pour {client.name}</span>
                 </Button>
               </DropdownMenuTrigger>
             </TooltipTrigger>
             <TooltipContent side="left">
-              <p>Actions article</p>
+              <p>Actions client</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -78,36 +73,10 @@ export function ArticleDataTableRowActions<TData>({
             <span>Détails</span>
           </DropdownMenuItem>
           
-          <DropdownMenuItem onClick={() => onEditArticle(article)} className="text-green-600 hover:text-green-700">
+          <DropdownMenuItem onClick={() => onEditClient(client)} className="text-green-600 hover:text-green-700">
             <Edit className="mr-2 h-4 w-4" />
             <span>Modifier</span>
           </DropdownMenuItem>
-          
-          <DropdownMenuItem 
-            onClick={() => setIsImageDialogOpen(true)}
-            className="text-purple-600 hover:text-purple-700"
-          >
-            <Image className="mr-2 h-4 w-4" aria-hidden="true" />
-            <span>Changer image</span>
-          </DropdownMenuItem>
-          
-          {article.status === 'ACTIVE' ? (
-            <DropdownMenuItem 
-              onClick={() => archiveArticle(article.id)}
-              className="text-orange-600 hover:text-orange-700"
-            >
-              <Archive className="mr-2 h-4 w-4" />
-              <span>Archiver</span>
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem 
-              onClick={() => restoreArticle(article.id)}
-              className="text-green-600 hover:text-green-700"
-            >
-              <ArchiveRestore className="mr-2 h-4 w-4" />
-              <span>Restaurer</span>
-            </DropdownMenuItem>
-          )}
           
           <DropdownMenuSeparator />
           
@@ -126,25 +95,19 @@ export function ArticleDataTableRowActions<TData>({
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={() => {
-          deleteArticle(article.id)
-          setIsDeleteDialogOpen(false)
+          deleteMutation.mutate(client.id, {
+            onSuccess: () => setIsDeleteDialogOpen(false)
+          })
         }}
-        itemName={article.designation}
-        isLoading={false}
+        itemName={client.name}
+        isLoading={deleteMutation.isPending}
       />
       
-      <ArticleDetailsDialog
-        article={article}
+      <ClientDetailsDialog
+        client={client}
         open={isDetailsDialogOpen}
         onOpenChange={setIsDetailsDialogOpen}
-      />
-      
-      <ImageUploadDialog
-        open={isImageDialogOpen}
-        onOpenChange={setIsImageDialogOpen}
-        article={article}
       />
     </>
   )
 }
-

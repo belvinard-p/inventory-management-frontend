@@ -23,6 +23,7 @@ export function AuthenticatedImage({ filename, alt, className, onError, onLoad }
   }
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img 
       src={imageSrc} 
       alt={alt} 

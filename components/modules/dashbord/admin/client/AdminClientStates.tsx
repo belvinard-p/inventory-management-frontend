@@ -2,11 +2,11 @@
 
 import React from "react"
 import { Button } from "@/components/ui/button"
-import { Plus, Package, AlertCircle } from "lucide-react"
+import { Plus, User, AlertCircle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { EmptyState, LoadingContent } from "@/components/global"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArticleForm } from "./ArticleForm"
+import { ClientForm } from "./ClientForm"
 
 interface LoadingStateProps {
   readonly title?: string
@@ -51,22 +51,22 @@ export function AuthErrorState({ title, description }: LoadingStateProps) {
   )
 }
 
-export function EmptyArticlesState({ currentUser, isCreateModalOpen, setIsCreateModalOpen }: EmptyStateProps) {
-  const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER'
+export function EmptyClientsState({ currentUser, isCreateModalOpen, setIsCreateModalOpen }: EmptyStateProps) {
+  const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
   
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Articles</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
           <p className="text-muted-foreground">
-            Gérez les articles de votre inventaire
+            Gérez les clients de votre système
           </p>
         </div>
         {hasPermission && (
           <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Nouvel Article
+            Nouveau Client
           </Button>
         )}
       </div>
@@ -74,23 +74,23 @@ export function EmptyArticlesState({ currentUser, isCreateModalOpen, setIsCreate
       <Card>
         <CardContent className="p-12">
           <EmptyState
-            title="Aucun article trouvé"
-            description="Commencez par créer votre premier article."
-            icon={<Package className="h-12 w-12 text-muted-foreground" />}
+            title="Aucun client trouvé"
+            description="Commencez par créer votre premier client."
+            icon={<User className="h-12 w-12 text-muted-foreground" />}
           />
           {hasPermission && (
             <div className="flex justify-center mt-6">
               <Button onClick={() => setIsCreateModalOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Créer un article
+                Créer un client
               </Button>
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* Create Article Modal */}
-      <ArticleForm
+      
+      {/* Client Form Modal */}
+      <ClientForm
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         mode="create"
@@ -99,39 +99,39 @@ export function EmptyArticlesState({ currentUser, isCreateModalOpen, setIsCreate
   )
 }
 
-export function LoadingArticlesState() {
+export function LoadingClientsState() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Articles</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
           <p className="text-muted-foreground">Chargement des données...</p>
         </div>
       </div>
       
       <div className="space-y-4">
-        <LoadingContent size="lg" text="Chargement des articles..." className="py-12" />
+        <LoadingContent size="lg" text="Chargement des clients..." className="py-12" />
       </div>
     </div>
   )
 }
 
-export function ErrorArticlesState({ currentUser, isCreateModalOpen, setIsCreateModalOpen }: ErrorStateProps) {
-  const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER'
+export function ErrorClientsState({ currentUser, isCreateModalOpen, setIsCreateModalOpen }: ErrorStateProps) {
+  const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
   
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Articles</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
           <p className="text-muted-foreground">
-            Gérez les articles de votre inventaire
+            Gérez les clients de votre système
           </p>
         </div>
         {hasPermission && (
           <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Nouvel Article
+            Nouveau Client
           </Button>
         )}
       </div>
@@ -140,14 +140,14 @@ export function ErrorArticlesState({ currentUser, isCreateModalOpen, setIsCreate
         <CardContent className="p-12">
           <EmptyState
             title="Erreur de chargement"
-            description="Impossible de charger les données des articles. Veuillez réessayer."
+            description="Impossible de charger les données des clients. Veuillez réessayer."
             icon={<AlertCircle className="h-12 w-12 text-destructive" />}
           />
         </CardContent>
       </Card>
-
-      {/* Create Article Modal */}
-      <ArticleForm
+      
+      {/* Client Form Modal */}
+      <ClientForm
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         mode="create"
@@ -155,4 +155,3 @@ export function ErrorArticlesState({ currentUser, isCreateModalOpen, setIsCreate
     </div>
   )
 }
-
