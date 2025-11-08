@@ -2,7 +2,7 @@
 
 import React from "react"
 import { Button } from "@/components/ui/button"
-import { Plus, FolderOpen, CheckCircle, XCircle, Search } from "lucide-react"
+import { Plus, FolderOpen, CheckCircle, XCircle, Package, PackageX } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { DataTable } from "./DataTable"
 import { CategoryResponse } from "@/types/category"
@@ -41,6 +41,8 @@ interface AdminCategoryContentProps {
     readonly total: number
     readonly active: number
     readonly inactive: number
+    readonly withArticles: number
+    readonly withoutArticles: number
   }
   setFilteredCategories: (categories: CategoryResponse[]) => void
   setHasFilter: (hasFilter: boolean) => void
@@ -59,39 +61,6 @@ function StatsCard({ title, value, icon, colorClass }: StatsCardProps) {
         <div className={`text-xl sm:text-2xl font-bold text-${colorClass} group-hover:scale-105 transition-transform duration-300`}>{value}</div>
       </CardContent>
     </Card>
-  )
-}
-
-function CategorySearch({ data, onFilteredData, placeholder }: {
-  readonly data: CategoryResponse[]
-  readonly onFilteredData: (filtered: CategoryResponse[], hasFilter?: boolean) => void
-  readonly placeholder: string
-}) {
-  const [searchTerm, setSearchTerm] = React.useState("")
-
-  React.useEffect(() => {
-    if (!searchTerm.trim()) {
-      onFilteredData(data, false)
-      return
-    }
-
-    const filtered = data.filter(category => 
-      category.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.code?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    onFilteredData(filtered, true)
-  }, [searchTerm, data, onFilteredData])
-
-  return (
-    <div className="relative w-full max-w-sm">
-      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-      <Input
-        placeholder={placeholder}
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="pl-10"
-      />
-    </div>
   )
 }
 
@@ -228,16 +197,16 @@ export function AdminCategoryContent({
           colorClass="primary"
         />
         <StatsCard 
-          title="Actives" 
-          value={stats.active} 
-          icon={<CheckCircle className="h-4 w-4 text-green-600" />}
-          colorClass="green-600"
+          title="Avec Articles" 
+          value={stats.withArticles} 
+          icon={<Package className="h-4 w-4 text-blue-600" />}
+          colorClass="blue-600"
         />
         <StatsCard 
-          title="Inactives" 
-          value={stats.inactive} 
-          icon={<XCircle className="h-4 w-4 text-red-600" />}
-          colorClass="red-600"
+          title="Sans Articles" 
+          value={stats.withoutArticles} 
+          icon={<PackageX className="h-4 w-4 text-orange-600" />}
+          colorClass="orange-600"
         />
       </div>
 
@@ -247,17 +216,6 @@ export function AdminCategoryContent({
           <CardTitle className="text-lg sm:text-xl">Liste des Catégories</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <CategorySearch 
-              data={categories}
-              onFilteredData={(filtered, hasFilter = true) => {
-                setFilteredCategories(filtered)
-                setHasFilter(hasFilter)
-              }}
-              placeholder="Rechercher catégorie"
-            />
-          </div>
-          
           <div className="overflow-x-auto">
             <DataTable
               columns={columns}
@@ -288,18 +246,74 @@ export function AdminCategoryContent({
       />
 
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Détails de la catégorie</DialogTitle>
-            <DialogDescription>Cliquez en dehors du dialogue pour fermer.</DialogDescription>
+            <DialogDescription>Informations complètes et articles associés</DialogDescription>
           </DialogHeader>
           {selectedCategory && (
-            <div className="space-y-2 py-2 text-base">
-              <div><strong>Code:</strong> {selectedCategory.code}</div>
-              <div><strong>Désignation:</strong> {selectedCategory.designation}</div>
-              <div><strong>Date de création:</strong> {selectedCategory.createdDate}</div>
-              <div><strong>Dernière mise à jour:</strong> {selectedCategory.updatedDate}</div>
-              {/* Ajoutez d'autres champs au besoin */}
+            <div className="space-y-4 overflow-y-auto flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div className="space-y-2">
+                  <div><strong>Code:</strong> {selectedCategory.code}</div>
+                  <div><strong>Désignation:</strong> {selectedCategory.designation}</div>
+                  <div><strong>Statut:</strong> <span className={selectedCategory.isActive ? "text-green-600" : "text-red-600"}>{selectedCategory.isActive ? "Active" : "Inactive"}</span></div>
+                </div>
+                <div className="space-y-2">
+                  <div><strong>Date de création:</strong> {new Date(selectedCategory.createdDate).toLocaleDateString('fr-FR')}</div>
+                  <div><strong>Dernière mise à jour:</strong> {new Date(selectedCategory.updatedDate).toLocaleDateString('fr-FR')}</div>
+                  <div><strong>Nombre d'articles:</strong> {selectedCategory.articles?.length || 0}</div>
+                </div>
+              </div>
+              
+              {/* Articles Section */}
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Articles associés ({selectedCategory.articles?.length || 0})
+                </h3>
+                {selectedCategory.articles && selectedCategory.articles.length > 0 ? (
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="overflow-x-auto max-h-96">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted sticky top-0">
+                          <tr>
+                            <th className="text-left p-3 font-semibold">Code</th>
+                            <th className="text-left p-3 font-semibold">Désignation</th>
+                            <th className="text-right p-3 font-semibold">Stock</th>
+                            <th className="text-right p-3 font-semibold">Disponible</th>
+                            <th className="text-right p-3 font-semibold">Prix HT</th>
+                            <th className="text-center p-3 font-semibold">Statut</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedCategory.articles.map((article, index) => (
+                            <tr key={article.id} className={index % 2 === 0 ? "bg-background" : "bg-muted/50"}>
+                              <td className="p-3 font-mono text-xs">{article.codeArticle}</td>
+                              <td className="p-3">{article.designation}</td>
+                              <td className="p-3 text-right">{article.quantityInStock}</td>
+                              <td className="p-3 text-right">{article.availableQuantity}</td>
+                              <td className="p-3 text-right">{article.unitPriceExclTax.toFixed(2)} €</td>
+                              <td className="p-3 text-center">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
+                                  article.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {article.status === 'ACTIVE' ? 'Actif' : 'Archivé'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground border rounded-lg bg-muted/30">
+                    <PackageX className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>Aucun article associé à cette catégorie</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </DialogContent>
