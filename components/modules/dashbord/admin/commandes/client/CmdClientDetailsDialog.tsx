@@ -125,7 +125,7 @@ export function CmdClientDetailsDialog({ order, open, onOpenChange }: CmdClientD
                   <ShoppingCart className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-muted-foreground">Nombre d'articles</p>
+                  <p className="text-sm font-medium text-muted-foreground">Nombre d&apos;articles</p>
                   <Badge variant={order.orderClientLineList && order.orderClientLineList.length > 0 ? "default" : "secondary"}>
                     {order.orderClientLineList?.length || 0} article{(order.orderClientLineList?.length || 0) !== 1 ? 's' : ''}
                   </Badge>

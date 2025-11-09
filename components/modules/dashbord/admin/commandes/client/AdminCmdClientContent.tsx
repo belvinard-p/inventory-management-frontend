@@ -163,9 +163,7 @@ export function AdminCmdClientContent({
   handleBulkDelete,
   handleBulkUpdateStatus,
   handleBulkCancel,
-  handleFormSubmit,
   isLoading,
-  isFormLoading
 }: AdminCmdClientContentProps) {
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
   
@@ -287,8 +285,6 @@ export function AdminCmdClientContent({
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         mode="create"
-        onSubmit={handleFormSubmit}
-        isLoading={isFormLoading}
       />
       
       <CmdClientForm
@@ -297,8 +293,6 @@ export function AdminCmdClientContent({
         onOpenChange={(open) => !open && setEditingOrder(null)}
         order={editingOrder}
         mode="edit"
-        onSubmit={handleFormSubmit}
-        isLoading={isFormLoading}
       />
     </div>
   )
