@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Image, Upload, X } from "lucide-react"
+import { Image as ImageIcon, Upload, X } from "lucide-react"
 import { toast } from "sonner"
 import { CompanyImage } from "./CompanyImage"
 
@@ -69,7 +69,7 @@ export function ImageUploadDialog({ open, onOpenChange, company }: ImageUploadDi
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Image className="h-5 w-5" aria-hidden="true" />
+            <ImageIcon className="h-5 w-5" aria-hidden="true" />
             Changer l&apos;image de {company.name}
           </DialogTitle>
           <DialogDescription>

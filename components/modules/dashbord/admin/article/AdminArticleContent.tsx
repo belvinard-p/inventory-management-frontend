@@ -79,9 +79,10 @@ function PaginationComponent({ articles, currentPage, setCurrentPage }: {
   if (!articles || articles.totalPages <= 1) return null
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="text-sm text-muted-foreground">
-        Page {currentPage + 1} sur {articles.totalPages} ({articles.totalElements} articles)
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+        <span className="hidden sm:inline">Page {currentPage + 1} sur {articles.totalPages} ({articles.totalElements} articles)</span>
+        <span className="sm:hidden">{currentPage + 1}/{articles.totalPages}</span>
       </div>
       <Pagination>
         <PaginationContent>

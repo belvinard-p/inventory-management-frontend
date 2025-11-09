@@ -20,10 +20,16 @@ export function AdminCategory() {
     hasPermission,
     categoriesData,
     displayData,
+    stats,
+    categories,
+    currentPage,
     isLoading,
     isError,
     isCreateModalOpen,
     setIsCreateModalOpen,
+    setCurrentPage,
+    setFilteredCategories,
+    setHasFilter,
   } = useAdminCategoryLogic()
 
   const handleRetry = () => window.location.reload()
@@ -38,10 +44,16 @@ export function AdminCategory() {
   return (
     <AdminCategoryContent
       categories={displayData}
+      categoriesPaginated={categories ? { totalPages: categories.totalPages, totalElements: categories.totalElements } : null}
+      currentPage={currentPage}
+      setCurrentPage={setCurrentPage}
       hasPermission={hasPermission}
       isAuthenticated={isAuthenticated}
       isCreateModalOpen={isCreateModalOpen}
       setIsCreateModalOpen={setIsCreateModalOpen}
+      stats={stats}
+      setFilteredCategories={setFilteredCategories}
+      setHasFilter={setHasFilter}
     />
   )
 }

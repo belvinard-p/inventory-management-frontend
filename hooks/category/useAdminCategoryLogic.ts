@@ -19,8 +19,10 @@ export function useAdminCategoryLogic() {
   
   const pageSize = 10
   const { categories, isLoading, isError } = useCategories(currentPage, pageSize)
+  const { categories: allCategoriesData } = useCategories(0, 1000)
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER'
   const categoriesData = categories || { content: [], totalElements: 0, totalPages: 0 }
+  const allCategories = allCategoriesData?.content || []
   const displayData = hasFilter ? filteredCategories : categoriesData.content
 
   useCommonShortcuts({
@@ -66,8 +68,10 @@ export function useAdminCategoryLogic() {
 
   const stats = {
     total: categoriesData.totalElements,
-    active: categoriesData.content.filter(c => c.isActive)?.length || 0,
-    inactive: categoriesData.content.filter(c => !c.isActive)?.length || 0,
+    active: allCategories.filter(c => c.isActive)?.length || 0,
+    inactive: allCategories.filter(c => !c.isActive)?.length || 0,
+    withArticles: allCategories.filter(c => c.articles && c.articles.length > 0)?.length || 0,
+    withoutArticles: allCategories.filter(c => !c.articles || c.articles.length === 0)?.length || 0,
   }
 
   return {
