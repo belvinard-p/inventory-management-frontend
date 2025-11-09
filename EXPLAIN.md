@@ -97,6 +97,7 @@ animate-in fade-in-0 slide-in-from-bottom-4
 - **Espacement adaptatif** : `px-4 sm:px-8`
 
 ---
+Merci
 
 ## 🔄 Gestion d'État
 
