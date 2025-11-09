@@ -24,29 +24,21 @@ export function useAdminCmdClientLogic() {
   
   const queryClient = useQueryClient()
 
-  // Fetch all orders
   const { data: orders = [], isLoading, isError } = useQuery({
     queryKey: ["clientOrders", currentPage, pageSize],
     queryFn: async () => {
       const orders = await clientOrderService.getAllOrders()
       
-      // Fetch client names for each unique clientId
       const uniqueClientIds = [...new Set(orders.map((o: any) => o.clientId))]
       const clientNames = await Promise.all(
         uniqueClientIds.map(async (clientId: number) => {
-          try {
-            const client = await clientService.getById(clientId)
-            return { id: clientId, name: client.name }
-          } catch {
-            return { id: clientId, name: undefined }
-          }
+          const client = await clientService.getById(clientId)
+          return { id: clientId, name: client.name }
         })
       )
       
-      // Create a map for quick lookup
       const clientNameMap = new Map(clientNames.map(c => [c.id, c.name]))
       
-      // Enrich orders with client names
       return orders.map((order: any) => ({
         ...order,
         clientName: clientNameMap.get(order.clientId)
@@ -59,7 +51,6 @@ export function useAdminCmdClientLogic() {
   const ordersData = Array.isArray(orders) ? orders : []
   const displayData = hasFilter ? filteredOrders : ordersData
 
-  // Create mutation
   const createMutation = useMutation({
     mutationFn: (data: ClientOrderRequest) => clientOrderService.create(data),
     onSuccess: () => {
@@ -72,7 +63,6 @@ export function useAdminCmdClientLogic() {
     },
   })
 
-  // Update mutation
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: ClientOrderRequest }) =>
       clientOrderService.update(id, data),
@@ -86,7 +76,6 @@ export function useAdminCmdClientLogic() {
     },
   })
 
-  // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: (id: number) => clientOrderService.delete(id),
     onSuccess: () => {
@@ -98,7 +87,6 @@ export function useAdminCmdClientLogic() {
     },
   })
 
-  // Update status mutation
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: OrderStatus }) =>
       clientOrderService.updateOrderStatus(id, status),
@@ -111,7 +99,6 @@ export function useAdminCmdClientLogic() {
     },
   })
 
-  // Cancel mutation
   const cancelMutation = useMutation({
     mutationFn: (id: number) => clientOrderService.cancelOrder(id),
     onSuccess: () => {
@@ -166,7 +153,6 @@ export function useAdminCmdClientLogic() {
     return { total, pending, confirmed, completed }
   }, [ordersData])
 
-  // Handle form submit
   const handleFormSubmit = async (data: ClientOrderRequest) => {
     if (editingOrder) {
       await updateMutation.mutateAsync({ id: editingOrder.id, data })
@@ -174,23 +160,17 @@ export function useAdminCmdClientLogic() {
       await createMutation.mutateAsync(data)
     }
   }
-
-  // Handle delete
   const handleDelete = async (id: number) => {
     await deleteMutation.mutateAsync(id)
   }
-
-  // Handle update status
   const handleUpdateStatus = async (id: number, status: OrderStatus) => {
     await updateStatusMutation.mutateAsync({ id, status })
   }
 
-  // Handle cancel
   const handleCancel = async (id: number) => {
     await cancelMutation.mutateAsync(id)
   }
 
-  // Bulk operations
   const handleBulkDelete = async (ids: number[]) => {
     for (const id of ids) {
       await deleteMutation.mutateAsync(id)
