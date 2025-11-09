@@ -3,16 +3,20 @@ import type { ApiError } from "../common";
 
 export type OrderClientLine = {
   id: number;
-  articleId: number;
-  articleCode: string;
-  articleDesignation: string;
-  unitPriceExclTax: number;
-  rateTva: number;
-  unitPriceAllTax: number;
   quantity: number;
-  totalLinePrice: number;
-  createdDate: string;
-  updatedDate: string;
+  unitPrice: number;           // Prix unitaire (correspond au backend)
+  totalPrice: number;          // Prix total de la ligne (correspond au backend)
+  clientOrderId: number;       // ID de la commande client
+  articleId: number;
+  articleDesignation: string;
+  articleCode: string;
+  // Champs optionnels si votre backend les retourne aussi
+  unitPriceExclTax?: number;
+  rateTva?: number;
+  unitPriceAllTax?: number;
+  totalLinePrice?: number;
+  createdDate?: string;
+  updatedDate?: string;
 }
 
 export interface OrderClientLineRequest {
