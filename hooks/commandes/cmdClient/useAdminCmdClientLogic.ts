@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/useAuth"
 import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
 import { clientOrderService } from "@/service/client/clientOrderService"
+import { clientService } from "@/service/client/clientService"
 import type { ClientOrderResponse, ClientOrderRequest, OrderStatus } from "@/types/client/clientOrder"
 import { toast } from "sonner"
 
@@ -26,7 +27,31 @@ export function useAdminCmdClientLogic() {
   // Fetch all orders
   const { data: orders = [], isLoading, isError } = useQuery({
     queryKey: ["clientOrders", currentPage, pageSize],
-    queryFn: () => clientOrderService.getAllOrders(),
+    queryFn: async () => {
+      const orders = await clientOrderService.getAllOrders()
+      
+      // Fetch client names for each unique clientId
+      const uniqueClientIds = [...new Set(orders.map((o: any) => o.clientId))]
+      const clientNames = await Promise.all(
+        uniqueClientIds.map(async (clientId: number) => {
+          try {
+            const client = await clientService.getById(clientId)
+            return { id: clientId, name: client.name }
+          } catch {
+            return { id: clientId, name: undefined }
+          }
+        })
+      )
+      
+      // Create a map for quick lookup
+      const clientNameMap = new Map(clientNames.map(c => [c.id, c.name]))
+      
+      // Enrich orders with client names
+      return orders.map((order: any) => ({
+        ...order,
+        clientName: clientNameMap.get(order.clientId)
+      }))
+    },
     staleTime: 5 * 60 * 1000,
     enabled: hasPermission && !!accessToken
   })
