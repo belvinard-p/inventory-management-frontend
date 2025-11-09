@@ -27,8 +27,7 @@ export interface ClientOrderRequest {
   orderDate: string;
   clientId: number;
   comments?: string;
-  // Note: stateOrder n'est pas requis à la création (toujours IN_PREPARATION)
-  // Utilisez updateOrderStatus() pour changer le statut
+  stateOrder?: string;
 }
 
 export type CreateClientOrderMutation = UseMutationResult<ClientOrder, ApiError, ClientOrderRequest, unknown>;

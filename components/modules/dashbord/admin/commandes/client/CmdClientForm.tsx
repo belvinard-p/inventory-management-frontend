@@ -26,9 +26,21 @@ import { useCreateCmdClient, useUpdateCmdClient } from "@/hooks/commandes/cmdCli
 const orderSchema = z.object({
   code: z.string()
     .min(3, "Le code doit contenir au moins 3 caractères")
-    .max(50, "Le code ne peut pas dépasser 50 caractères"),
+    .max(50, "Le code ne peut pas dépasser 50 caractères")
+    .regex(
+      /^ORD-\d{3}$|^ORD[A-Z]{3}$/,
+      "Le code doit être au format ORD-XXX (ex: ORD-123) ou ORDABC"
+    ),
   orderDate: z.string()
-    .min(1, "La date de commande est requise"),
+    .min(1, "La date de commande est requise")
+    .transform((val) => {
+      // Ensure the date is in YYYY-MM-DD format
+      if (val.includes('/')) {
+        const date = new Date(val)
+        return date.toISOString().split('T')[0]
+      }
+      return val
+    }),
   clientId: z.number().min(1, "Veuillez sélectionner un client"),
   comments: z.string()
     .max(500, "Les commentaires ne peuvent pas dépasser 500 caractères")
@@ -103,12 +115,22 @@ export function CmdClientForm({
   const isSubmitDisabled = !isFormValid || !hasRequiredFields || isLoading
 
   async function handleSubmit(data: z.infer<typeof orderSchema>) {
+    // Ensure date is in YYYY-MM-DD format
+    let formattedDate = data.orderDate
+    if (formattedDate.includes('/')) {
+      const date = new Date(formattedDate)
+      formattedDate = date.toISOString().split('T')[0]
+    }
+
     const orderData: ClientOrderRequest = {
       code: data.code,
-      orderDate: data.orderDate,
+      orderDate: formattedDate,
       clientId: data.clientId,
       comments: data.comments || undefined,
+      stateOrder: isEditMode && order ? order.stateOrder : "pending",
     }
+
+    console.log('Sending order data:', orderData) // Debug log
 
     try {
       if (isEditMode && order) {
@@ -120,6 +142,7 @@ export function CmdClientForm({
       onOpenChange(false)
     } catch (error) {
       // Error handled by mutation hooks
+      console.error('Error creating/updating order:', error)
     }
   }
 
@@ -152,7 +175,7 @@ export function CmdClientForm({
                     <FormControl>
                       <div className="relative">
                         <Input
-                          placeholder="CMD-001"
+                          placeholder="ORD-123 ou ORDABC"
                           {...field}
                           disabled={isLoading}
                           className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
@@ -175,6 +198,11 @@ export function CmdClientForm({
                       </div>
                     </FormControl>
                     <FormMessage />
+                    {!form.formState.errors.code && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Format: ORD-123 (3 chiffres) ou ORDABC (3 lettres majuscules)
+                      </p>
+                    )}
                   </FormItem>
                 )}
               />
