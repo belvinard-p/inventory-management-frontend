@@ -2,12 +2,11 @@
 
 import React from "react"
 import { Button } from "@/components/ui/button"
-import { Plus, FolderOpen, CheckCircle, XCircle, Package, PackageX } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { DataTable } from "./DataTable"
+import { Plus, FolderOpen, Package, PackageX } from "lucide-react" 
 import { CategoryResponse } from "@/types/category"
 import { createColumns } from "./Columns"
 import { CategoryForm } from "./CategoryForm"
+import { DataTable } from "./DataTable"
 import { DeleteConfirmDialog } from "@/components/global/DeleteConfirmDialog"
 import { useCategories } from "@/hooks/category/useCategory"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
@@ -264,8 +263,8 @@ export function AdminCategoryContent({
                 <div className="space-y-2">
                   <div><strong>Code:</strong> {selectedCategory.code}</div>
                   <div><strong>Désignation:</strong> {selectedCategory.designation}</div>
-                  <div><strong>Nombre d'articles:</strong> {selectedCategory.articles?.length || 0}</div>
-                </div>
+                  <div><strong>Nombre d&apos;articles:</strong> {selectedCategory.articles?.length || 0}</div>
+                </div>&apos;
                 <div className="space-y-2">
                   <div><strong>Date de création:</strong> {new Date(selectedCategory.createdDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                   <div><strong>Dernière mise à jour:</strong> {new Date(selectedCategory.updatedDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
