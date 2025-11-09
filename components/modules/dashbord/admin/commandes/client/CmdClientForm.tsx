@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -16,12 +16,14 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Check, X, Package } from "lucide-react"
+import { Check, X, Package, ChevronsUpDown } from "lucide-react"
 import { ClientOrderResponse, ClientOrderRequest } from "@/types/client/clientOrder"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useQuery } from "@tanstack/react-query"
 import { clientService } from "@/service/client/clientService"
 import { useCreateCmdClient, useUpdateCmdClient } from "@/hooks/commandes/cmdClient/useCmdClient"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 
 const orderSchema = z.object({
   code: z.string()
@@ -68,7 +70,10 @@ export function CmdClientForm({
   
   const isLoading = createMutation.isPending || updateMutation.isPending
   
-  // Fetch clients for the select dropdown
+  // State for combobox
+  const [openCombobox, setOpenCombobox] = useState(false)
+  
+  // Fetch clients for the combobox
   const { data: clientsResponse } = useQuery({
     queryKey: ["clients"],
     queryFn: () => clientService.getAll({ page: 0, size: 1000 }),
@@ -250,44 +255,70 @@ export function CmdClientForm({
             <FormField
               control={form.control}
               name="clientId"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">
-                    Client
-                  </FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(parseInt(value))} 
-                    value={field.value > 0 ? field.value.toString() : ""}
-                    disabled={isLoading}
-                  >
-                    <FormControl>
-                      <SelectTrigger className={`h-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
-                        form.formState.errors.clientId && form.formState.touchedFields.clientId
-                          ? "border-red-400 focus:border-red-500 bg-red-50/50" 
-                          : field.value > 0 && !form.formState.errors.clientId
-                          ? "border-green-400 focus:border-green-500 bg-green-50/50" 
-                          : "border-border/40 focus:border-primary/60 focus:bg-background"
-                      }`}>
-                        <SelectValue placeholder="Sélectionner un client" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent 
-                      position="popper" 
-                      sideOffset={5} 
-                      className="max-h-[300px] z-[99999]"
-                      align="start"
-                      avoidCollisions={false}
-                    >
-                      {clients.map((client: { id: number; name: string; email: string }) => (
-                        <SelectItem key={client.id} value={client.id.toString()}>
-                          {client.name} - {client.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const selectedClient = clients.find((c: { id: number }) => c.id === field.value)
+                return (
+                  <FormItem className="group flex flex-col">
+                    <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">
+                      Client
+                    </FormLabel>
+                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            disabled={isLoading}
+                            className={cn(
+                              "h-10 w-full justify-between bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60",
+                              form.formState.errors.clientId && form.formState.touchedFields.clientId
+                                ? "border-red-400 focus:border-red-500 bg-red-50/50" 
+                                : field.value > 0 && !form.formState.errors.clientId
+                                ? "border-green-400 focus:border-green-500 bg-green-50/50" 
+                                : "border-border/40 focus:border-primary/60 focus:bg-background",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {selectedClient
+                              ? `${selectedClient.name} - ${selectedClient.email}`
+                              : "Rechercher un client..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[99999]" align="start">
+                        <Command>
+                          <CommandInput placeholder="Rechercher un client..." />
+                          <CommandList>
+                            <CommandEmpty>Aucun client trouvé.</CommandEmpty>
+                            <CommandGroup>
+                              {clients.map((client: { id: number; name: string; email: string }) => (
+                                <CommandItem
+                                  key={client.id}
+                                  value={`${client.name} ${client.email}`}
+                                  onSelect={() => {
+                                    field.onChange(client.id)
+                                    setOpenCombobox(false)
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      client.id === field.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {client.name} - {client.email}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
             />
 
             <FormField
