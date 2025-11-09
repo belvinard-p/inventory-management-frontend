@@ -62,13 +62,13 @@ export const navigationConfig: NavigationItem[] = [
     subItems: [
       {
         title: "Commandes Clients",
-        href: "/dashboard/orders/clients",
+        href: "/dashboard/commandes/clients",
         icon: UserCircle,
         roles: ["ROLE_ADMIN", "ROLE_MANAGER", "ROLE_SALES"],
       },
       {
         title: "Commandes Fournisseurs",
-        href: "/dashboard/orders/suppliers",
+        href: "/dashboard/commandes/fournisseurs",
         icon: PackageCheck,
         roles: ["ROLE_ADMIN", "ROLE_MANAGER", "ROLE_SALES"],
       },
@@ -76,7 +76,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     title: "Fournisseurs",
-    href: "/dashboard/suppliers",
+    href: "/dashboard/fournisseurs",
     icon: Truck,
     roles: ["ROLE_ADMIN", "ROLE_MANAGER", "ROLE_SALES"],
   },
@@ -88,19 +88,19 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     title: "Entreprises",
-    href: "/dashboard/company",
+    href: "/dashboard/entreprises",
     icon: Building,
     roles: ["ROLE_ADMIN", "ROLE_MANAGER"],
   },
   {
-    title: "Rapports",
-    href: "/dashboard/reports",
+    title: "Statistics",
+    href: "/dashboard/statistics",
     icon: BarChart3,
     roles: ["ROLE_ADMIN"],
   },
   {
     title: "Utilisateurs",
-    href: "/dashboard/users",
+    href: "/dashboard/utilisateurs",
     icon: UserCheck,
     roles: ["ROLE_ADMIN"],
   },
