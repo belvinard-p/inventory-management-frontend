@@ -111,6 +111,8 @@ interface UserStore {
 }
 ```
 
+-- thanks
+
 ### **TanStack Query** pour les mutations
 ```typescript
 const signupMutation = useMutation({
