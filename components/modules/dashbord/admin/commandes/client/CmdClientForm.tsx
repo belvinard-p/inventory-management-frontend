@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -21,6 +21,7 @@ import { ClientOrderResponse, ClientOrderRequest } from "@/types/client/clientOr
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useQuery } from "@tanstack/react-query"
 import { clientService } from "@/service/client/clientService"
+import { useCreateCmdClient, useUpdateCmdClient } from "@/hooks/commandes/cmdClient/useCmdClient"
 
 const orderSchema = z.object({
   code: z.string()
@@ -40,20 +41,20 @@ interface CmdClientFormProps {
   onOpenChange: (open: boolean) => void
   order?: ClientOrderResponse | null
   mode?: 'create' | 'edit'
-  onSubmit: (data: ClientOrderRequest) => Promise<void>
-  isLoading?: boolean
 }
 
 export function CmdClientForm({ 
   open, 
   onOpenChange, 
   order, 
-  mode = 'create',
-  onSubmit,
-  isLoading = false
+  mode = 'create'
 }: CmdClientFormProps) {
   const isEditMode = mode === 'edit' && order
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  const createMutation = useCreateCmdClient()
+  const updateMutation = useUpdateCmdClient()
+  
+  const isLoading = createMutation.isPending || updateMutation.isPending
   
   // Fetch clients for the select dropdown
   const { data: clientsResponse } = useQuery({
@@ -99,23 +100,26 @@ export function CmdClientForm({
   const isFormValid = form.formState.isValid
   const hasRequiredFields = watchedValues.code && watchedValues.orderDate && watchedValues.clientId > 0
   
-  const isSubmitDisabled = !isFormValid || !hasRequiredFields || isSubmitting || isLoading
+  const isSubmitDisabled = !isFormValid || !hasRequiredFields || isLoading
 
   async function handleSubmit(data: z.infer<typeof orderSchema>) {
-    setIsSubmitting(true)
+    const orderData: ClientOrderRequest = {
+      code: data.code,
+      orderDate: data.orderDate,
+      clientId: data.clientId,
+      comments: data.comments || undefined,
+    }
+
     try {
-      await onSubmit({
-        code: data.code,
-        orderDate: data.orderDate,
-        clientId: data.clientId,
-        comments: data.comments || undefined,
-      })
+      if (isEditMode && order) {
+        await updateMutation.mutateAsync({ id: order.id, data: orderData })
+      } else {
+        await createMutation.mutateAsync(orderData)
+      }
       form.reset()
       onOpenChange(false)
     } catch (error) {
-      // Error handled by parent
-    } finally {
-      setIsSubmitting(false)
+      // Error handled by mutation hooks
     }
   }
 
@@ -150,7 +154,7 @@ export function CmdClientForm({
                         <Input
                           placeholder="CMD-001"
                           {...field}
-                          disabled={isSubmitting || isLoading}
+                          disabled={isLoading}
                           className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
                             form.formState.errors.code && form.formState.touchedFields.code
                               ? "border-red-400 focus:border-red-500 bg-red-50/50" 
@@ -188,7 +192,7 @@ export function CmdClientForm({
                         <Input
                           type="date"
                           {...field}
-                          disabled={isSubmitting || isLoading}
+                          disabled={isLoading}
                           className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
                             form.formState.errors.orderDate && form.formState.touchedFields.orderDate
                               ? "border-red-400 focus:border-red-500 bg-red-50/50" 
@@ -225,7 +229,7 @@ export function CmdClientForm({
                   <Select 
                     onValueChange={(value) => field.onChange(parseInt(value))} 
                     value={field.value > 0 ? field.value.toString() : ""}
-                    disabled={isSubmitting || isLoading}
+                    disabled={isLoading}
                   >
                     <FormControl>
                       <SelectTrigger className={`h-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
@@ -264,7 +268,7 @@ export function CmdClientForm({
                       placeholder="Ajouter des commentaires sur cette commande..."
                       {...field}
                       value={field.value || ""}
-                      disabled={isSubmitting || isLoading}
+                      disabled={isLoading}
                       className="min-h-[100px] bg-background/50 border-2 border-border/40 focus:border-primary/60 focus:bg-background transition-all duration-300 rounded-lg hover:border-border/60"
                     />
                   </FormControl>
@@ -278,7 +282,7 @@ export function CmdClientForm({
                 type="button" 
                 variant="outline" 
                 onClick={() => onOpenChange(false)} 
-                disabled={isSubmitting || isLoading}
+                disabled={isLoading}
                 className="relative"
               >
                 <Badge variant="secondary" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0">
@@ -292,14 +296,14 @@ export function CmdClientForm({
                     <Badge variant="outline" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-yellow-100 text-yellow-800 border-yellow-200">
                       <span className="text-xs">✏️</span>
                     </Badge>
-                    {isSubmitting ? "Modification..." : "Modifier la commande"}
+                    {isLoading ? "Modification..." : "Modifier la commande"}
                   </>
                 ) : (
                   <>
                     <Badge variant="outline" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-green-100 text-green-800 border-green-200">
                       <span className="text-xs">+</span>
                     </Badge>
-                    {isSubmitting ? "Création..." : "Créer la commande"}
+                    {isLoading ? "Création..." : "Créer la commande"}
                   </>
                 )}
               </Button>

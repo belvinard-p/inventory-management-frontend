@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle, Loader2, Package, Plus, ShieldAlert } from "lucide-react"
+import { EmptyState } from "@/components/global"
+import { CmdClientForm } from "./CmdClientForm"
 
 export function LoadingSpinner() {
   return (
@@ -46,28 +48,48 @@ interface EmptyOrdersStateProps {
 
 export function EmptyOrdersState({ currentUser, isCreateModalOpen, setIsCreateModalOpen }: EmptyOrdersStateProps) {
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
-
+  
   return (
-    <div className="flex items-center justify-center min-h-screen p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-            <Package className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <CardTitle>Aucune commande</CardTitle>
-          <CardDescription>
-            Commencez par créer votre première commande client
-          </CardDescription>
-        </CardHeader>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Commandes Clients</h1>
+          <p className="text-muted-foreground">
+            Gérez les commandes de vos clients
+          </p>
+        </div>
         {hasPermission && (
-          <CardContent className="flex justify-center">
-            <Button onClick={() => window.location.reload()}>
-              <Plus className="mr-2 h-4 w-4" />
-              Actualiser
-            </Button>
-          </CardContent>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle Commande
+          </Button>
         )}
+      </div>
+
+      <Card>
+        <CardContent className="p-12">
+          <EmptyState
+            title="Aucune commande trouvée"
+            description="Commencez par créer votre première commande client."
+            icon={<Package className="h-12 w-12 text-muted-foreground" />}
+          />
+          {hasPermission && (
+            <div className="flex justify-center mt-6">
+              <Button onClick={() => setIsCreateModalOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Créer une commande
+              </Button>
+            </div>
+          )}
+        </CardContent>
       </Card>
+      
+      {/* Order Form Modal */}
+      <CmdClientForm
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        mode="create"
+      />
     </div>
   )
 }
