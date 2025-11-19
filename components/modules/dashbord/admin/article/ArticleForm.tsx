@@ -22,6 +22,35 @@ import { useCategories } from "@/hooks/category/useCategory"
 import { ArticleResponse, ArticleRequest } from "@/types/article"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
+// Utility functions for CSS classes
+const getInputClassName = (error: unknown, touched: boolean | undefined, value: unknown) => {
+  const baseClasses = "h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60"
+  
+  if (error && touched) {
+    return `${baseClasses} border-red-400 focus:border-red-500 bg-red-50/50`
+  }
+  
+  if (value && !error && touched) {
+    return `${baseClasses} border-green-400 focus:border-green-500 bg-green-50/50`
+  }
+  
+  return `${baseClasses} border-border/40 focus:border-primary/60 focus:bg-background`
+}
+
+const getSelectClassName = (error: unknown, touched: boolean | undefined, value: unknown) => {
+  const baseClasses = "h-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60"
+  
+  if (error && touched) {
+    return `${baseClasses} border-red-400 focus:border-red-500 bg-red-50/50`
+  }
+  
+  if (value && !error && touched) {
+    return `${baseClasses} border-green-400 focus:border-green-500 bg-green-50/50`
+  }
+  
+  return `${baseClasses} border-border/40 focus:border-primary/60 focus:bg-background`
+}
+
 const articleSchema = z.object({
   codeArticle: z.string()
     .min(4, "Le code doit contenir au moins 4 caractères")
@@ -164,13 +193,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                           placeholder="ART001"
                           {...field}
                           disabled={isCreating || isUpdating}
-                          className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
-                            form.formState.errors.codeArticle && form.formState.touchedFields.codeArticle
-                              ? "border-red-400 focus:border-red-500 bg-red-50/50" 
-                              : field.value && !form.formState.errors.codeArticle && form.formState.touchedFields.codeArticle
-                              ? "border-green-400 focus:border-green-500 bg-green-50/50" 
-                              : "border-border/40 focus:border-primary/60 focus:bg-background"
-                          }`}
+                          className={getInputClassName(form.formState.errors.codeArticle, form.formState.touchedFields.codeArticle, field.value)}
                         />
                         {field.value && form.formState.touchedFields.codeArticle && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -200,13 +223,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                           placeholder="Nom de l'article"
                           {...field}
                           disabled={isCreating || isUpdating}
-                          className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
-                            form.formState.errors.designation && form.formState.touchedFields.designation
-                              ? "border-red-400 focus:border-red-500 bg-red-50/50" 
-                              : field.value && !form.formState.errors.designation && form.formState.touchedFields.designation
-                              ? "border-green-400 focus:border-green-500 bg-green-50/50" 
-                              : "border-border/40 focus:border-primary/60 focus:bg-background"
-                          }`}
+                          className={getInputClassName(form.formState.errors.designation, form.formState.touchedFields.designation, field.value)}
                         />
                         {field.value && form.formState.touchedFields.designation && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -262,13 +279,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                           {...field}
                           onChange={(e) => field.onChange(Number(e.target.value))}
                           disabled={isCreating || isUpdating}
-                          className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
-                            form.formState.errors.unitPriceExclTax && form.formState.touchedFields.unitPriceExclTax
-                              ? "border-red-400 focus:border-red-500 bg-red-50/50" 
-                              : field.value && !form.formState.errors.unitPriceExclTax && form.formState.touchedFields.unitPriceExclTax
-                              ? "border-green-400 focus:border-green-500 bg-green-50/50" 
-                              : "border-border/40 focus:border-primary/60 focus:bg-background"
-                          }`}
+                          className={getInputClassName(form.formState.errors.unitPriceExclTax, form.formState.touchedFields.unitPriceExclTax, field.value)}
                         />
                         {field.value && form.formState.touchedFields.unitPriceExclTax && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -301,13 +312,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                           {...field}
                           onChange={(e) => field.onChange(Number(e.target.value))}
                           disabled={isCreating || isUpdating}
-                          className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
-                            form.formState.errors.rateTva && form.formState.touchedFields.rateTva
-                              ? "border-red-400 focus:border-red-500 bg-red-50/50" 
-                              : field.value && !form.formState.errors.rateTva && form.formState.touchedFields.rateTva
-                              ? "border-green-400 focus:border-green-500 bg-green-50/50" 
-                              : "border-border/40 focus:border-primary/60 focus:bg-background"
-                          }`}
+                          className={getInputClassName(form.formState.errors.rateTva, form.formState.touchedFields.rateTva, field.value)}
                         />
                         {field.value && form.formState.touchedFields.rateTva && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -338,13 +343,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                     disabled={!hasCategories || isCreating || isUpdating}
                   >
                     <FormControl>
-                      <SelectTrigger className={`h-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${
-                        form.formState.errors.categoryId && form.formState.touchedFields.categoryId
-                          ? "border-red-400 focus:border-red-500 bg-red-50/50" 
-                          : field.value && !form.formState.errors.categoryId && form.formState.touchedFields.categoryId
-                          ? "border-green-400 focus:border-green-500 bg-green-50/50" 
-                          : "border-border/40 focus:border-primary/60 focus:bg-background"
-                      }`}>
+                      <SelectTrigger className={getSelectClassName(form.formState.errors.categoryId, form.formState.touchedFields.categoryId, field.value)}>
                         <SelectValue placeholder={hasCategories ? "Sélectionner une catégorie" : "Aucune catégorie disponible"} />
                       </SelectTrigger>
                     </FormControl>
@@ -356,7 +355,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
                       ))}
                     </SelectContent>
                   </Select>
-                  {!hasCategories && !isCategoriesLoading && (
+                  {Boolean(!hasCategories && !isCategoriesLoading) && (
                     <Alert variant="destructive" className="mt-2">
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription className="text-sm">
