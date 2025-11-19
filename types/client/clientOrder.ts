@@ -16,6 +16,7 @@ export type ClientOrder = {
   comments?: string;
   stateOrder: string;
   clientId: number;
+  clientName?: string;  
   orderClientLineList?: OrderClientLine[];
   createdDate: string;
   updatedDate: string;
@@ -26,7 +27,7 @@ export interface ClientOrderRequest {
   orderDate: string;
   clientId: number;
   comments?: string;
-  stateOrder: OrderStatus;
+  stateOrder?: string;
 }
 
 export type CreateClientOrderMutation = UseMutationResult<ClientOrder, ApiError, ClientOrderRequest, unknown>;
