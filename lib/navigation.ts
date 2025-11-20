@@ -10,13 +10,23 @@ import {
   Tags,
   BarChart3,
   UserCheck,
+  UserCircle,
+  PackageCheck,
 } from "lucide-react"
 
 export interface NavigationItem {
   title: string
-  href: string
+  href?: string
   icon: React.ComponentType<{ className?: string }>
   badge?: string
+  roles: string[]
+  subItems?: NavigationSubItem[]
+}
+
+export interface NavigationSubItem {
+  title: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
   roles: string[]
 }
 
@@ -47,13 +57,26 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     title: "Commandes",
-    href: "/dashboard/orders",
     icon: ShoppingCart,
     roles: ["ROLE_ADMIN", "ROLE_MANAGER", "ROLE_SALES"],
+    subItems: [
+      {
+        title: "Commandes Clients",
+        href: "/dashboard/commandes/clients",
+        icon: UserCircle,
+        roles: ["ROLE_ADMIN", "ROLE_MANAGER", "ROLE_SALES"],
+      },
+      {
+        title: "Commandes Fournisseurs",
+        href: "/dashboard/commandes/fournisseurs",
+        icon: PackageCheck,
+        roles: ["ROLE_ADMIN", "ROLE_MANAGER", "ROLE_SALES"],
+      },
+    ],
   },
   {
     title: "Fournisseurs",
-    href: "/dashboard/suppliers",
+    href: "/dashboard/fournisseurs",
     icon: Truck,
     roles: ["ROLE_ADMIN", "ROLE_MANAGER", "ROLE_SALES"],
   },
@@ -65,19 +88,19 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     title: "Entreprises",
-    href: "/dashboard/company",
+    href: "/dashboard/entreprises",
     icon: Building,
     roles: ["ROLE_ADMIN", "ROLE_MANAGER"],
   },
   {
-    title: "Rapports",
-    href: "/dashboard/reports",
+    title: "Statistics",
+    href: "/dashboard/statistics",
     icon: BarChart3,
     roles: ["ROLE_ADMIN"],
   },
   {
     title: "Utilisateurs",
-    href: "/dashboard/users",
+    href: "/dashboard/utilisateurs",
     icon: UserCheck,
     roles: ["ROLE_ADMIN"],
   },
@@ -91,10 +114,21 @@ export function getNavigationForRole(userRoles: string[]): NavigationItem[] {
   
   return navigationConfig
     .filter((item) => item.roles.some(role => userRoles.includes(role)))
-    .map((item) => ({
-      ...item,
-      href: item.href === '/dashboard' ? `/dashboard/${roleSlug}` : `/dashboard/${roleSlug}${item.href.replace('/dashboard', '')}`
-    }))
+    .map((item) => {
+      // Filtrer et adapter les sous-items si présents
+      const filteredSubItems = item.subItems
+        ?.filter(subItem => subItem.roles.some(role => userRoles.includes(role)))
+        .map(subItem => ({
+          ...subItem,
+          href: `/dashboard/${roleSlug}${subItem.href.replace('/dashboard', '')}`
+        }))
+      
+      return {
+        ...item,
+        href: item.href ? (item.href === '/dashboard' ? `/dashboard/${roleSlug}` : `/dashboard/${roleSlug}${item.href.replace('/dashboard', '')}`) : undefined,
+        subItems: filteredSubItems
+      }
+    })
 }
 
 export function getNavigationForSingleRole(role: UserRole): NavigationItem[] {

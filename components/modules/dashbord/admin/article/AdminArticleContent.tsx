@@ -167,6 +167,7 @@ export function AdminArticleContent({
           <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Nouvel Article
+          
           </Button>
         )}
       </div>
