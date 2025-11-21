@@ -75,6 +75,25 @@ export const navigationConfig: NavigationItem[] = [
     ],
   },
   {
+    title: "Lignes Commandes",
+    icon: Receipt,
+    roles: ["ROLE_ADMIN", "ROLE_MANAGER", "ROLE_SALES"],
+    subItems: [
+      {
+        title: "Lignes Clients",
+        href: "/dashboard/lineCmd/lineCmdClient",
+        icon: UserCircle,
+        roles: ["ROLE_ADMIN", "ROLE_MANAGER", "ROLE_SALES"],
+      },
+      {
+        title: "Lignes Fournisseurs",
+        href: "/dashboard/lineCmd/lineCmdFournisseur",
+        icon: PackageCheck,
+        roles: ["ROLE_ADMIN", "ROLE_MANAGER", "ROLE_SALES"],
+      },
+    ],
+  },
+  {
     title: "Fournisseurs",
     href: "/dashboard/fournisseurs",
     icon: Truck,
