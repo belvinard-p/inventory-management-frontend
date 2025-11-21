@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -15,8 +15,10 @@ import {
 } from "@/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Check, X, Package, AlertCircle } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
+import { Check, X, Package, AlertCircle, ChevronsUpDown } from "lucide-react"
 import { useArticles } from "@/hooks/article/useArticle"
 import { useCategories } from "@/hooks/category/useCategory"
 import { ArticleResponse, ArticleRequest } from "@/types/article"
@@ -83,6 +85,9 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
   const { categories, isLoading: isCategoriesLoading } = useCategories()
   const isEditMode = mode === 'edit' && article
   const hasCategories = categories && categories.content && categories.content.length > 0
+  
+  // State for combobox
+  const [openCombobox, setOpenCombobox] = useState(false)
   
   const form = useForm<z.infer<typeof articleSchema>>({
     resolver: zodResolver(articleSchema),
@@ -165,7 +170,7 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-visible z-[9999]" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -178,8 +183,9 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
             }
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="max-h-[60vh] overflow-y-auto pr-2">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -334,38 +340,78 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
             <FormField
               control={form.control}
               name="categoryId"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">Catégorie</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(Number(value))} 
-                    value={field.value?.toString()}
-                    disabled={!hasCategories || isCreating || isUpdating}
-                  >
-                    <FormControl>
-                      <SelectTrigger className={getSelectClassName(form.formState.errors.categoryId, form.formState.touchedFields.categoryId, field.value)}>
-                        <SelectValue placeholder={hasCategories ? "Sélectionner une catégorie" : "Aucune catégorie disponible"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories?.content?.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
-                          {category.designation}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {Boolean(!hasCategories && !isCategoriesLoading) && (
-                    <Alert variant="destructive" className="mt-2">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription className="text-sm">
-                        Aucune catégorie disponible. Veuillez d&apos;abord créer une catégorie avant de créer un article.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const selectedCategory = categories?.content?.find((c) => c.id === field.value)
+                return (
+                  <FormItem className="group flex flex-col">
+                    <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">
+                      Catégorie
+                    </FormLabel>
+                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            disabled={!hasCategories || isCreating || isUpdating}
+                            className={cn(
+                              "h-10 w-full justify-between bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60",
+                              form.formState.errors.categoryId && form.formState.touchedFields.categoryId
+                                ? "border-red-400 focus:border-red-500 bg-red-50/50" 
+                                : field.value > 0 && !form.formState.errors.categoryId
+                                ? "border-green-400 focus:border-green-500 bg-green-50/50" 
+                                : "border-border/40 focus:border-primary/60 focus:bg-background",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {selectedCategory
+                              ? selectedCategory.designation
+                              : hasCategories ? "Rechercher une catégorie..." : "Aucune catégorie disponible"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[99999]" align="start">
+                        <Command>
+                          <CommandInput placeholder="Rechercher une catégorie..." />
+                          <CommandList>
+                            <CommandEmpty>Aucune catégorie trouvée.</CommandEmpty>
+                            <CommandGroup>
+                              {categories?.content?.map((category) => (
+                                <CommandItem
+                                  key={category.id}
+                                  value={category.designation}
+                                  onSelect={() => {
+                                    field.onChange(category.id)
+                                    setOpenCombobox(false)
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      category.id === field.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {category.designation}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    {Boolean(!hasCategories && !isCategoriesLoading) && (
+                      <Alert variant="destructive" className="mt-2">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription className="text-sm">
+                          Aucune catégorie disponible. Veuillez d&apos;abord créer une catégorie avant de créer un article.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
             />
 
             <div className="space-y-4 pt-4 border-t border-border/30">
@@ -429,7 +475,8 @@ export function ArticleForm({ open, onOpenChange, article, mode = 'create' }: Ar
               </Button>
             </div>
           </form>
-        </Form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   )
