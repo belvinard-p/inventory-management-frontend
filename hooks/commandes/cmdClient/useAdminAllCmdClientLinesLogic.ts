@@ -97,50 +97,34 @@ export function useAdminAllCmdClientLinesLogic() {
   }
 
   const handleDelete = async (id: number) => {
-    try {
-      await deleteOrderClientLine(id)
-      queryClient.invalidateQueries({ queryKey: ["allOrderClientLines"] })
-      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
-      toast.success("Ligne supprimée avec succès")
-    } catch (error) {
-      toast.error("Erreur lors de la suppression")
-    }
+    await deleteOrderClientLine(id)
+    queryClient.invalidateQueries({ queryKey: ["allOrderClientLines"] })
+    queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
+    toast.success("Ligne supprimée avec succès")
   }
 
   const handleUpdateQuantity = async (id: number, quantity: number) => {
-    try {
-      await updateOrderClientLine({ id, quantity })
-      queryClient.invalidateQueries({ queryKey: ["allOrderClientLines"] })
-      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
-      toast.success("Quantité mise à jour")
-    } catch (error) {
-      toast.error("Erreur lors de la mise à jour")
-    }
+    await updateOrderClientLine({ id, quantity })
+    queryClient.invalidateQueries({ queryKey: ["allOrderClientLines"] })
+    queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
+    toast.success("Quantité mise à jour")
   }
 
   const handleBulkDelete = async (ids: number[]) => {
-    try {
-      await Promise.all(ids.map(id => deleteOrderClientLine(id)))
-      queryClient.invalidateQueries({ queryKey: ["allOrderClientLines"] })
-      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
-      toast.success(`${ids.length} ligne(s) supprimée(s)`)
-      clearSelection()
-    } catch (error) {
-      toast.error("Erreur lors de la suppression")
-    }
+    await Promise.all(ids.map(id => deleteOrderClientLine(id)))
+    queryClient.invalidateQueries({ queryKey: ["allOrderClientLines"] })
+    queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
+    toast.success(`${ids.length} ligne(s) supprimée(s)`)
+    clearSelection()
   }
 
   const handleFormSubmit = async (data: OrderClientLineRequest) => {
-    try {
-      if (editingLine) {
-        await handleUpdateQuantity(editingLine.id, data.quantity)
-        setEditingLine(null)
-      } else {
-        await createOrderClientLineAsync(data)
-        setIsCreateModalOpen(false)
-      }
-    } catch (error) {
-      // Error handled in mutation
+    if (editingLine) {
+      await handleUpdateQuantity(editingLine.id, data.quantity)
+      setEditingLine(null)
+    } else {
+      await createOrderClientLineAsync(data)
+      setIsCreateModalOpen(false)
     }
   }
 
