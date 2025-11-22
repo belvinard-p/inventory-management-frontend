@@ -18,17 +18,17 @@ export function useAdminAllCmdClientLinesLogic() {
   const [hasFilter, setHasFilter] = useState(false)
   const [selectedLines, setSelectedLines] = useState<OrderClientLineResponse[]>([])
   const [currentPage, setCurrentPage] = useState(0)
-  
+
   const pageSize = 10
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
-  
+
   const queryClient = useQueryClient()
 
   const { data: lines = [], isLoading, isError } = useQuery({
     queryKey: ["allOrderClientLines"],
     queryFn: async () => {
       const lines = await orderClientLineService.getAllLines()
-      
+
       const linesWithArticles = await Promise.all(
         lines.map(async (line: OrderClientLineResponse) => {
           const article = await articleService.getById(line.articleId)
@@ -39,7 +39,7 @@ export function useAdminAllCmdClientLinesLogic() {
           }
         })
       )
-      
+
       return linesWithArticles
     },
     staleTime: 5 * 60 * 1000,
@@ -72,7 +72,7 @@ export function useAdminAllCmdClientLinesLogic() {
     return {
       total: linesData.length,
       totalAmount: total,
-      averageQuantity: linesData.length > 0 
+      averageQuantity: linesData.length > 0
         ? Math.round(linesData.reduce((sum, line) => sum + line.quantity, 0) / linesData.length)
         : 0,
     }

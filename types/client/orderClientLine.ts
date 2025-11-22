@@ -4,13 +4,13 @@ import type { ApiError } from "../common";
 export type OrderClientLine = {
   id: number;
   quantity: number;
-  unitPrice: number;           // Prix unitaire (correspond au backend)
-  totalPrice: number;          // Prix total de la ligne (correspond au backend)
-  clientOrderId: number;       // ID de la commande client
+  unitPrice: number;
+  totalPrice: number;
+  clientOrderId: number;
   articleId: number;
   articleDesignation: string;
   articleCode: string;
-  // Champs optionnels si votre backend les retourne aussi
+
   unitPriceExclTax?: number;
   rateTva?: number;
   unitPriceAllTax?: number;
@@ -30,8 +30,8 @@ export type UpdateOrderClientLineMutation = UseMutationResult<OrderClientLine, A
 export type DeleteOrderClientLineMutation = UseMutationResult<unknown, ApiError, number, unknown>;
 
 export interface UpdateOrderClientLineRequest {
-    id: number;
-    quantity: number;
+  id: number;
+  quantity: number;
 }
 
 export type OrderClientLineResponse = OrderClientLine;
