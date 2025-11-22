@@ -41,7 +41,7 @@ export function AdminAllCmdClientLines() {
   if (!mounted || authLoading) return <LoadingSpinner />
   if (!isAuthenticated || !currentUser) return <AuthErrorState title="Non authentifié" description="Vous devez être connecté pour accéder à cette page." />
   if (!hasPermission) return <AuthErrorState title="Accès refusé" description="Vous n'avez pas les permissions nécessaires pour accéder à cette page." />
-  if (!isLoading && !isError && linesData.length === 0) return <EmptyLinesState hasPermission={hasPermission} />
+  if (!isLoading && !isError && linesData.length === 0) return <EmptyLinesState onCreateClick={() => setIsCreateModalOpen(true)} hasPermission={hasPermission} />
   if (isLoading) return <LoadingLinesState />
   if (isError) return <ErrorLinesState />
 

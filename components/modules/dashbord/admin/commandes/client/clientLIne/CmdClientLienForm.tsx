@@ -15,20 +15,28 @@ import {
 } from "@/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Check, X, Package, ChevronsUpDown, Hash } from "lucide-react"
+import { Check, X, Package, ChevronsUpDown, Hash, ShoppingCart } from "lucide-react"
 import { OrderClientLineResponse, OrderClientLineRequest } from "@/types/client/orderClientLine"
 import { useQuery } from "@tanstack/react-query"
 import { articleService } from "@/service/articleService"
+import { clientOrderService } from "@/service/client/clientOrderService"
 import { useOrderClientLines } from "@/hooks/commandes/cmdClient/useOrderClientLine"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 
 const lineSchema = z.object({
+  clientOrderId: z.number().min(1, "Veuillez sélectionner une commande").optional(),
   articleId: z.number().min(1, "Veuillez sélectionner un article"),
   quantity: z.number()
     .min(1, "La quantité doit être au moins 1")
     .max(10000, "La quantité ne peut pas dépasser 10000"),
+}).refine((data) => {
+  // If clientOrderId is not provided externally, it must be provided in the form
+  return data.clientOrderId !== undefined
+}, {
+  message: "Veuillez sélectionner une commande",
+  path: ["clientOrderId"]
 })
 
 interface CmdClientLineFormProps {
@@ -36,7 +44,7 @@ interface CmdClientLineFormProps {
   onOpenChange: (open: boolean) => void
   line?: OrderClientLineResponse | null
   mode?: 'create' | 'edit'
-  clientOrderId: number
+  clientOrderId?: number
 }
 
 export function CmdClientLineForm({ 
@@ -54,6 +62,7 @@ export function CmdClientLineForm({
   
   // State for combobox
   const [openCombobox, setOpenCombobox] = useState(false)
+  const [openOrderCombobox, setOpenOrderCombobox] = useState(false)
   
   // Fetch articles for the combobox
   const { data: articlesResponse } = useQuery({
@@ -62,12 +71,23 @@ export function CmdClientLineForm({
     enabled: open,
   })
   
+  // Fetch orders for the combobox (only when clientOrderId is not provided)
+  const { data: ordersResponse } = useQuery({
+    queryKey: ["orders"],
+    queryFn: () => clientOrderService.getAllOrders(),
+    enabled: open && !clientOrderId,
+  })
+  
   const articles = articlesResponse?.content || []
+  const orders = ordersResponse || []
+  
+  const needsOrderSelection = !clientOrderId && !isEditMode
   
   const form = useForm<z.infer<typeof lineSchema>>({
     resolver: zodResolver(lineSchema),
     mode: "onChange",
     defaultValues: {
+      clientOrderId: clientOrderId || undefined,
       articleId: 0,
       quantity: 1,
     },
@@ -77,27 +97,31 @@ export function CmdClientLineForm({
     if (open) {
       if (isEditMode && line) {
         form.reset({
+          clientOrderId: clientOrderId || line.clientOrderId,
           articleId: line.articleId || 0,
           quantity: line.quantity || 1,
         })
       } else {
         form.reset({
+          clientOrderId: clientOrderId || undefined,
           articleId: 0,
           quantity: 1,
         })
       }
     }
-  }, [open, line, isEditMode, form])
+  }, [open, line, isEditMode, form, clientOrderId])
 
   const watchedValues = form.watch()
   const isFormValid = form.formState.isValid
-  const hasRequiredFields = watchedValues.articleId > 0 && watchedValues.quantity > 0
+  const hasRequiredFields = watchedValues.articleId > 0 && watchedValues.quantity > 0 && 
+    (clientOrderId ? true : (watchedValues.clientOrderId ?? 0) > 0)
   
   const isSubmitDisabled = !isFormValid || !hasRequiredFields || isLoading
 
   async function handleSubmit(data: z.infer<typeof lineSchema>) {
+    const finalClientOrderId = clientOrderId || data.clientOrderId!
     const lineData: OrderClientLineRequest = {
-      clientOrderId,
+      clientOrderId: finalClientOrderId,
       articleId: data.articleId,
       quantity: data.quantity,
     }
@@ -135,6 +159,81 @@ export function CmdClientLineForm({
         <div className="max-h-[60vh] overflow-y-auto pr-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            {/* Order Selector - only show when clientOrderId is not provided */}
+            {needsOrderSelection && (
+              <FormField
+                control={form.control}
+                name="clientOrderId"
+                render={({ field }) => {
+                  const selectedOrder = orders.find((o) => o.id === field.value)
+                  return (
+                    <FormItem className="group flex flex-col">
+                      <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">
+                        Commande Client
+                      </FormLabel>
+                      <Popover open={openOrderCombobox} onOpenChange={setOpenOrderCombobox}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              disabled={isLoading}
+                              className={cn(
+                                "h-10 w-full justify-between bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60",
+                                form.formState.errors.clientOrderId && form.formState.touchedFields.clientOrderId
+                                  ? "border-red-400 focus:border-red-500 bg-red-50/50" 
+                                  : (field.value ?? 0) > 0 && !form.formState.errors.clientOrderId
+                                  ? "border-green-400 focus:border-green-500 bg-green-50/50" 
+                                  : "border-border/40 focus:border-primary/60 focus:bg-background",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {selectedOrder
+                                ? `${selectedOrder.code} - ${selectedOrder.clientName}`
+                                : "Sélectionner une commande..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[99999]" align="start">
+                          <Command>
+                            <CommandInput placeholder="Rechercher une commande..." />
+                            <CommandList>
+                              <CommandEmpty>Aucune ligne de commande trouvée.</CommandEmpty>
+                              <CommandGroup>
+                                {orders.map((order) => (
+                                  <CommandItem
+                                    key={order.id}
+                                    value={`${order.code} ${order.clientName || 'Client inconnu'}`}
+                                    onSelect={() => {
+                                      field.onChange(order.id)
+                                      setOpenOrderCombobox(false)
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        (field.value ?? 0) === order.id ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{order.code}</span>
+                                      <span className="text-sm text-muted-foreground">{order.clientName || 'Client inconnu'}</span>
+                                    </div>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+            )}
+            
             <FormField
               control={form.control}
               name="articleId"

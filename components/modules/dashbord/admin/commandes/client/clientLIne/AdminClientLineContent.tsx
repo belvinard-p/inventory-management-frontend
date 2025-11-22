@@ -105,7 +105,7 @@ export function AdminClientLineContent({
           </p>
         </div>
 
-        {hasPermission && clientOrderId && (
+        {hasPermission && (
           <Button 
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
@@ -185,17 +185,15 @@ export function AdminClientLineContent({
       </Card>
 
       {/* Modals */}
-      {clientOrderId && (
-        <CmdClientLineForm
-          key="create-line-form"
-          open={isCreateModalOpen}
-          onOpenChange={setIsCreateModalOpen}
-          mode="create"
-          clientOrderId={clientOrderId}
-        />
-      )}
+      <CmdClientLineForm
+        key="create-line-form"
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        mode="create"
+        clientOrderId={clientOrderId}
+      />
       
-      {editingLine && clientOrderId && (
+      {editingLine && (
         <CmdClientLineForm
           key="edit-line-form"
           open={!!editingLine}
