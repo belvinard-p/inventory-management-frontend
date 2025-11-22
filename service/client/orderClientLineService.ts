@@ -18,6 +18,20 @@ export const orderClientLineService = {
     return apiClient.get<OrderClientLineResponse[]>(`${BASE_URL}/order/${clientOrderId}`)
   },
 
+  getAllLines: async (): Promise<OrderClientLineResponse[]> => {
+    // Get all orders first, then extract all lines from them
+    const orders = await apiClient.get<any[]>("/orders/all")
+    
+    const allLines: OrderClientLineResponse[] = []
+    orders.forEach(order => {
+      if (order.orderClientLineList && Array.isArray(order.orderClientLineList)) {
+        allLines.push(...order.orderClientLineList)
+      }
+    })
+    
+    return allLines
+  },
+
   updateLineQuantity: async (id: number, quantity: number): Promise<OrderClientLineResponse> => {
     return apiClient.patch<OrderClientLineResponse>(`${BASE_URL}/${id}/quantity?newQuantity=${quantity}`)
   },

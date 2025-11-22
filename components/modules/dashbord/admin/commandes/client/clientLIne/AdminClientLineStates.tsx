@@ -40,7 +40,7 @@ export function AuthErrorState({ title, description }: AuthErrorStateProps) {
 }
 
 interface EmptyLinesStateProps {
-  readonly onCreateClick: () => void
+  readonly onCreateClick?: () => void
   readonly hasPermission: boolean
 }
 
@@ -49,11 +49,11 @@ export function EmptyLinesState({ onCreateClick, hasPermission }: EmptyLinesStat
     <Card>
       <CardContent className="p-12">
         <EmptyState
-          title="Aucun article dans cette commande"
-          description="Commencez par ajouter des articles à cette commande."
+          title={onCreateClick ? "Aucun article dans cette commande" : "Aucune ligne de commande trouvée"}
+          description={onCreateClick ? "Commencez par ajouter des articles à cette commande." : "Aucune ligne de commande client n'existe actuellement."}
           icon={<Package className="h-12 w-12 text-muted-foreground" />}
         />
-        {hasPermission && (
+        {hasPermission && onCreateClick && (
           <div className="flex justify-center mt-6">
             <Button onClick={onCreateClick}>
               <Plus className="h-4 w-4 mr-2" />

@@ -43,7 +43,7 @@ interface AdminClientLineContentProps {
   readonly handleUpdateQuantity: (id: number, quantity: number) => Promise<void>
   readonly handleBulkDelete: (ids: number[]) => Promise<void>
   readonly isLoading: boolean
-  readonly clientOrderId: number
+  readonly clientOrderId?: number
 }
 
 function StatsCard({ title, value, icon, colorClass }: StatsCardProps) {
@@ -97,13 +97,15 @@ export function AdminClientLineContent({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Articles de la commande</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            {clientOrderId ? "Articles de la commande" : "Toutes les lignes de commandes"}
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Gérez les articles de cette commande
+            {clientOrderId ? "Gérez les articles de cette commande" : "Gérez toutes les lignes de commandes clients"}
           </p>
         </div>
 
-        {hasPermission && (
+        {hasPermission && clientOrderId && (
           <Button 
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
@@ -183,22 +185,26 @@ export function AdminClientLineContent({
       </Card>
 
       {/* Modals */}
-      <CmdClientLineForm
-        key="create-line-form"
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
-        mode="create"
-        clientOrderId={clientOrderId}
-      />
+      {clientOrderId && (
+        <CmdClientLineForm
+          key="create-line-form"
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+          mode="create"
+          clientOrderId={clientOrderId}
+        />
+      )}
       
-      <CmdClientLineForm
-        key="edit-line-form"
-        open={!!editingLine}
-        onOpenChange={(open) => !open && setEditingLine(null)}
-        line={editingLine}
-        mode="edit"
-        clientOrderId={clientOrderId}
-      />
+      {editingLine && clientOrderId && (
+        <CmdClientLineForm
+          key="edit-line-form"
+          open={!!editingLine}
+          onOpenChange={(open) => !open && setEditingLine(null)}
+          line={editingLine}
+          mode="edit"
+          clientOrderId={clientOrderId}
+        />
+      )}
     </div>
   )
 }

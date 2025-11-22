@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic"
 
-const AdminCmdClientLinePage = dynamic(
-  () => import('@/components/modules/dashbord/admin/commandes/client/clientLIne').then(mod => ({ default: mod.AdminCmdClientLinePage })),
+const AdminAllCmdClientLinesPage = dynamic(
+  () => import('@/components/modules/dashbord/admin/commandes/client/clientLIne').then(mod => ({ default: mod.AdminAllCmdClientLinesPage })),
   { 
     ssr: false,
     loading: () => (
@@ -15,5 +15,5 @@ const AdminCmdClientLinePage = dynamic(
 )
 
 export default function LineCmdClientPage() {
-  return <AdminCmdClientLinePage />
+  return <AdminAllCmdClientLinesPage />
 }
