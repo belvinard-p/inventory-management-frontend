@@ -90,7 +90,7 @@ export const createColumns = ({
         return (
           <div className="flex items-center gap-2">
             <Hash className="h-4 w-4 text-muted-foreground" />
-            <Badge variant={quantity <= 5 ? "destructive" : quantity <= 20 ? "secondary" : "default"}>
+            <Badge variant={quantity < 1 ? "destructive" : quantity <= 20 ? "secondary" : "default"}>
               {quantity}
             </Badge>
           </div>

@@ -125,7 +125,6 @@ export const useOrderClientLine = (id?: number) => {
   }
 }
 
-// Hook for fetching all lines for a specific order
 export const useOrderClientLinesByOrder = (clientOrderId?: number) => {
   const queryClient = useQueryClient()
 

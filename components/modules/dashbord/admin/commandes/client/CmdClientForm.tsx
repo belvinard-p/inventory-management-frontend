@@ -36,7 +36,7 @@ const orderSchema = z.object({
   orderDate: z.string()
     .min(1, "La date de commande est requise")
     .transform((val) => {
-      // Ensure the date is in YYYY-MM-DD format
+
       if (val.includes('/')) {
         const date = new Date(val)
         return date.toISOString().split('T')[0]
@@ -70,10 +70,8 @@ export function CmdClientForm({
 
   const isLoading = createMutation.isPending || updateMutation.isPending
 
-  // State for combobox
   const [openCombobox, setOpenCombobox] = useState(false)
 
-  // Fetch clients for the combobox
   const { data: clientsResponse } = useQuery({
     queryKey: ["clients"],
     queryFn: () => clientService.getAll({ page: 0, size: 1000 }),
@@ -120,7 +118,7 @@ export function CmdClientForm({
   const isSubmitDisabled = !isFormValid || !hasRequiredFields || isLoading
 
   async function handleSubmit(data: z.infer<typeof orderSchema>) {
-    // Ensure date is in YYYY-MM-DD format
+
     let formattedDate = data.orderDate
     if (formattedDate.includes('/')) {
       const date = new Date(formattedDate)
@@ -135,7 +133,7 @@ export function CmdClientForm({
       stateOrder: isEditMode && order ? order.stateOrder : "pending",
     }
 
-    console.log('Sending order data:', orderData) // Debug log
+    console.log('Sending order data:', orderData)
 
     try {
       if (isEditMode && order) {
@@ -146,7 +144,7 @@ export function CmdClientForm({
       form.reset()
       onOpenChange(false)
     } catch (error) {
-      // Error handled by mutation hooks
+
       console.error('Error creating/updating order:', error)
     }
   }
@@ -185,10 +183,10 @@ export function CmdClientForm({
                             {...field}
                             disabled={isLoading}
                             className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${form.formState.errors.code && form.formState.touchedFields.code
-                                ? "border-red-400 focus:border-red-500 bg-red-50/50"
-                                : field.value && !form.formState.errors.code && form.formState.touchedFields.code
-                                  ? "border-green-400 focus:border-green-500 bg-green-50/50"
-                                  : "border-border/40 focus:border-primary/60 focus:bg-background"
+                              ? "border-red-400 focus:border-red-500 bg-red-50/50"
+                              : field.value && !form.formState.errors.code && form.formState.touchedFields.code
+                                ? "border-green-400 focus:border-green-500 bg-green-50/50"
+                                : "border-border/40 focus:border-primary/60 focus:bg-background"
                               }`}
                           />
                           {field.value && form.formState.touchedFields.code && (
@@ -227,10 +225,10 @@ export function CmdClientForm({
                             {...field}
                             disabled={isLoading}
                             className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${form.formState.errors.orderDate && form.formState.touchedFields.orderDate
-                                ? "border-red-400 focus:border-red-500 bg-red-50/50"
-                                : field.value && !form.formState.errors.orderDate && form.formState.touchedFields.orderDate
-                                  ? "border-green-400 focus:border-green-500 bg-green-50/50"
-                                  : "border-border/40 focus:border-primary/60 focus:bg-background"
+                              ? "border-red-400 focus:border-red-500 bg-red-50/50"
+                              : field.value && !form.formState.errors.orderDate && form.formState.touchedFields.orderDate
+                                ? "border-green-400 focus:border-green-500 bg-green-50/50"
+                                : "border-border/40 focus:border-primary/60 focus:bg-background"
                               }`}
                           />
                           {field.value && form.formState.touchedFields.orderDate && (
