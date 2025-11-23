@@ -99,6 +99,7 @@ export function useAdminAllCmdClientLinesLogic() {
   const handleDelete = async (id: number) => {
     await deleteOrderClientLine(id)
     queryClient.invalidateQueries({ queryKey: ["allOrderClientLines"] })
+    queryClient.invalidateQueries({ queryKey: ["allOrderClientLines", "total"] })
     queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
     toast.success("Ligne supprimée avec succès")
   }
@@ -106,6 +107,7 @@ export function useAdminAllCmdClientLinesLogic() {
   const handleUpdateQuantity = async (id: number, quantity: number) => {
     await updateOrderClientLine({ id, quantity })
     queryClient.invalidateQueries({ queryKey: ["allOrderClientLines"] })
+    queryClient.invalidateQueries({ queryKey: ["allOrderClientLines", "total"] })
     queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
     toast.success("Quantité mise à jour")
   }
@@ -113,6 +115,7 @@ export function useAdminAllCmdClientLinesLogic() {
   const handleBulkDelete = async (ids: number[]) => {
     await Promise.all(ids.map(id => deleteOrderClientLine(id)))
     queryClient.invalidateQueries({ queryKey: ["allOrderClientLines"] })
+    queryClient.invalidateQueries({ queryKey: ["allOrderClientLines", "total"] })
     queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
     toast.success(`${ids.length} ligne(s) supprimée(s)`)
     clearSelection()

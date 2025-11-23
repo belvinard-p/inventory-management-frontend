@@ -7,6 +7,7 @@ import { orderClientLineService } from "@/service/client/orderClientLineService"
 import { articleService } from "@/service/articleService"
 import type { OrderClientLineResponse, OrderClientLineRequest } from "@/types/client/orderClientLine"
 import { toast } from "sonner"
+
 import { useOrderClientLines } from "./useOrderClientLine"
 
 interface UseAdminCmdClientLineLogicProps {
@@ -22,10 +23,10 @@ export function useAdminCmdClientLineLogic({ clientOrderId }: UseAdminCmdClientL
   const [hasFilter, setHasFilter] = useState(false)
   const [selectedLines, setSelectedLines] = useState<OrderClientLineResponse[]>([])
   const [currentPage, setCurrentPage] = useState(0)
-  
+
   const pageSize = 10
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
-  
+
   const queryClient = useQueryClient()
 
   // Fetch order lines with article details
@@ -33,7 +34,7 @@ export function useAdminCmdClientLineLogic({ clientOrderId }: UseAdminCmdClientL
     queryKey: ["orderClientLines", clientOrderId],
     queryFn: async () => {
       const lines = await orderClientLineService.getAllLinesForOrder(clientOrderId)
-      
+
       // Fetch article details for each line
       const linesWithArticles = await Promise.all(
         lines.map(async (line: OrderClientLineResponse) => {
@@ -49,7 +50,7 @@ export function useAdminCmdClientLineLogic({ clientOrderId }: UseAdminCmdClientL
           }
         })
       )
-      
+
       return linesWithArticles
     },
     staleTime: 5 * 60 * 1000,
@@ -81,7 +82,7 @@ export function useAdminCmdClientLineLogic({ clientOrderId }: UseAdminCmdClientL
     return {
       total: linesData.length,
       totalAmount: total,
-      averageQuantity: linesData.length > 0 
+      averageQuantity: linesData.length > 0
         ? Math.round(linesData.reduce((sum, line) => sum + line.quantity, 0) / linesData.length)
         : 0,
     }
@@ -106,50 +107,35 @@ export function useAdminCmdClientLineLogic({ clientOrderId }: UseAdminCmdClientL
   }
 
   const handleDelete = async (id: number) => {
-    try {
-      await deleteOrderClientLine(id)
-      queryClient.invalidateQueries({ queryKey: ["orderClientLines", clientOrderId] })
-      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
-      toast.success("Ligne supprimée avec succès")
-    } catch (error) {
-      toast.error("Erreur lors de la suppression")
-    }
+    await deleteOrderClientLine(id)
+    queryClient.invalidateQueries({ queryKey: ["orderClientLines", clientOrderId] })
+    queryClient.invalidateQueries({ queryKey: ["orderClientLines", clientOrderId, "total"] })
+    queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
   }
 
   const handleUpdateQuantity = async (id: number, quantity: number) => {
-    try {
-      await updateOrderClientLine({ id, quantity })
-      queryClient.invalidateQueries({ queryKey: ["orderClientLines", clientOrderId] })
-      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
-      toast.success("Quantité mise à jour")
-    } catch (error) {
-      toast.error("Erreur lors de la mise à jour")
-    }
+    await updateOrderClientLine({ id, quantity })
+    queryClient.invalidateQueries({ queryKey: ["orderClientLines", clientOrderId] })
+    queryClient.invalidateQueries({ queryKey: ["orderClientLines", clientOrderId, "total"] })
+    queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
   }
 
   const handleBulkDelete = async (ids: number[]) => {
-    try {
-      await Promise.all(ids.map(id => deleteOrderClientLine(id)))
-      queryClient.invalidateQueries({ queryKey: ["orderClientLines", clientOrderId] })
-      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
-      toast.success(`${ids.length} ligne(s) supprimée(s)`)
-      clearSelection()
-    } catch (error) {
-      toast.error("Erreur lors de la suppression")
-    }
+    await Promise.all(ids.map(id => deleteOrderClientLine(id)))
+    queryClient.invalidateQueries({ queryKey: ["orderClientLines", clientOrderId] })
+    queryClient.invalidateQueries({ queryKey: ["orderClientLines", clientOrderId, "total"] })
+    queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
+    toast.success(`${ids.length} ligne(s) supprimée(s)`)
+    clearSelection()
   }
 
   const handleFormSubmit = async (data: OrderClientLineRequest) => {
-    try {
-      if (editingLine) {
-        await handleUpdateQuantity(editingLine.id, data.quantity)
-        setEditingLine(null)
-      } else {
-        await createOrderClientLineAsync(data)
-        setIsCreateModalOpen(false)
-      }
-    } catch (error) {
-      // Error handled in mutation
+    if (editingLine) {
+      await handleUpdateQuantity(editingLine.id, data.quantity)
+      setEditingLine(null)
+    } else {
+      await createOrderClientLineAsync(data)
+      setIsCreateModalOpen(false)
     }
   }
 
