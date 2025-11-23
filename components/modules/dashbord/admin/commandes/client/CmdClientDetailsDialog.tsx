@@ -6,18 +6,31 @@ import {
   DialogContent,
 } from "@/components/ui/dialog"
 import { CopyButton } from "@/components/ui/copy-button"
-import { Package, User, Calendar, MessageSquare, ShoppingCart, FileText } from "lucide-react"
+import { Package, User, Calendar, MessageSquare, ShoppingCart, FileText, Check, X, AlertTriangle, ChevronDown } from "lucide-react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { clientOrderActions } from "@/service/client/clientOrderActions"
+import { toast } from "sonner"
+import { useState } from "react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface CmdClientDetailsDialogProps {
   order: ClientOrderResponse | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onOrderUpdate?: () => void
 }
 
-export function CmdClientDetailsDialog({ order, open, onOpenChange }: CmdClientDetailsDialogProps) {
+export function CmdClientDetailsDialog({ order, open, onOpenChange, onOrderUpdate }: CmdClientDetailsDialogProps) {
+  const [isUpdating, setIsUpdating] = useState(false)
+  
   if (!order) return null
 
   const getStatusBadge = (status: string) => {
@@ -31,6 +44,54 @@ export function CmdClientDetailsDialog({ order, open, onOpenChange }: CmdClientD
     const config = statusConfig[status] || { label: status, variant: "outline" }
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
+
+  const handleStatusUpdate = async (status: string) => {
+    if (!order) return
+    
+    setIsUpdating(true)
+    try {
+      await clientOrderActions.updateStatus(order.id, status)
+      const statusLabels = {
+        'confirmed': 'confirmée',
+        'completed': 'complétée',
+        'pending': 'mise en attente'
+      }
+      toast.success(`Commande ${statusLabels[status as keyof typeof statusLabels] || 'mise à jour'} avec succès`)
+      onOrderUpdate?.()
+      onOpenChange(false)
+    } catch (error) {
+      toast.error("Erreur lors de la mise à jour du statut")
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleCancelOrder = async () => {
+    if (!order) return
+    
+    setIsUpdating(true)
+    try {
+      await clientOrderActions.cancelOrder(order.id)
+      toast.success("Commande annulée avec succès")
+      onOrderUpdate?.()
+      onOpenChange(false)
+    } catch (error) {
+      toast.error("Erreur lors de l'annulation de la commande")
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const canChangeStatus = order.stateOrder !== 'CANCELLED' && order.stateOrder !== 'COMPLETED'
+  const canCancel = order.stateOrder === 'PENDING' || order.stateOrder === 'CONFIRMED'
+  
+  const availableStatuses = [
+    { value: 'pending', label: 'En attente', disabled: order.stateOrder === 'PENDING' },
+    { value: 'confirmed', label: 'Confirmée', disabled: order.stateOrder === 'CONFIRMED' },
+    { value: 'completed', label: 'Complétée', disabled: order.stateOrder === 'COMPLETED' },
+  ]
+  
+  const showActions = canChangeStatus || canCancel
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -153,6 +214,55 @@ export function CmdClientDetailsDialog({ order, open, onOpenChange }: CmdClientD
               )}
             </div>
           </div>
+
+          {/* Actions */}
+          {showActions && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Actions
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {canChangeStatus && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        disabled={isUpdating}
+                        variant="outline"
+                        className="flex items-center gap-2"
+                      >
+                        <Check className="h-4 w-4" />
+                        Changer le statut
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {availableStatuses.map((status) => (
+                        <DropdownMenuItem
+                          key={status.value}
+                          disabled={status.disabled || isUpdating}
+                          onClick={() => !status.disabled && handleStatusUpdate(status.value)}
+                        >
+                          {status.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+                {canCancel && (
+                  <Button
+                    onClick={handleCancelOrder}
+                    disabled={isUpdating}
+                    variant="destructive"
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Annuler la commande
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Dates */}
           <div>
