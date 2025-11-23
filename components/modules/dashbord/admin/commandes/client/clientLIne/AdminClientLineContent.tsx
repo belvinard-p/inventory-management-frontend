@@ -27,6 +27,7 @@ interface AdminClientLineContentProps {
   readonly stats: {
     readonly total: number
     readonly totalAmount: number
+    readonly uniqueArticles: number
     readonly averageQuantity: number
   }
   readonly selectedLines: OrderClientLineResponse[]
@@ -119,10 +120,16 @@ export function AdminClientLineContent({
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Total Articles"
+          title="Total Lignes"
           value={stats.total}
+          icon={<Package className="h-4 w-4 text-primary" />}
+          colorClass="primary"
+        />
+        <StatsCard
+          title="Articles Uniques"
+          value={stats.uniqueArticles}
           icon={<Package className="h-4 w-4 text-primary" />}
           colorClass="primary"
         />
@@ -135,8 +142,8 @@ export function AdminClientLineContent({
         <StatsCard
           title="Montant Total"
           value={`${stats.totalAmount.toFixed(2)} xaf`}
-          icon={<DollarSign className="h-4 w-4 text-green-600" />}
-          colorClass="green-600"
+          icon={<DollarSign className="h-4 w-4 text-primary" />}
+          colorClass="primary"
         />
       </div>
 

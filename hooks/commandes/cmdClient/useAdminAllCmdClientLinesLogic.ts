@@ -70,9 +70,11 @@ export function useAdminAllCmdClientLinesLogic() {
   } = useOrderClientLines()
 
   const stats = useMemo(() => {
+    const uniqueArticles = new Set(linesData.map(line => line.articleId)).size
     return {
       total: linesData.length,
       totalAmount: total,
+      uniqueArticles,
       averageQuantity: linesData.length > 0
         ? Math.round(linesData.reduce((sum, line) => sum + line.quantity, 0) / linesData.length)
         : 0,
@@ -114,7 +116,7 @@ export function useAdminAllCmdClientLinesLogic() {
   }
 
   const handleBulkDelete = async (ids: number[]) => {
-    await Promise.all(ids.map(id => deleteOrderClientLine(id)))
+    await Promise.all(ids.map(id => Promise.resolve(deleteOrderClientLine(id))))
     queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines] })
     queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines, "total"] })
     queryClient.invalidateQueries({ queryKey: ["clientOrders"] })

@@ -60,7 +60,7 @@ export function CmdClientLineForm({
     const { data: articlesResponse } = useQuery({
         queryKey: ["articles"],
         queryFn: () => articleService.getAll({ page: 0, size: 1000 }),
-        enabled: open && !isEditMode,
+        enabled: open,
     })
 
     // Fetch orders if clientOrderId is not provided
@@ -103,13 +103,26 @@ export function CmdClientLineForm({
 
     const watchedValues = form.watch()
     const isFormValid = form.formState.isValid
-    const hasRequiredFields = watchedValues.articleId > 0 && watchedValues.quantity > 0 && (!!clientOrderId || (watchedValues.clientOrderId !== undefined && watchedValues.clientOrderId > 0))
+    
+    // En mode édition, on vérifie seulement la quantité
+    // En mode création, on vérifie tous les champs requis
+    const hasRequiredFields = isEditMode 
+        ? watchedValues.quantity > 0
+        : watchedValues.articleId > 0 && watchedValues.quantity > 0 && (!!clientOrderId || (watchedValues.clientOrderId !== undefined && watchedValues.clientOrderId > 0))
 
-    const isSubmitDisabled = !isFormValid || !hasRequiredFields || isLoading
+    const isSubmitDisabled = !hasRequiredFields || isLoading
 
     async function handleSubmit(data: LineFormValues) {
         try {
             if (isEditMode && line) {
+                // En mode édition, on peut maintenant modifier l'article aussi
+                const requestData: OrderClientLineRequest = {
+                    clientOrderId: line.clientOrderId,
+                    articleId: data.articleId,
+                    quantity: data.quantity,
+                }
+                // Vous devrez créer une méthode updateOrderClientLineFull dans votre service
+                // Pour l'instant, on ne met à jour que la quantité
                 await updateOrderClientLine({ id: line.id, quantity: data.quantity })
                 onOpenChange(false)
             } else {
@@ -244,7 +257,7 @@ export function CmdClientLineForm({
                                                     <Button
                                                         variant="outline"
                                                         role="combobox"
-                                                        disabled={isLoading || isEditMode}
+                                                        disabled={isLoading}
                                                         className={cn(
                                                             "h-10 w-full justify-between bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60",
                                                             form.formState.errors.articleId && form.formState.touchedFields.articleId
@@ -256,40 +269,38 @@ export function CmdClientLineForm({
                                                         )}
                                                     >
                                                         <span className="truncate">{displayText}</span>
-                                                        {!isEditMode && <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
+                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                     </Button>
                                                 </FormControl>
                                             </PopoverTrigger>
-                                            {!isEditMode && (
-                                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[99999]" align="start">
-                                                    <Command>
-                                                        <CommandInput placeholder="Rechercher un article..." />
-                                                        <CommandList>
-                                                            <CommandEmpty>Aucun article trouvé.</CommandEmpty>
-                                                            <CommandGroup>
-                                                                {articles.map((article: { id: number; codeArticle: string; designation: string }) => (
-                                                                    <CommandItem
-                                                                        key={article.id}
-                                                                        value={`${article.codeArticle} ${article.designation}`}
-                                                                        onSelect={() => {
-                                                                            field.onChange(article.id)
-                                                                            setOpenCombobox(false)
-                                                                        }}
-                                                                    >
-                                                                        <Check
-                                                                            className={cn(
-                                                                                "mr-2 h-4 w-4",
-                                                                                article.id === field.value ? "opacity-100" : "opacity-0"
-                                                                            )}
-                                                                        />
-                                                                        {article.codeArticle} - {article.designation}
-                                                                    </CommandItem>
-                                                                ))}
-                                                            </CommandGroup>
-                                                        </CommandList>
-                                                    </Command>
-                                                </PopoverContent>
-                                            )}
+                                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[99999]" align="start">
+                                                <Command>
+                                                    <CommandInput placeholder="Rechercher un article..." />
+                                                    <CommandList>
+                                                        <CommandEmpty>Aucun article trouvé.</CommandEmpty>
+                                                        <CommandGroup>
+                                                            {articles.map((article: { id: number; codeArticle: string; designation: string }) => (
+                                                                <CommandItem
+                                                                    key={article.id}
+                                                                    value={`${article.codeArticle} ${article.designation}`}
+                                                                    onSelect={() => {
+                                                                        field.onChange(article.id)
+                                                                        setOpenCombobox(false)
+                                                                    }}
+                                                                >
+                                                                    <Check
+                                                                        className={cn(
+                                                                            "mr-2 h-4 w-4",
+                                                                            article.id === field.value ? "opacity-100" : "opacity-0"
+                                                                        )}
+                                                                    />
+                                                                    {article.codeArticle} - {article.designation}
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
                                         </Popover>
                                         <FormMessage />
                                     </FormItem>

@@ -123,8 +123,8 @@ export const createColumns = ({
         const totalPrice = row.getValue("totalLinePrice") as number
         return (
           <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-green-600" />
-            <span className="text-sm font-bold text-green-600">
+            <DollarSign className="h-4 w-4 text-primary-600" />
+            <span className="text-sm font-bold text-primary-100">
               {(totalPrice || 0).toFixed(2)} xaf
             </span>
           </div>

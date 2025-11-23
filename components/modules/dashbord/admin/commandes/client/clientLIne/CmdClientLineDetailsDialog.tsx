@@ -99,23 +99,22 @@ export function CmdClientLineDetailsDialog({ line, open, onOpenChange }: CmdClie
               </div>
 
               <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                <div className="p-2 rounded-lg bg-green-100 text-green-600">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
                   <DollarSign className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-muted-foreground">Prix Unitaire</p>
-                  {line.unitPriceExclTax?.toFixed(2) ?? "0.00"} xaf
-
+                  <p className="text-sm font-semibold text-foreground">{line.unitPriceExclTax?.toFixed(2) ?? "0.00"} xaf</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-primary/10 hover:bg-primary/20 transition-colors sm:col-span-2">
-                <div className="p-2 rounded-lg bg-primary/20 text-primary">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors sm:col-span-2 border border-primary/20">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
                   <DollarSign className="h-6 w-6" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-muted-foreground">Prix Total</p>
-                  <p className="text-2xl font-bold text-primary">
+                  <p className="text-2xl font-bold text-foreground">
                     {line.totalLinePrice?.toFixed(2) ?? "0.00"} xaf
                   </p>
                 </div>
@@ -134,19 +133,19 @@ export function CmdClientLineDetailsDialog({ line, open, onOpenChange }: CmdClie
                 {line.unitPriceExclTax && (
                   <div className="p-4 rounded-xl bg-muted/30">
                     <p className="text-xs text-muted-foreground mb-1">Prix HT</p>
-                    <p className="text-sm font-semibold">{line.unitPriceExclTax.toFixed(2)} xaf</p>
+                    <p className="text-sm font-semibold text-foreground">{line.unitPriceExclTax.toFixed(2)} xaf</p>
                   </div>
                 )}
                 {line.rateTva && (
                   <div className="p-4 rounded-xl bg-muted/30">
                     <p className="text-xs text-muted-foreground mb-1">Taux TVA</p>
-                    <p className="text-sm font-semibold">{line.rateTva}%</p>
+                    <p className="text-sm font-semibold text-foreground">{line.rateTva}%</p>
                   </div>
                 )}
                 {line.unitPriceAllTax && (
                   <div className="p-4 rounded-xl bg-muted/30">
                     <p className="text-xs text-muted-foreground mb-1">Prix TTC</p>
-                    <p className="text-sm font-semibold">{line.unitPriceAllTax.toFixed(2)} xaf</p>
+                    <p className="text-sm font-semibold text-foreground">{line.unitPriceAllTax.toFixed(2)} xaf</p>
                   </div>
                 )}
               </div>
