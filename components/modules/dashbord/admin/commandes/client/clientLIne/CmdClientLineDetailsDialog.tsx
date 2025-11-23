@@ -52,14 +52,14 @@ export function CmdClientLineDetailsDialog({ line, open, onOpenChange }: CmdClie
                   <p className="text-sm font-semibold">{line.articleCode || "N/A"}</p>
                 </div>
                 {line.articleCode && (
-                  <CopyButton 
-                    text={line.articleCode} 
+                  <CopyButton
+                    text={line.articleCode}
                     label="Code"
                     className="opacity-0 group-hover:opacity-100 transition-opacity"
                   />
                 )}
               </div>
-              
+
               <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                 <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
                   <Package className="h-5 w-5" />
@@ -99,9 +99,8 @@ export function CmdClientLineDetailsDialog({ line, open, onOpenChange }: CmdClie
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-muted-foreground">Prix Unitaire</p>
-                  <p className="text-sm font-bold text-green-600">
-                    {line.unitPrice.toFixed(2)} €
-                  </p>
+                  {line.unitPriceExclTax?.toFixed(2) ?? "0.00"} xaf
+
                 </div>
               </div>
 
@@ -112,7 +111,7 @@ export function CmdClientLineDetailsDialog({ line, open, onOpenChange }: CmdClie
                 <div className="flex-1">
                   <p className="text-sm font-medium text-muted-foreground">Prix Total</p>
                   <p className="text-2xl font-bold text-primary">
-                    {line.totalPrice.toFixed(2)} €
+                    {line.totalLinePrice?.toFixed(2) ?? "0.00"} xaf
                   </p>
                 </div>
               </div>
@@ -130,7 +129,7 @@ export function CmdClientLineDetailsDialog({ line, open, onOpenChange }: CmdClie
                 {line.unitPriceExclTax && (
                   <div className="p-4 rounded-xl bg-muted/30">
                     <p className="text-xs text-muted-foreground mb-1">Prix HT</p>
-                    <p className="text-sm font-semibold">{line.unitPriceExclTax.toFixed(2)} €</p>
+                    <p className="text-sm font-semibold">{line.unitPriceExclTax.toFixed(2)} xaf</p>
                   </div>
                 )}
                 {line.rateTva && (
@@ -142,7 +141,7 @@ export function CmdClientLineDetailsDialog({ line, open, onOpenChange }: CmdClie
                 {line.unitPriceAllTax && (
                   <div className="p-4 rounded-xl bg-muted/30">
                     <p className="text-xs text-muted-foreground mb-1">Prix TTC</p>
-                    <p className="text-sm font-semibold">{line.unitPriceAllTax.toFixed(2)} €</p>
+                    <p className="text-sm font-semibold">{line.unitPriceAllTax.toFixed(2)} xaf</p>
                   </div>
                 )}
               </div>

@@ -10,9 +10,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { 
-  Trash2, 
-  ChevronDown, 
+import {
+  Trash2,
+  ChevronDown,
   X,
   FileSpreadsheet,
 } from "lucide-react"
@@ -25,8 +25,8 @@ interface BulkActionsProps {
   onBulkDelete: (ids: number[]) => Promise<void>
 }
 
-export function BulkActions({ 
-  selectedLines, 
+export function BulkActions({
+  selectedLines,
   onClearSelection,
   onBulkDelete,
 }: BulkActionsProps) {
@@ -43,11 +43,11 @@ export function BulkActions({
     try {
       const ids = selectedLines.map(line => line.id)
       await onBulkDelete(ids)
-      
+
       enhancedToast.success(`${selectedLines.length} ligne(s) supprimée(s)`, {
         description: "Les lignes sélectionnées ont été supprimées"
       })
-      
+
       onClearSelection()
     } catch {
       // Error already handled by apiClient via toast
@@ -65,8 +65,8 @@ export function BulkActions({
         `"${line.articleCode || 'N/A'}"`,
         `"${line.articleDesignation || 'N/A'}"`,
         line.quantity.toString(),
-        line.unitPrice.toFixed(2),
-        line.totalPrice.toFixed(2)
+        (line.unitPriceExclTax || 0).toFixed(2),
+        (line.totalLinePrice || 0).toFixed(2)
       ].join(","))
     ].join("\n")
 
@@ -86,7 +86,7 @@ export function BulkActions({
   }
 
   const totalQuantity = selectedLines.reduce((sum, line) => sum + line.quantity, 0)
-  const totalAmount = selectedLines.reduce((sum, line) => sum + line.totalPrice, 0)
+  const totalAmount = selectedLines.reduce((sum, line) => sum + (line.totalLinePrice || 0), 0)
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
@@ -115,10 +115,10 @@ export function BulkActions({
               <FileSpreadsheet className="h-4 w-4 mr-2" />
               Exporter en CSV
             </DropdownMenuItem>
-            
+
             <DropdownMenuSeparator />
-            
-            <DropdownMenuItem 
+
+            <DropdownMenuItem
               onClick={handleBulkDelete}
               disabled={isProcessing}
               className="text-red-600 focus:text-red-600"

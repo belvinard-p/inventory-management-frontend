@@ -67,10 +67,10 @@ export function EmptyLinesState({
             {clientOrderId ? "Gérez les articles de cette commande" : "Gérez toutes les lignes de commandes clients"}
           </p>
         </div>
-        {hasPermission && clientOrderId !== undefined && (
+        {hasPermission && (
           <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Créer une ligne de commande client
+            Ajouter une ligne de commande
           </Button>
         )}
       </div>
@@ -82,11 +82,11 @@ export function EmptyLinesState({
             description={clientOrderId ? "Commencez par ajouter des articles à cette commande." : "Aucune ligne de commande client n'existe actuellement."}
             icon={<Package className="h-12 w-12 text-muted-foreground" />}
           />
-          {hasPermission && clientOrderId !== undefined && (
+          {hasPermission && (
             <div className="flex justify-center mt-6">
               <Button onClick={() => setIsCreateModalOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Créer une ligne de commande client
+                Ajouter une ligne de commande
               </Button>
             </div>
           )}

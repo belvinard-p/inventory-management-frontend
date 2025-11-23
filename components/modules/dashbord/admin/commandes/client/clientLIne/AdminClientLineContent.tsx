@@ -105,15 +105,15 @@ export function AdminClientLineContent({
           </p>
         </div>
 
-        {hasPermission && clientOrderId !== undefined && (
+        {hasPermission && (
           <Button
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
             className="w-full sm:w-auto"
           >
             <Plus className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Créer une ligne de commande client</span>
-            <span className="sm:hidden">Créer</span>
+            <span className="hidden sm:inline">Ajouter une ligne de commande</span>
+            <span className="sm:hidden">Ajouter</span>
           </Button>
         )}
       </div>

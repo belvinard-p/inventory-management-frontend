@@ -50,7 +50,7 @@ export function useAdminAllCmdClientLinesLogic() {
     queryKey: ["allOrderClientLines", "total"],
     queryFn: async () => {
       const lines = await orderClientLineService.getAllLines()
-      return lines.reduce((sum, line) => sum + line.totalPrice, 0)
+      return lines.reduce((sum, line) => sum + (line.totalLinePrice || 0), 0)
     },
     enabled: hasPermission && !!accessToken
   })

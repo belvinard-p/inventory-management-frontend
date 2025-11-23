@@ -15,10 +15,11 @@ import {
 } from "@/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Check, X, Package, ChevronsUpDown, ShoppingCart } from "lucide-react"
+import { Check, X, Package, ChevronsUpDown, ShoppingCart, FileText } from "lucide-react"
 import { OrderClientLineResponse, OrderClientLineRequest } from "@/types/client/orderClientLine"
 import { useQuery } from "@tanstack/react-query"
 import { articleService } from "@/service/articleService"
+import { clientOrderService } from "@/service/client/clientOrderService"
 import { useOrderClientLines } from "@/hooks/commandes/cmdClient/useOrderClientLine"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -27,6 +28,7 @@ import { cn } from "@/lib/utils"
 const lineSchema = z.object({
     articleId: z.number().min(1, "Veuillez sélectionner un article"),
     quantity: z.number().min(1, "La quantité doit être d'au moins 1"),
+    clientOrderId: z.number().optional(),
 })
 
 type LineFormValues = z.infer<typeof lineSchema>
@@ -50,17 +52,26 @@ export function CmdClientLineForm({
 
     const isLoading = isCreating || isUpdating
 
-    // State for combobox
+    // State for comboboxes
     const [openCombobox, setOpenCombobox] = useState(false)
+    const [openOrderCombobox, setOpenOrderCombobox] = useState(false)
 
     // Fetch articles for the combobox
     const { data: articlesResponse } = useQuery({
         queryKey: ["articles"],
         queryFn: () => articleService.getAll({ page: 0, size: 1000 }),
-        enabled: open && !isEditMode, // Only fetch if open and not in edit mode (or fetch always if we want to allow changing article, but usually we don't)
+        enabled: open && !isEditMode,
+    })
+
+    // Fetch orders if clientOrderId is not provided
+    const { data: ordersResponse } = useQuery({
+        queryKey: ["allOrders"],
+        queryFn: () => clientOrderService.getAllOrders(),
+        enabled: open && !isEditMode && !clientOrderId,
     })
 
     const articles = articlesResponse?.content || []
+    const orders = ordersResponse || []
 
     const form = useForm<LineFormValues>({
         resolver: zodResolver(lineSchema),
@@ -68,6 +79,7 @@ export function CmdClientLineForm({
         defaultValues: {
             articleId: 0,
             quantity: 1,
+            clientOrderId: clientOrderId || 0,
         },
     })
 
@@ -77,19 +89,21 @@ export function CmdClientLineForm({
                 form.reset({
                     articleId: line.articleId,
                     quantity: line.quantity,
+                    clientOrderId: line.clientOrderId,
                 })
             } else {
                 form.reset({
                     articleId: 0,
                     quantity: 1,
+                    clientOrderId: clientOrderId || 0,
                 })
             }
         }
-    }, [open, line, isEditMode, form])
+    }, [open, line, isEditMode, form, clientOrderId])
 
     const watchedValues = form.watch()
     const isFormValid = form.formState.isValid
-    const hasRequiredFields = watchedValues.articleId > 0 && watchedValues.quantity > 0
+    const hasRequiredFields = watchedValues.articleId > 0 && watchedValues.quantity > 0 && (!!clientOrderId || (watchedValues.clientOrderId !== undefined && watchedValues.clientOrderId > 0))
 
     const isSubmitDisabled = !isFormValid || !hasRequiredFields || isLoading
 
@@ -99,12 +113,15 @@ export function CmdClientLineForm({
                 await updateOrderClientLine({ id: line.id, quantity: data.quantity })
                 onOpenChange(false)
             } else {
-                if (!clientOrderId) {
+                const targetOrderId = clientOrderId || data.clientOrderId
+
+                if (!targetOrderId) {
                     console.error("Client Order ID is missing")
                     return
                 }
+
                 const requestData: OrderClientLineRequest = {
-                    clientOrderId,
+                    clientOrderId: targetOrderId,
                     articleId: data.articleId,
                     quantity: data.quantity,
                 }
@@ -123,12 +140,12 @@ export function CmdClientLineForm({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <ShoppingCart className="h-5 w-5" />
-                        {isEditMode ? "Modifier la ligne" : 'Ajouter un article'}
+                        {isEditMode ? "Modifier la ligne" : 'Ajouter une ligne de commande'}
                     </DialogTitle>
                     <DialogDescription>
                         {isEditMode
                             ? "Modifiez la quantité de l'article."
-                            : 'Ajoutez un nouvel article à la commande.'
+                            : 'Ajoutez un nouvel article à une commande.'
                         }
                     </DialogDescription>
                 </DialogHeader>
@@ -136,14 +153,79 @@ export function CmdClientLineForm({
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
 
+                        {!clientOrderId && !isEditMode && (
+                            <FormField
+                                control={form.control}
+                                name="clientOrderId"
+                                render={({ field }) => {
+                                    const selectedOrder = orders.find((o: { id: number }) => o.id === field.value)
+
+                                    return (
+                                        <FormItem className="group flex flex-col">
+                                            <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">
+                                                Commande Client
+                                            </FormLabel>
+                                            <Popover open={openOrderCombobox} onOpenChange={setOpenOrderCombobox}>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                            variant="outline"
+                                                            role="combobox"
+                                                            disabled={isLoading}
+                                                            className={cn(
+                                                                "h-10 w-full justify-between bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60",
+                                                                !field.value && "text-muted-foreground"
+                                                            )}
+                                                        >
+                                                            <span className="truncate">
+                                                                {selectedOrder
+                                                                    ? `Commande #${selectedOrder.code} - ${selectedOrder.clientName}`
+                                                                    : "Sélectionner une commande..."}
+                                                            </span>
+                                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[99999]" align="start">
+                                                    <Command>
+                                                        <CommandInput placeholder="Rechercher une commande..." />
+                                                        <CommandList>
+                                                            <CommandEmpty>Aucune commande trouvée.</CommandEmpty>
+                                                            <CommandGroup>
+                                                                {orders.map((order: { id: number; code: string; clientName: string }) => (
+                                                                    <CommandItem
+                                                                        key={order.id}
+                                                                        value={`${order.code} ${order.clientName}`}
+                                                                        onSelect={() => {
+                                                                            field.onChange(order.id)
+                                                                            setOpenOrderCombobox(false)
+                                                                        }}
+                                                                    >
+                                                                        <Check
+                                                                            className={cn(
+                                                                                "mr-2 h-4 w-4",
+                                                                                order.id === field.value ? "opacity-100" : "opacity-0"
+                                                                            )}
+                                                                        />
+                                                                        #{order.code} - {order.clientName}
+                                                                    </CommandItem>
+                                                                ))}
+                                                            </CommandGroup>
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )
+                                }}
+                            />
+                        )}
+
                         <FormField
                             control={form.control}
                             name="articleId"
                             render={({ field }) => {
-                                // If in edit mode, we might not have the full list of articles loaded if we disabled the query
-                                // But we have line.articleDesignation and line.articleCode from the passed prop usually
-                                // For now, let's assume we want to show the selected article.
-
                                 const selectedArticle = articles.find((a: { id: number }) => a.id === field.value)
                                 const displayText = isEditMode && line
                                     ? `${line.articleCode} - ${line.articleDesignation}`
