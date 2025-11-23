@@ -29,19 +29,26 @@ export function useAdminAllCmdClientLinesLogic() {
     queryKey: [OrderClientLinesCacheKeys.OrderClientLines],
     queryFn: async () => {
       const lines = await orderClientLineService.getAllLines()
+      const orders = await import("@/service/client/clientOrderService").then(m => m.clientOrderService.getAllOrders())
+      const clientsResponse = await import("@/service/client/clientService").then(m => m.clientService.getAll({ page: 0, size: 100 }))
+      const clients = clientsResponse.content || []
 
-      const linesWithArticles = await Promise.all(
+      const linesWithDetails = await Promise.all(
         lines.map(async (line: OrderClientLineResponse) => {
           const article = await articleService.getById(line.articleId)
+          const order = orders.find(o => o.id === line.clientOrderId)
+          const client = clients.find(c => c.id === order?.clientId)
+          
           return {
             ...line,
             articleDesignation: article.designation,
             articleCode: article.codeArticle,
+            clientName: client?.name || "Client non trouvé",
           }
         })
       )
 
-      return linesWithArticles
+      return linesWithDetails
     },
     staleTime: 5 * 60 * 1000,
     enabled: hasPermission && !!accessToken

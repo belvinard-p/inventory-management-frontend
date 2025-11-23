@@ -25,7 +25,12 @@ export const orderClientLineService = {
     const allLines: OrderClientLineResponse[] = []
     orders.forEach(order => {
       if (order.orderClientLineList && Array.isArray(order.orderClientLineList)) {
-        allLines.push(...order.orderClientLineList)
+        // Add clientOrderId to each line
+        const linesWithOrderId = order.orderClientLineList.map((line: any) => ({
+          ...line,
+          clientOrderId: order.id
+        }))
+        allLines.push(...linesWithOrderId)
       }
     })
     
