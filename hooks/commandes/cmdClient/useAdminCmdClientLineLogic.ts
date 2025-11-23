@@ -34,7 +34,7 @@ export function useAdminCmdClientLineLogic({ clientOrderId }: UseAdminCmdClientL
     queryKey: ["orderClientLines", clientOrderId],
     queryFn: async () => {
       const lines = await orderClientLineService.getAllLinesForOrder(clientOrderId)
-      const order = await clientOrderService.getById(clientOrderId)
+      const order = await import("@/service/client/clientOrderService").then(m => m.clientOrderService.getById(clientOrderId))
       const clientsResponse = await import("@/service/client/clientService").then(m => m.clientService.getAll({ page: 0, size: 100 }))
       const clients = clientsResponse.content || []
       console.log('Debug - Single order - Order clientId:', order?.clientId, 'Clients:', clients.map(c => ({ id: c.id, name: c.name })))

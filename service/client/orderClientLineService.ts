@@ -26,7 +26,7 @@ export const orderClientLineService = {
     orders.forEach(order => {
       if (order.orderClientLineList && Array.isArray(order.orderClientLineList)) {
         // Add clientOrderId to each line
-        const linesWithOrderId = order.orderClientLineList.map(line => ({
+        const linesWithOrderId = order.orderClientLineList.map((line: any) => ({
           ...line,
           clientOrderId: order.id
         }))
