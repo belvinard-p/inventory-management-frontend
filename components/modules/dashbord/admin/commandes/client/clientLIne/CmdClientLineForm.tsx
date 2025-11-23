@@ -24,6 +24,7 @@ import { useOrderClientLines } from "@/hooks/commandes/cmdClient/useOrderClientL
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 const lineSchema = z.object({
     articleId: z.number().min(1, "Veuillez sélectionner un article"),
@@ -144,6 +145,10 @@ export function CmdClientLineForm({
             }
         } catch (error) {
             console.error('Error creating/updating line:', error)
+            const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue'
+            toast.error("Erreur", {
+                description: errorMessage
+            })
         }
     }
 
