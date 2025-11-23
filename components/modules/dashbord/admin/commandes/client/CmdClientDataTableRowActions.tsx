@@ -36,6 +36,7 @@ interface CmdClientDataTableRowActionsProps<TData> {
   onDelete: (id: number) => Promise<void>
   onUpdateStatus: (id: number, status: OrderStatus) => Promise<void>
   onCancel: (id: number) => Promise<void>
+  onOrderUpdate?: () => void
   isLoading?: boolean
 }
 
@@ -44,6 +45,7 @@ export function CmdClientDataTableRowActions<TData>({
   onDelete,
   onUpdateStatus,
   onCancel,
+  onOrderUpdate,
   isLoading = false,
 }: CmdClientDataTableRowActionsProps<TData>) {
   const order = row.original as ClientOrderResponse
@@ -157,6 +159,7 @@ export function CmdClientDataTableRowActions<TData>({
         order={order}
         open={isDetailsDialogOpen}
         onOpenChange={setIsDetailsDialogOpen}
+        onOrderUpdate={onOrderUpdate}
       />
     </>
   )
