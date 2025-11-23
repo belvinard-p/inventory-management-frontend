@@ -8,6 +8,7 @@ import { articleService } from "@/service/articleService"
 import type { OrderClientLineResponse, OrderClientLineRequest } from "@/types/client/orderClientLine"
 import { toast } from "sonner"
 import { useOrderClientLines } from "./useOrderClientLine"
+import { OrderClientLinesCacheKeys } from "@/lib/const"
 
 export function useAdminAllCmdClientLinesLogic() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading, accessToken } = useAuth()
@@ -25,7 +26,7 @@ export function useAdminAllCmdClientLinesLogic() {
   const queryClient = useQueryClient()
 
   const { data: lines = [], isLoading, isError } = useQuery({
-    queryKey: ["allOrderClientLines"],
+    queryKey: [OrderClientLinesCacheKeys.OrderClientLines],
     queryFn: async () => {
       const lines = await orderClientLineService.getAllLines()
 
@@ -47,7 +48,7 @@ export function useAdminAllCmdClientLinesLogic() {
   })
 
   const { data: total = 0 } = useQuery({
-    queryKey: ["allOrderClientLines", "total"],
+    queryKey: [OrderClientLinesCacheKeys.OrderClientLines, "total"],
     queryFn: async () => {
       const lines = await orderClientLineService.getAllLines()
       return lines.reduce((sum, line) => sum + (line.totalLinePrice || 0), 0)
@@ -98,24 +99,24 @@ export function useAdminAllCmdClientLinesLogic() {
 
   const handleDelete = async (id: number) => {
     await deleteOrderClientLine(id)
-    queryClient.invalidateQueries({ queryKey: ["allOrderClientLines"] })
-    queryClient.invalidateQueries({ queryKey: ["allOrderClientLines", "total"] })
+    queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines] })
+    queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines, "total"] })
     queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
     toast.success("Ligne supprimée avec succès")
   }
 
   const handleUpdateQuantity = async (id: number, quantity: number) => {
     await updateOrderClientLine({ id, quantity })
-    queryClient.invalidateQueries({ queryKey: ["allOrderClientLines"] })
-    queryClient.invalidateQueries({ queryKey: ["allOrderClientLines", "total"] })
+    queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines] })
+    queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines, "total"] })
     queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
     toast.success("Quantité mise à jour")
   }
 
   const handleBulkDelete = async (ids: number[]) => {
     await Promise.all(ids.map(id => deleteOrderClientLine(id)))
-    queryClient.invalidateQueries({ queryKey: ["allOrderClientLines"] })
-    queryClient.invalidateQueries({ queryKey: ["allOrderClientLines", "total"] })
+    queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines] })
+    queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines, "total"] })
     queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
     toast.success(`${ids.length} ligne(s) supprimée(s)`)
     clearSelection()

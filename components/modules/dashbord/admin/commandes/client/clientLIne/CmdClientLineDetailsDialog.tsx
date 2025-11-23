@@ -4,6 +4,8 @@ import { OrderClientLineResponse } from "@/types/client/orderClientLine"
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { CopyButton } from "@/components/ui/copy-button"
 import { Package, Hash, DollarSign, FileText, Tag } from "lucide-react"
@@ -21,6 +23,9 @@ export function CmdClientLineDetailsDialog({ line, open, onOpenChange }: CmdClie
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Détails de la ligne de commande</DialogTitle>
+        </DialogHeader>
         {/* Header */}
         <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 p-8 pb-6">
           <div className="flex flex-col items-center text-center space-y-4">
