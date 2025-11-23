@@ -76,6 +76,18 @@ export function CmdClientLineDetailsDialog({ line, open, onOpenChange }: CmdClie
                   </p>
                 </div>
               </div>
+
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="p-2 rounded-lg bg-green-100 text-green-600">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">Client</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {line.clientName || "Client non trouvé"}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 

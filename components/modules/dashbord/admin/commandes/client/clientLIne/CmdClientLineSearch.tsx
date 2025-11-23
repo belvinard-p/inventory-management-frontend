@@ -62,7 +62,7 @@ export function CmdClientLineSearch({
           <SelectItem value="low-quantity">Quantité faible (≤ 5)</SelectItem>
           <SelectItem value="medium-quantity">Quantité moyenne (6-20)</SelectItem>
           <SelectItem value="high-quantity">Quantité élevée (&gt; 20)</SelectItem>
-          <SelectItem value="high-price">Prix élevé (&gt; 1000xaf)</SelectItem>
+          <SelectItem value="high-price">Prix élevé (&gt; 100000xaf)</SelectItem>
         </SelectContent>
       </Select>
       {isFiltered && (

@@ -34,9 +34,15 @@ export function useAdminCmdClientLineLogic({ clientOrderId }: UseAdminCmdClientL
     queryKey: ["orderClientLines", clientOrderId],
     queryFn: async () => {
       const lines = await orderClientLineService.getAllLinesForOrder(clientOrderId)
+      const order = await clientOrderService.getById(clientOrderId)
+      const clientsResponse = await import("@/service/client/clientService").then(m => m.clientService.getAll({ page: 0, size: 100 }))
+      const clients = clientsResponse.content || []
+      console.log('Debug - Single order - Order clientId:', order?.clientId, 'Clients:', clients.map(c => ({ id: c.id, name: c.name })))
+      const client = clients.find(c => c.id === order?.clientId)
+      console.log('Debug - Client found:', client?.name)
 
       // Fetch article details for each line
-      const linesWithArticles = await Promise.all(
+      const linesWithDetails = await Promise.all(
         lines.map(async (line: OrderClientLineResponse) => {
           try {
             const article = await articleService.getById(line.articleId)
@@ -44,14 +50,18 @@ export function useAdminCmdClientLineLogic({ clientOrderId }: UseAdminCmdClientL
               ...line,
               articleDesignation: article.designation,
               articleCode: article.codeArticle,
+              clientName: client?.name || "Client non trouvé",
             }
           } catch (error) {
-            return line
+            return {
+              ...line,
+              clientName: client?.name || "Client non trouvé",
+            }
           }
         })
       )
 
-      return linesWithArticles
+      return linesWithDetails
     },
     staleTime: 5 * 60 * 1000,
     enabled: hasPermission && !!accessToken && !!clientOrderId

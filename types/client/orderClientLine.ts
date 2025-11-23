@@ -10,6 +10,7 @@ export type OrderClientLine = {
   articleId: number;
   articleDesignation: string;
   articleCode: string;
+  clientName?: string;
 
   unitPriceExclTax?: number;
   rateTva?: number;

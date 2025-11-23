@@ -71,8 +71,25 @@ export function CmdClientLineForm({
         enabled: open && !isEditMode && !clientOrderId,
     })
 
+    // Fetch clients to get client names
+    const { data: clientsResponse } = useQuery({
+        queryKey: ["clients"],
+        queryFn: () => import("@/service/client/clientService").then(m => m.clientService.getAll({ page: 0, size: 1000 })),
+        enabled: open && !isEditMode && !clientOrderId,
+    })
+
     const articles = articlesResponse?.content || []
     const orders = ordersResponse || []
+    const clients = clientsResponse?.content || []
+
+    // Enrichir les commandes avec les noms des clients
+    const ordersWithClientNames = orders.map(order => {
+        const client = clients.find(c => c.id === order.clientId)
+        return {
+            ...order,
+            clientName: client?.name || 'Client non trouvé'
+        }
+    })
 
     const form = useForm<LineFormValues>({
         resolver: zodResolver(lineSchema),
@@ -176,7 +193,7 @@ export function CmdClientLineForm({
                                 control={form.control}
                                 name="clientOrderId"
                                 render={({ field }) => {
-                                    const selectedOrder = orders.find((o: { id: number }) => o.id === field.value)
+                                    const selectedOrder = ordersWithClientNames.find(o => o.id === field.value)
 
                                     return (
                                         <FormItem className="group flex flex-col">
@@ -210,7 +227,7 @@ export function CmdClientLineForm({
                                                         <CommandList>
                                                             <CommandEmpty>Aucune commande trouvée.</CommandEmpty>
                                                             <CommandGroup>
-                                                                {orders.map((order) => (
+                                                                {ordersWithClientNames.map((order) => (
                                                                     <CommandItem
                                                                         key={order.id}
                                                                         value={`${order.code} ${order.clientName || ''}`}

@@ -150,7 +150,7 @@ export function AdminClientLineContent({
       {/* Data Table */}
       <Card>
         <CardHeader className="px-4 sm:px-6">
-          <CardTitle className="text-lg sm:text-xl">Liste des Articles</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Liste des lignes</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -160,7 +160,7 @@ export function AdminClientLineContent({
                 setFilteredLines(filtered)
                 setHasFilter(hasFilter)
               }}
-              placeholder="Filtrer les articles"
+              placeholder="Filtrer les lignes"
             />
           </div>
 
