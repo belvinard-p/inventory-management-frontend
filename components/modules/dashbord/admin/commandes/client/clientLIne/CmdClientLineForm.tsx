@@ -197,7 +197,7 @@ export function CmdClientLineForm({
                                                         >
                                                             <span className="truncate">
                                                                 {selectedOrder
-                                                                    ? `Commande #${selectedOrder.code} - ${selectedOrder.clientName}`
+                                                                    ? `Commande #${selectedOrder.code} - ${selectedOrder.clientName || 'Client non défini'}`
                                                                     : "Sélectionner une commande..."}
                                                             </span>
                                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -210,10 +210,10 @@ export function CmdClientLineForm({
                                                         <CommandList>
                                                             <CommandEmpty>Aucune commande trouvée.</CommandEmpty>
                                                             <CommandGroup>
-                                                                {orders.map((order: { id: number; code: string; clientName: string }) => (
+                                                                {orders.map((order) => (
                                                                     <CommandItem
                                                                         key={order.id}
-                                                                        value={`${order.code} ${order.clientName}`}
+                                                                        value={`${order.code} ${order.clientName || ''}`}
                                                                         onSelect={() => {
                                                                             field.onChange(order.id)
                                                                             setOpenOrderCombobox(false)
@@ -225,7 +225,7 @@ export function CmdClientLineForm({
                                                                                 order.id === field.value ? "opacity-100" : "opacity-0"
                                                                             )}
                                                                         />
-                                                                        #{order.code} - {order.clientName}
+                                                                        #{order.code} - {order.clientName || 'Client non défini'}
                                                                     </CommandItem>
                                                                 ))}
                                                             </CommandGroup>

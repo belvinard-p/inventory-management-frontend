@@ -79,9 +79,11 @@ export function useAdminCmdClientLineLogic({ clientOrderId }: UseAdminCmdClientL
   } = useOrderClientLines()
 
   const stats = useMemo(() => {
+    const uniqueArticles = new Set(linesData.map(line => line.articleId)).size
     return {
       total: linesData.length,
       totalAmount: total,
+      uniqueArticles,
       averageQuantity: linesData.length > 0
         ? Math.round(linesData.reduce((sum, line) => sum + line.quantity, 0) / linesData.length)
         : 0,

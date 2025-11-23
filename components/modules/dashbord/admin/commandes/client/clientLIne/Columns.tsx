@@ -124,7 +124,7 @@ export const createColumns = ({
         return (
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-primary-600" />
-            <span className="text-sm font-bold text-primary-100">
+            <span className="text-sm font-bold text-primary-600">
               {(totalPrice || 0).toFixed(2)} xaf
             </span>
           </div>
