@@ -12,8 +12,18 @@ export const useOrderClientLines = () => {
 
   const createMutation = useMutation({
     mutationFn: (data: OrderClientLineRequest) => orderClientLineService.create(data),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      // Invalidate all order client lines queries
       queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines] })
+      // Invalidate the specific order's lines
+      queryClient.invalidateQueries({
+        queryKey: [OrderClientLinesCacheKeys.OrderClientLines, 'order', variables.clientOrderId]
+      })
+      // Invalidate the specific order's total
+      queryClient.invalidateQueries({
+        queryKey: [OrderClientLinesCacheKeys.OrderClientLines, 'order', variables.clientOrderId, 'total']
+      })
+      // Invalidate client orders to update order totals
       queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
       toast.success("Ligne de commande créée avec succès")
       return data
