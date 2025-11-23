@@ -1,95 +1,91 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { enhancedToast } from '@/lib/toast-utils'
-import { orderClientLineService } from '@/service/client/orderClientLineService'
-import { OrderClientLineResponse, OrderClientLineRequest } from '@/types/client/orderClientLine'
-import { ApiError } from '@/types'
-import { OrderClientLinesCacheKeys } from '@/lib/const'
+"use client"
 
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { orderClientLineService } from "@/service/client/orderClientLineService"
+import { toast } from "sonner"
+import type { OrderClientLineRequest } from "@/types/client/orderClientLine"
+import { OrderClientLinesCacheKeys } from "@/lib/const"
+
+// Hook for creating, updating, and deleting order client lines
 export const useOrderClientLines = () => {
   const queryClient = useQueryClient()
 
-  const createOrderClientLine = useMutation({
+  const createMutation = useMutation({
     mutationFn: (data: OrderClientLineRequest) => orderClientLineService.create(data),
-    onSuccess: (newLine, variables) => {
+    onSuccess: (data, variables) => {
+      // Invalidate all order client lines queries
       queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines] })
-      queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines, 'order', variables.clientOrderId] })
-      enhancedToast.success("Ligne de commande créée avec succès", {
-        description: `Ligne ajoutée à la commande`,
-        action: {
-          label: "Voir détails",
-          onClick: () => console.log('Voir détails de la ligne')
-        }
+      // Invalidate the specific order's lines
+      queryClient.invalidateQueries({
+        queryKey: [OrderClientLinesCacheKeys.OrderClientLines, 'order', variables.clientOrderId]
       })
+      // Invalidate the specific order's total
+      queryClient.invalidateQueries({
+        queryKey: [OrderClientLinesCacheKeys.OrderClientLines, 'order', variables.clientOrderId, 'total']
+      })
+      // Invalidate client orders to update order totals
+      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
+      toast.success("Ligne de commande créée avec succès")
+      return data
     },
-    onError: async (error: any) => {
-      console.error('Erreur création ligne de commande:', error)
-      
-      const message = error?.details?.message || error?.message || "Erreur lors de la création de la ligne de commande"
-      toast.error("Erreur de création", { description: message })
+    onError: () => {
+      toast.error("Erreur lors de la création")
     }
   })
 
-  const updateOrderClientLine = useMutation({
-    mutationFn: ({ id, quantity }: { id: number; quantity: number }) => 
-      orderClientLineService.updateLineQuantity(id, quantity),
-    onSuccess: (_, variables) => {
+  const updateMutation = useMutation({
+    mutationFn: ({ id, quantity }: { id: number; quantity: number }) => {
+      return orderClientLineService.updateLineQuantity(id, quantity)
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines] })
-      queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLine, variables.id] })
+      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
       toast.success("Ligne de commande mise à jour avec succès")
     },
-    onError: (error: ApiError) => {
+    onError: () => {
       toast.error("Erreur lors de la mise à jour")
     }
   })
 
-  const deleteOrderClientLine = useMutation({
+  const deleteMutation = useMutation({
     mutationFn: (id: number) => orderClientLineService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [OrderClientLinesCacheKeys.OrderClientLines] })
-      enhancedToast.actionWithUndo("Ligne supprimée", () => {
-        enhancedToast.info("Fonction de restauration à implémenter")
-      }, {
-        description: "La ligne de commande a été supprimée"
-      })
+      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
+      toast.success("Ligne de commande supprimée avec succès")
     },
-    onError: (error: ApiError) => {
-      enhancedToast.error("Erreur lors de la suppression", {
-        description: "La ligne de commande n'a pas pu être supprimée",
-        action: {
-          label: "Réessayer",
-          onClick: () => window.location.reload()
-        }
-      })
+    onError: () => {
+      toast.error("Erreur lors de la suppression")
     }
   })
 
   return {
-    createOrderClientLine: createOrderClientLine.mutate,
-    createOrderClientLineAsync: createOrderClientLine.mutateAsync,
-    updateOrderClientLine: updateOrderClientLine.mutate,
-    deleteOrderClientLine: deleteOrderClientLine.mutate,
-    
-    isCreating: createOrderClientLine.isPending,
-    isUpdating: updateOrderClientLine.isPending,
-    isDeleting: deleteOrderClientLine.isPending,
-    
-    createError: createOrderClientLine.error,
-    updateError: updateOrderClientLine.error,
-    deleteError: deleteOrderClientLine.error,
+    createOrderClientLine: createMutation.mutate,
+    createOrderClientLineAsync: createMutation.mutateAsync,
+    updateOrderClientLine: updateMutation.mutate,
+    deleteOrderClientLine: deleteMutation.mutate,
+
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
+
+    createError: createMutation.error,
+    updateError: updateMutation.error,
+    deleteError: deleteMutation.error,
   }
 }
 
+// Hook for fetching a single order client line
 export const useOrderClientLine = (id?: number) => {
   const queryClient = useQueryClient()
-  
+
   const lineQuery = useQuery({
     queryKey: [OrderClientLinesCacheKeys.OrderClientLine, id],
     queryFn: () => orderClientLineService.getById(id!),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   })
-  
+
   const updateMutation = useMutation({
     mutationFn: (quantity: number) => {
       if (!id) throw new Error("ID requis")
@@ -106,7 +102,7 @@ export const useOrderClientLine = (id?: number) => {
       toast.error("Erreur lors de la mise à jour")
     }
   })
-  
+
   const deleteMutation = useMutation({
     mutationFn: () => {
       if (!id) throw new Error("ID requis")
@@ -120,20 +116,20 @@ export const useOrderClientLine = (id?: number) => {
       toast.error("Erreur lors de la suppression")
     }
   })
-  
+
   return {
     line: lineQuery.data,
     isLoading: lineQuery.isLoading,
     isError: lineQuery.isError,
     error: lineQuery.error,
     refetch: lineQuery.refetch,
-    
+
     updateOrderClientLine: updateMutation.mutate,
     deleteOrderClientLine: deleteMutation.mutate,
-    
+
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
-    
+
     updateError: updateMutation.error,
     deleteError: deleteMutation.error,
   }
@@ -162,7 +158,7 @@ export const useOrderClientLinesByOrder = (clientOrderId?: number) => {
     isError: linesQuery.isError,
     error: linesQuery.error,
     refetch: linesQuery.refetch,
-    
+
     total: totalQuery.data,
     isLoadingTotal: totalQuery.isLoading,
     refetchTotal: totalQuery.refetch,

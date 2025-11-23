@@ -4,6 +4,7 @@ import React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -22,13 +23,10 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Check, ChevronsUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { CategoryResponse, CategoryRequest } from "@/types/category"
 import { useCompanies } from "@/hooks/useCompany"
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -62,6 +60,9 @@ export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFor
   const { companies } = useCompanies(0, 100)
   const companiesData = Array.isArray(companies?.content) ? companies.content : []
   const queryClient = useQueryClient()
+  
+  // State for combobox
+  const [openCombobox, setOpenCombobox] = useState(false)
 
   const createCategory = useMutation({
     mutationFn: (data: CategoryRequest) => categoryService.create(data),
@@ -194,32 +195,73 @@ export function CategoryForm({ open, onOpenChange, mode, category }: CategoryFor
             <FormField
               control={form.control}
               name="companyId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Entreprise</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(Number(value))} 
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une entreprise" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="max-h-[200px] overflow-y-auto" position="popper" sideOffset={4}>
-                      {companiesData.map((company) => (
-                        <SelectItem key={company.id} value={company.id.toString()}>
-                          {company.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Choisissez l&apos;entreprise pour cette catégorie.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const selectedCompany = companiesData.find((c) => c.id === field.value)
+                return (
+                  <FormItem className="group flex flex-col">
+                    <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">
+                      Entreprise
+                    </FormLabel>
+                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            disabled={isSubmitting}
+                            className={cn(
+                              "h-10 w-full justify-between bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60",
+                              form.formState.errors.companyId && form.formState.touchedFields.companyId
+                                ? "border-red-400 focus:border-red-500 bg-red-50/50" 
+                                : field.value > 0 && !form.formState.errors.companyId
+                                ? "border-green-400 focus:border-green-500 bg-green-50/50" 
+                                : "border-border/40 focus:border-primary/60 focus:bg-background",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {selectedCompany
+                              ? selectedCompany.name
+                              : "Rechercher une entreprise..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[99999]" align="start">
+                        <Command>
+                          <CommandInput placeholder="Rechercher une entreprise..." />
+                          <CommandList className="max-h-[200px] overflow-y-auto">
+                            <CommandEmpty>Aucune entreprise trouvée.</CommandEmpty>
+                            <CommandGroup>
+                              {companiesData.map((company) => (
+                                <CommandItem
+                                  key={company.id}
+                                  value={company.name}
+                                  onSelect={() => {
+                                    field.onChange(company.id)
+                                    setOpenCombobox(false)
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      company.id === field.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {company.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormDescription>
+                      Choisissez l&apos;entreprise pour cette catégorie.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
             />
             
             <div className="flex justify-end space-x-2 pt-4">

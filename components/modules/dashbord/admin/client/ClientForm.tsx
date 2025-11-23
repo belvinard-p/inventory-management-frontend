@@ -183,7 +183,7 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto z-[9999]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-visible z-[9999]" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -196,8 +196,9 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
             }
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="max-h-[60vh] overflow-y-auto pr-2">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -445,7 +446,8 @@ export function ClientForm({ open, onOpenChange, client, mode = 'create' }: Clie
               </Button>
             </div>
           </form>
-        </Form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   )

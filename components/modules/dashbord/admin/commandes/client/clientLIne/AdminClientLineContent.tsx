@@ -10,7 +10,7 @@ import { BulkActions } from "./BulkActions"
 import { DataTable } from "../../../company/DataTable"
 import { createColumns } from "./Columns"
 import { EmptyState } from "@/components/global"
-import { CmdClientLineForm } from "./CmdClientLienForm"
+import { CmdClientLineForm } from "./CmdClientLineForm"
 import type { OrderClientLineResponse } from "@/types/client/orderClientLine"
 
 interface StatsCardProps {
@@ -27,6 +27,7 @@ interface AdminClientLineContentProps {
   readonly stats: {
     readonly total: number
     readonly totalAmount: number
+    readonly uniqueArticles: number
     readonly averageQuantity: number
   }
   readonly selectedLines: OrderClientLineResponse[]
@@ -43,7 +44,7 @@ interface AdminClientLineContentProps {
   readonly handleUpdateQuantity: (id: number, quantity: number) => Promise<void>
   readonly handleBulkDelete: (ids: number[]) => Promise<void>
   readonly isLoading: boolean
-  readonly clientOrderId: number
+  readonly clientOrderId?: number
 }
 
 function StatsCard({ title, value, icon, colorClass }: StatsCardProps) {
@@ -84,7 +85,7 @@ export function AdminClientLineContent({
   clientOrderId,
 }: AdminClientLineContentProps) {
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
-  
+
   // Create columns with handlers
   const columns = createColumns({
     onDelete: handleDelete,
@@ -97,44 +98,52 @@ export function AdminClientLineContent({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Articles de la commande</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            {clientOrderId ? "Articles de la commande" : "Toutes les lignes de commandes"}
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Gérez les articles de cette commande
+            {clientOrderId ? "Gérez les articles de cette commande" : "Gérez toutes les lignes de commandes clients"}
           </p>
         </div>
 
         {hasPermission && (
-          <Button 
+          <Button
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
             className="w-full sm:w-auto"
           >
             <Plus className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Ajouter un article</span>
+            <span className="hidden sm:inline">Ajouter une ligne de commande</span>
             <span className="sm:hidden">Ajouter</span>
           </Button>
         )}
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <StatsCard 
-          title="Total Articles" 
-          value={stats.total} 
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <StatsCard
+          title="Total Lignes"
+          value={stats.total}
           icon={<Package className="h-4 w-4 text-primary" />}
           colorClass="primary"
         />
-        <StatsCard 
-          title="Quantité Moyenne" 
-          value={stats.averageQuantity} 
+        <StatsCard
+          title="Articles Uniques"
+          value={stats.uniqueArticles}
+          icon={<Package className="h-4 w-4 text-primary" />}
+          colorClass="primary"
+        />
+        <StatsCard
+          title="Quantité Moyenne"
+          value={stats.averageQuantity}
           icon={<Hash className="h-4 w-4 text-blue-600" />}
           colorClass="blue-600"
         />
-        <StatsCard 
-          title="Montant Total" 
-          value={`${stats.totalAmount.toFixed(2)} €`}
-          icon={<DollarSign className="h-4 w-4 text-green-600" />}
-          colorClass="green-600"
+        <StatsCard
+          title="Montant Total"
+          value={`${stats.totalAmount.toFixed(2)} xaf`}
+          icon={<DollarSign className="h-4 w-4 text-primary" />}
+          colorClass="primary"
         />
       </div>
 
@@ -145,7 +154,7 @@ export function AdminClientLineContent({
         </CardHeader>
         <CardContent className="space-y-4 px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <CmdClientLineSearch 
+            <CmdClientLineSearch
               data={linesData}
               onFilteredData={(filtered, hasFilter = true) => {
                 setFilteredLines(filtered)
@@ -154,23 +163,23 @@ export function AdminClientLineContent({
               placeholder="Filtrer les articles"
             />
           </div>
-          
-          <BulkActions 
+
+          <BulkActions
             selectedLines={selectedLines}
             onClearSelection={clearSelection}
             onBulkDelete={handleBulkDelete}
           />
-          
+
           <div className="overflow-x-auto">
             {displayData.length === 0 ? (
-              <EmptyState 
+              <EmptyState
                 title="Aucun résultat"
                 description="Aucun article ne correspond aux filtres actuels"
               />
             ) : (
               <CmdClientLineProvider onEditLine={handleEditLine}>
-                <DataTable 
-                  columns={columns} 
+                <DataTable
+                  columns={columns}
                   data={displayData}
                   onRowSelectionChange={handleRowSelectionChange}
                   enablePagination={false}
@@ -187,18 +196,18 @@ export function AdminClientLineContent({
         key="create-line-form"
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
-        mode="create"
         clientOrderId={clientOrderId}
       />
-      
-      <CmdClientLineForm
-        key="edit-line-form"
-        open={!!editingLine}
-        onOpenChange={(open) => !open && setEditingLine(null)}
-        line={editingLine}
-        mode="edit"
-        clientOrderId={clientOrderId}
-      />
+
+      {editingLine && (
+        <CmdClientLineForm
+          key="edit-line-form"
+          open={!!editingLine}
+          onOpenChange={(open) => !open && setEditingLine(null)}
+          line={editingLine}
+          clientOrderId={clientOrderId}
+        />
+      )}
     </div>
   )
 }

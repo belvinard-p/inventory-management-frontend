@@ -9,13 +9,9 @@ import {
   ErrorLinesState
 } from "./AdminClientLineStates"
 import { AdminClientLineContent } from "./AdminClientLineContent"
-import { useAdminCmdClientLineLogic } from "@/hooks/commandes/cmdClient/useAdminCmdClientLineLogic"
+import { useAdminAllCmdClientLinesLogic } from "@/hooks/commandes/cmdClient/useAdminAllCmdClientLinesLogic"
 
-interface AdminCmdClientLineProps {
-  clientOrderId: number
-}
-
-export function AdminCmdClientLine({ clientOrderId }: AdminCmdClientLineProps) {
+export function AdminAllCmdClientLines() {
   const {
     currentUser,
     isAuthenticated,
@@ -40,7 +36,7 @@ export function AdminCmdClientLine({ clientOrderId }: AdminCmdClientLineProps) {
     handleDelete,
     handleUpdateQuantity,
     handleBulkDelete,
-  } = useAdminCmdClientLineLogic({ clientOrderId })
+  } = useAdminAllCmdClientLinesLogic()
 
   if (!mounted || authLoading) return <LoadingSpinner />
   if (!isAuthenticated || !currentUser) return <AuthErrorState title="Non authentifié" description="Vous devez être connecté pour accéder à cette page." />
@@ -50,12 +46,11 @@ export function AdminCmdClientLine({ clientOrderId }: AdminCmdClientLineProps) {
       currentUser={currentUser}
       isCreateModalOpen={isCreateModalOpen}
       setIsCreateModalOpen={setIsCreateModalOpen}
-      clientOrderId={clientOrderId}
       hasPermission={hasPermission}
     />
   )
   if (isLoading) return <LoadingLinesState />
-  if (isError) return <ErrorLinesState currentUser={currentUser} />
+  if (isError) return <ErrorLinesState />
 
   return (
     <AdminClientLineContent
@@ -77,7 +72,6 @@ export function AdminCmdClientLine({ clientOrderId }: AdminCmdClientLineProps) {
       handleUpdateQuantity={handleUpdateQuantity}
       handleBulkDelete={handleBulkDelete}
       isLoading={isLoading}
-      clientOrderId={clientOrderId}
     />
   )
 }

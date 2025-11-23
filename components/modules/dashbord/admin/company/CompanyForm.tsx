@@ -15,10 +15,14 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Check, X, Building2 } from "lucide-react"
+import { Check, X, Building2, ChevronsUpDown } from "lucide-react"
 import { useCompanies } from "@/hooks/useCompany"
 import { Company } from "@/types"
 import { useQueryClient } from "@tanstack/react-query"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
+import { useState } from "react"
 import { CompaniesCacheKeys } from "@/lib/const"
 import { companyService } from "@/service/companyService"
 
@@ -48,6 +52,32 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
   const { createCompanyAsync, updateCompany, updateCompanyImage, isCreating, isUpdating, isUpdatingImage } = useCompanies()
   const queryClient = useQueryClient()
   const isEditMode = mode === 'edit' && company
+  
+  // State for combobox
+  const [openCountryCombobox, setOpenCountryCombobox] = useState(false)
+  const [openCityCombobox, setOpenCityCombobox] = useState(false)
+  
+  // Liste des pays courants
+  const countries = [
+    { value: "Cameroun", label: "Cameroun" },
+    { value: "France", label: "France" },
+    { value: "Gabon", label: "Gabon" },
+    { value: "Tchad", label: "Tchad" },
+    { value: "République Centrafricaine", label: "République Centrafricaine" },
+    { value: "Congo", label: "Congo" },
+    { value: "Guinée Équatoriale", label: "Guinée Équatoriale" },
+  ]
+  
+  // Liste des villes courantes
+  const cities = [
+    { value: "Yaoundé", label: "Yaoundé" },
+    { value: "Douala", label: "Douala" },
+    { value: "Bafoussam", label: "Bafoussam" },
+    { value: "Bamenda", label: "Bamenda" },
+    { value: "Garoua", label: "Garoua" },
+    { value: "Maroua", label: "Maroua" },
+    { value: "Ngaoundéré", label: "Ngaoundéré" },
+  ]
   
   const form = useForm<z.infer<typeof companySchema>>({
     resolver: zodResolver(companySchema),
@@ -154,7 +184,7 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-visible z-[9999]" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
@@ -167,8 +197,9 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
             }
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="max-h-[60vh] overflow-y-auto pr-2">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Informations principales */}
             <div className="space-y-4">
               <FormField
@@ -521,7 +552,8 @@ export function CompanyForm({ open, onOpenChange, company, mode = 'create' }: Co
               </Button>
             </div>
           </form>
-        </Form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   )

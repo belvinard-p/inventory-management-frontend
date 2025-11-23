@@ -12,22 +12,22 @@ interface CmdClientLineSearchProps {
   readonly placeholder?: string
 }
 
-export function CmdClientLineSearch({ 
-  data, 
-  onFilteredData, 
-  placeholder = "Filtrer les lignes..." 
+export function CmdClientLineSearch({
+  data,
+  onFilteredData,
+  placeholder = "Filtrer les lignes..."
 }: CmdClientLineSearchProps) {
   const [selectValue, setSelectValue] = React.useState("")
   const isFiltered = selectValue !== "" && selectValue !== "all"
 
   const handleFilterChange = (value: string) => {
     setSelectValue(value)
-    
+
     if (value === "all" || value === "") {
       onFilteredData(data, false)
       return
     }
-    
+
     const filtered = data.filter(line => {
       switch (value) {
         case "low-quantity":
@@ -37,12 +37,12 @@ export function CmdClientLineSearch({
         case "high-quantity":
           return line.quantity > 20
         case "high-price":
-          return line.totalPrice > 1000
+          return (line.totalLinePrice || 0) > 1000
         default:
           return true
       }
     })
-    
+
     onFilteredData(filtered, true)
   }
 
@@ -62,7 +62,7 @@ export function CmdClientLineSearch({
           <SelectItem value="low-quantity">Quantité faible (≤ 5)</SelectItem>
           <SelectItem value="medium-quantity">Quantité moyenne (6-20)</SelectItem>
           <SelectItem value="high-quantity">Quantité élevée (&gt; 20)</SelectItem>
-          <SelectItem value="high-price">Prix élevé (&gt; 1000€)</SelectItem>
+          <SelectItem value="high-price">Prix élevé (&gt; 1000xaf)</SelectItem>
         </SelectContent>
       </Select>
       {isFiltered && (
