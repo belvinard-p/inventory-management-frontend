@@ -38,26 +38,30 @@ export function BulkActions({ selectedSuppliers, onClearSelection }: BulkActions
 
         setIsDeleting(true)
 
-        try {
-            for (const supplier of selectedSuppliers) {
-                await new Promise<void>((resolve, reject) => {
-                    deleteMutation.mutate(supplier.id, {
-                        onSuccess: () => resolve(),
-                        onError: (error) => reject(error)
-                    })
+        let successCount = 0
+        for (const supplier of selectedSuppliers) {
+            const result = await deleteMutation.mutateAsync(supplier.id)
+                .then(() => {
+                    successCount++
+                    return true
                 })
+                .catch(() => false)
+
+            if (!result) {
+                continue
             }
-
-            enhancedToast.success(`${selectedSuppliers.length} fournisseur(s) supprimé(s)`, {
-                description: "Les fournisseurs sélectionnés ont été supprimés"
-            })
-
-            onClearSelection()
-        } catch {
-            // Error already handled by apiClient via toast
-        } finally {
-            setIsDeleting(false)
         }
+
+        if (successCount > 0) {
+            enhancedToast.success(`${successCount} fournisseur(s) supprimé(s)`, {
+                description: successCount === selectedSuppliers.length
+                    ? "Tous les fournisseurs sélectionnés ont été supprimés"
+                    : `${successCount} sur ${selectedSuppliers.length} fournisseurs ont été supprimés`
+            })
+            onClearSelection()
+        }
+
+        setIsDeleting(false)
     }
 
     const handleExportCSV = () => {
