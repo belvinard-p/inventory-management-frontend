@@ -1,4 +1,4 @@
-export const UsersCacheKeys =  Object.freeze({
+export const UsersCacheKeys = Object.freeze({
     Users: 'users',
     Roles: 'roles'
 } as const)
@@ -31,3 +31,19 @@ export const OrderClientLinesCacheKeys = Object.freeze({
     OrderClientLines: 'order-client-lines',
     OrderClientLine: 'order-client-line'
 } as const)
+
+export const SupplierOrdersCacheKeys = Object.freeze({
+    SupplierOrders: 'supplier-orders',
+    SupplierOrder: 'supplier-order'
+} as const)
+
+export const OrderSupplierLinesCacheKeys = Object.freeze({
+    OrderSupplierLines: 'order-supplier-lines',
+    OrderSupplierLine: 'order-supplier-line'
+} as const)
+
+export const SuppliersCacheKeys = Object.freeze({
+    Suppliers: 'suppliers',
+    Supplier: 'supplier'
+} as const)
+
