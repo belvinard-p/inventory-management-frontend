@@ -189,7 +189,7 @@ export function SupplierForm({
                                             <Input
                                                 {...field}
                                                 disabled={isLoading}
-                                                placeholder="Ex: +33 1 23 45 67 89"
+                                                placeholder="Ex: +237 671234567"
                                                 className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${form.formState.errors.phoneNumber && form.formState.touchedFields.phoneNumber
                                                     ? "border-red-400 focus:border-red-500 bg-red-50/50"
                                                     : field.value && !form.formState.errors.phoneNumber && form.formState.touchedFields.phoneNumber

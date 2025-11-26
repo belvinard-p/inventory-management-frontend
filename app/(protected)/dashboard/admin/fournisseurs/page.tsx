@@ -1,14 +1,19 @@
-export default function FournisseursPage() {
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Fournisseurs</h1>
+"use client"
+
+import dynamic from "next/dynamic"
+
+const AdminSupplierPage = dynamic(
+  () => import("@/components/modules/dashbord/admin/supplier").then(mod => ({ default: mod.AdminSupplierPage })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-      <div className="rounded-lg border bg-card p-8">
-        <p className="text-muted-foreground">
-          Page de gestion des fournisseurs en cours de développement.
-        </p>
-      </div>
-    </div>
-  );
+    )
+  }
+)
+
+export default function SupplierPage() {
+  return <AdminSupplierPage />
 }
