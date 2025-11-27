@@ -61,7 +61,8 @@ export const useClientOrder = (id?: number) => {
       if (!id) throw new Error("ID requis")
       return apiClient.patch<ClientOrderResponse>(`/orders/${id}/status?status=${status}`, undefined, {
         showSuccessToast: true,
-        successMessage: 'Statut mis à jour avec succès'
+        successMessage: 'Statut mis à jour avec succès',
+        showErrorToast: false
       })
     },
     onSuccess: () => {

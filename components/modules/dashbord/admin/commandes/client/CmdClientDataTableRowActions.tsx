@@ -45,7 +45,6 @@ export function CmdClientDataTableRowActions<TData>({
   row,
   onDelete,
   onUpdateStatus,
-  onCancel,
   onOrderUpdate,
   isLoading = false,
 }: CmdClientDataTableRowActionsProps<TData>) {
@@ -118,16 +117,6 @@ export function CmdClientDataTableRowActions<TData>({
             <CheckCircle className="mr-2 h-4 w-4" />
             <span>Changer le statut</span>
           </DropdownMenuItem>
-
-          {order.stateOrder !== "CANCELLED" && order.stateOrder !== "COMPLETED" && (
-            <DropdownMenuItem
-              onClick={() => onCancel(order.id)}
-              className="text-orange-600 hover:text-orange-700"
-            >
-              <XCircle className="mr-2 h-4 w-4" />
-              <span>Annuler commande</span>
-            </DropdownMenuItem>
-          )}
 
           <DropdownMenuSeparator />
 
