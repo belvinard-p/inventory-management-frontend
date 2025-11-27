@@ -60,7 +60,8 @@ export function CmdClientDetailsDialog({ order, open, onOpenChange, onOrderUpdat
       onOrderUpdate?.()
       onOpenChange(false)
     } catch (error) {
-      toast.error("Erreur lors de la mise à jour du statut")
+      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la mise à jour du statut"
+      toast.error(errorMessage)
     } finally {
       setIsUpdating(false)
     }
