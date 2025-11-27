@@ -1,12 +1,12 @@
 "use client"
 
-import { ClientOrderResponse } from "@/types/client/clientOrder"
+import { ClientOrderResponse, OrderStatus } from "@/types/client/clientOrder"
 import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog"
 import { CopyButton } from "@/components/ui/copy-button"
-import { Package, User, Calendar, MessageSquare, ShoppingCart, FileText, Check, X, AlertTriangle, ChevronDown } from "lucide-react"
+import { Package, User, Calendar, MessageSquare, ShoppingCart, FileText, Check, X } from "lucide-react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
@@ -14,12 +14,7 @@ import { Button } from "@/components/ui/button"
 import { clientOrderActions } from "@/service/client/clientOrderActions"
 import { toast } from "sonner"
 import { useState } from "react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { CmdClientStatusDialog } from "./CmdClientStatusDialog"
 
 interface CmdClientDetailsDialogProps {
   order: ClientOrderResponse | null
@@ -30,7 +25,8 @@ interface CmdClientDetailsDialogProps {
 
 export function CmdClientDetailsDialog({ order, open, onOpenChange, onOrderUpdate }: CmdClientDetailsDialogProps) {
   const [isUpdating, setIsUpdating] = useState(false)
-  
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
+
   if (!order) return null
 
   const getStatusBadge = (status: string) => {
@@ -45,22 +41,25 @@ export function CmdClientDetailsDialog({ order, open, onOpenChange, onOrderUpdat
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
 
-  const handleStatusUpdate = async (status: string) => {
+  const handleStatusUpdate = async (orderId: number, status: OrderStatus) => {
     if (!order) return
-    
+
     setIsUpdating(true)
     try {
-      await clientOrderActions.updateStatus(order.id, status)
+      await clientOrderActions.updateStatus(orderId, status)
       const statusLabels = {
-        'confirmed': 'confirmée',
-        'completed': 'complétée',
-        'pending': 'mise en attente'
+        [OrderStatus.CONFIRMED]: 'confirmée',
+        [OrderStatus.COMPLETED]: 'complétée',
+        [OrderStatus.PENDING]: 'mise en attente',
+        [OrderStatus.CANCELLED]: 'annulée',
       }
-      toast.success(`Commande ${statusLabels[status as keyof typeof statusLabels] || 'mise à jour'} avec succès`)
+      toast.success(`Commande ${statusLabels[status] || 'mise à jour'} avec succès`)
       onOrderUpdate?.()
+      setIsStatusDialogOpen(false)
       onOpenChange(false)
     } catch (error) {
-      toast.error("Erreur lors de la mise à jour du statut")
+      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la mise à jour du statut"
+      toast.error(errorMessage)
     } finally {
       setIsUpdating(false)
     }
@@ -68,7 +67,7 @@ export function CmdClientDetailsDialog({ order, open, onOpenChange, onOrderUpdat
 
   const handleCancelOrder = async () => {
     if (!order) return
-    
+
     setIsUpdating(true)
     try {
       await clientOrderActions.cancelOrder(order.id)
@@ -82,15 +81,9 @@ export function CmdClientDetailsDialog({ order, open, onOpenChange, onOrderUpdat
     }
   }
 
-  const canChangeStatus = order.stateOrder !== 'CANCELLED' && order.stateOrder !== 'COMPLETED'
+  const canChangeStatus = true
   const canCancel = order.stateOrder === 'PENDING' || order.stateOrder === 'CONFIRMED'
-  
-  const availableStatuses = [
-    { value: 'pending', label: 'En attente', disabled: order.stateOrder === 'PENDING' },
-    { value: 'confirmed', label: 'Confirmée', disabled: order.stateOrder === 'CONFIRMED' },
-    { value: 'completed', label: 'Complétée', disabled: order.stateOrder === 'COMPLETED' },
-  ]
-  
+
   const showActions = canChangeStatus || canCancel
 
   return (
@@ -128,13 +121,13 @@ export function CmdClientDetailsDialog({ order, open, onOpenChange, onOrderUpdat
                   <p className="text-sm font-medium text-muted-foreground">Code de commande</p>
                   <p className="text-sm font-semibold">{order.code}</p>
                 </div>
-                <CopyButton 
-                  text={order.code} 
+                <CopyButton
+                  text={order.code}
                   label="Code"
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
                 />
               </div>
-              
+
               <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
                 <div className="p-2 rounded-lg bg-green-100 text-green-600">
                   <Calendar className="h-5 w-5" />
@@ -224,30 +217,15 @@ export function CmdClientDetailsDialog({ order, open, onOpenChange, onOrderUpdat
               </h3>
               <div className="flex flex-wrap gap-3">
                 {canChangeStatus && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        disabled={isUpdating}
-                        variant="outline"
-                        className="flex items-center gap-2"
-                      >
-                        <Check className="h-4 w-4" />
-                        Changer le statut
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {availableStatuses.map((status) => (
-                        <DropdownMenuItem
-                          key={status.value}
-                          disabled={status.disabled || isUpdating}
-                          onClick={() => !status.disabled && handleStatusUpdate(status.value)}
-                        >
-                          {status.label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Button
+                    onClick={() => setIsStatusDialogOpen(true)}
+                    disabled={isUpdating}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Check className="h-4 w-4" />
+                    Changer le statut
+                  </Button>
                 )}
                 {canCancel && (
                   <Button
@@ -284,7 +262,7 @@ export function CmdClientDetailsDialog({ order, open, onOpenChange, onOrderUpdat
                   </div>
                 </div>
               )}
-              
+
               {order.updatedDate && (
                 <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                   <div className="p-2 rounded-lg bg-gray-100 text-gray-600">
@@ -302,6 +280,14 @@ export function CmdClientDetailsDialog({ order, open, onOpenChange, onOrderUpdat
           </div>
         </div>
       </DialogContent>
+
+      <CmdClientStatusDialog
+        order={order}
+        open={isStatusDialogOpen}
+        onOpenChange={setIsStatusDialogOpen}
+        onStatusChange={handleStatusUpdate}
+        isLoading={isUpdating}
+      />
     </Dialog>
   )
 }
