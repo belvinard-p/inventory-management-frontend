@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Package, Info, AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
+import { toast } from "sonner"
 
 interface CmdClientStatusDialogProps {
     order: ClientOrderResponse
@@ -93,8 +94,16 @@ export function CmdClientStatusDialog({
         try {
             await onStatusChange(order.id, selectedStatus as OrderStatus)
             onOpenChange(false)
-        } catch (error) {
-            // L'erreur est gérée par le parent
+        } catch (error: any) {
+            // Afficher l'erreur dans un toast
+            const errorMessage = error?.details?.errors?.details || 
+                               error?.details?.message || 
+                               error?.message || 
+                               "Erreur lors du changement de statut"
+            
+            toast.error("Changement de statut impossible", {
+                description: errorMessage
+            })
         } finally {
             setIsUpdating(false)
         }
