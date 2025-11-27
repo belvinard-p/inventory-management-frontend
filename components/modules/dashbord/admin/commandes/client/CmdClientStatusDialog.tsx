@@ -94,11 +94,12 @@ export function CmdClientStatusDialog({
         try {
             await onStatusChange(order.id, selectedStatus as OrderStatus)
             onOpenChange(false)
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Afficher l'erreur dans un toast
-            const errorMessage = error?.details?.errors?.details || 
-                               error?.details?.message || 
-                               error?.message || 
+            const err = error as { details?: { errors?: { details?: string }; message?: string }; message?: string }
+            const errorMessage = err?.details?.errors?.details || 
+                               err?.details?.message || 
+                               err?.message || 
                                "Erreur lors du changement de statut"
             
             toast.error("Changement de statut impossible", {
