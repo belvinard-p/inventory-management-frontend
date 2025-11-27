@@ -53,6 +53,28 @@ export function CmdClientDataTableRowActions<TData>({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
 
+  // Vérifier si une commande CONFIRMED peut être remise à PENDING (30 jours max)
+  const canRevertToPending = () => {
+    if (order.stateOrder !== 'CONFIRMED') return false
+    
+    const confirmedDate = new Date(order.updatedDate)
+    const now = new Date()
+    const daysDiff = Math.floor((now.getTime() - confirmedDate.getTime()) / (1000 * 60 * 60 * 24))
+    
+    return daysDiff <= 30
+  }
+
+  const getDaysRemainingForRevert = () => {
+    if (order.stateOrder !== 'CONFIRMED') return null
+    
+    const confirmedDate = new Date(order.updatedDate)
+    const now = new Date()
+    const daysDiff = Math.floor((now.getTime() - confirmedDate.getTime()) / (1000 * 60 * 60 * 24))
+    const daysRemaining = 30 - daysDiff
+    
+    return Math.max(0, daysRemaining)
+  }
+
   const handleDelete = async () => {
     await onDelete(order.id)
     setIsDeleteDialogOpen(false)
@@ -121,6 +143,24 @@ export function CmdClientDataTableRowActions<TData>({
             >
               <CheckCircle className="mr-2 h-4 w-4" />
               <span>Marquer complétée</span>
+            </DropdownMenuItem>
+          )}
+          
+          {/* Option pour remettre à PENDING si CONFIRMED et dans les 30 jours */}
+          {canRevertToPending() && (
+            <DropdownMenuItem
+              onClick={() => onUpdateStatus(order.id, OrderStatus.PENDING)}
+              className="text-amber-600 hover:text-amber-700"
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              <span>Remettre en attente ({getDaysRemainingForRevert()} j)</span>
+            </DropdownMenuItem>
+          )}
+          
+          {order.stateOrder === "CONFIRMED" && !canRevertToPending() && (
+            <DropdownMenuItem disabled className="text-gray-400">
+              <CheckCircle className="mr-2 h-4 w-4" />
+              <span>Remettre en attente (délai dépassé)</span>
             </DropdownMenuItem>
           )}
           
