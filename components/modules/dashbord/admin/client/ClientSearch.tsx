@@ -12,22 +12,22 @@ interface ClientSearchProps {
   readonly placeholder?: string
 }
 
-export function ClientSearch({ 
-  data, 
-  onFilteredData, 
-  placeholder = "Rechercher client..." 
+export function ClientSearch({
+  data,
+  onFilteredData,
+  placeholder = "Rechercher client..."
 }: ClientSearchProps) {
   const [selectValue, setSelectValue] = React.useState("")
   const isFiltered = selectValue !== "" && selectValue !== "all"
 
   const handleFilterChange = (value: string) => {
     setSelectValue(value)
-    
+
     if (value === "all" || value === "") {
       onFilteredData(data, false)
       return
     }
-    
+
     const filtered = data.filter(client => {
       switch (value) {
         case "with-orders":
@@ -42,7 +42,7 @@ export function ClientSearch({
           return true
       }
     })
-    
+
     onFilteredData(filtered, true)
   }
 

@@ -53,7 +53,7 @@ export function AuthErrorState({ title, description }: LoadingStateProps) {
 
 export function EmptyClientsState({ currentUser, isCreateModalOpen, setIsCreateModalOpen }: EmptyStateProps) {
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
-  
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -88,7 +88,7 @@ export function EmptyClientsState({ currentUser, isCreateModalOpen, setIsCreateM
           )}
         </CardContent>
       </Card>
-      
+
       {/* Client Form Modal */}
       <ClientForm
         open={isCreateModalOpen}
@@ -108,7 +108,7 @@ export function LoadingClientsState() {
           <p className="text-muted-foreground">Chargement des données...</p>
         </div>
       </div>
-      
+
       <div className="space-y-4">
         <LoadingContent size="lg" text="Chargement des clients..." className="py-12" />
       </div>
@@ -118,7 +118,7 @@ export function LoadingClientsState() {
 
 export function ErrorClientsState({ currentUser, isCreateModalOpen, setIsCreateModalOpen }: ErrorStateProps) {
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
-  
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -145,7 +145,7 @@ export function ErrorClientsState({ currentUser, isCreateModalOpen, setIsCreateM
           />
         </CardContent>
       </Card>
-      
+
       {/* Client Form Modal */}
       <ClientForm
         open={isCreateModalOpen}
