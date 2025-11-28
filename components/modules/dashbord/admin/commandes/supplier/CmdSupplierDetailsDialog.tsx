@@ -1,0 +1,285 @@
+"use client"
+
+import { SupplierOrder, OrderStatus } from "@/types/supplier/supplierOrder"
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog"
+import { CopyButton } from "@/components/ui/copy-button"
+import { Package, Truck, Calendar, MessageSquare, ShoppingCart, FileText, Check, X } from "lucide-react"
+import { format } from "date-fns"
+import { fr } from "date-fns/locale"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { supplierOrderActions } from "@/service/supplier/supplierOrderActions"
+import { toast } from "sonner"
+import { useState } from "react"
+import { CmdSupplierStatusDialog } from "./CmdSupplierStatusDialog"
+
+interface CmdSupplierDetailsDialogProps {
+  order: SupplierOrder | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onOrderUpdate?: () => void
+}
+
+export function CmdSupplierDetailsDialog({ order, open, onOpenChange, onOrderUpdate }: CmdSupplierDetailsDialogProps) {
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
+
+  if (!order) return null
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      PENDING: { label: "En attente", variant: "secondary" },
+      CONFIRMED: { label: "Confirmée", variant: "default" },
+      COMPLETED: { label: "Complétée", variant: "outline" },
+      CANCELLED: { label: "Annulée", variant: "destructive" },
+    }
+
+    const config = statusConfig[status] || { label: status, variant: "outline" }
+    return <Badge variant={config.variant}>{config.label}</Badge>
+  }
+
+  const handleStatusUpdate = async (orderId: number, status: OrderStatus) => {
+    if (!order) return
+
+    setIsUpdating(true)
+    try {
+      await supplierOrderActions.updateStatus(orderId, status)
+      const statusLabels = {
+        [OrderStatus.CONFIRMED]: 'confirmée',
+        [OrderStatus.COMPLETED]: 'complétée',
+        [OrderStatus.PENDING]: 'mise en attente',
+        [OrderStatus.CANCELLED]: 'annulée',
+      }
+      toast.success(`Commande ${statusLabels[status] || 'mise à jour'} avec succès`)
+      onOrderUpdate?.()
+      setIsStatusDialogOpen(false)
+      onOpenChange(false)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la mise à jour du statut"
+      toast.error(errorMessage)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleCancelOrder = async () => {
+    if (!order) return
+
+    setIsUpdating(true)
+    try {
+      await supplierOrderActions.cancelOrder(order.id)
+      toast.success("Commande annulée avec succès")
+      onOrderUpdate?.()
+      onOpenChange(false)
+    } catch (error) {
+      toast.error("Erreur lors de l'annulation de la commande")
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const canChangeStatus = true
+  const canCancel = order.stateOrder === 'PENDING' || order.stateOrder === 'CONFIRMED'
+
+  const showActions = canChangeStatus || canCancel
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+        <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 p-8 pb-6">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center border-4 border-white shadow-lg">
+              <Package className="h-12 w-12 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">{order.code}</h2>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                {getStatusBadge(order.stateOrder)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-8 space-y-8">
+          <div>
+            <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Informations de la commande
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
+                <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+                  <Package className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">Code de commande</p>
+                  <p className="text-sm font-semibold">{order.code}</p>
+                </div>
+                <CopyButton
+                  text={order.code}
+                  label="Code"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+              </div>
+
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
+                <div className="p-2 rounded-lg bg-green-100 text-green-600">
+                  <Calendar className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">Date de commande</p>
+                  <p className="text-sm font-semibold">
+                    {format(new Date(order.orderDate), "PP", { locale: fr })}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
+                  <Truck className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">Fournisseur</p>
+                  <p className="text-sm font-semibold">
+                    {order.supplierName || `Fournisseur #${order.supplierId}`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {order.comments && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-primary" />
+                Commentaires
+              </h3>
+              <div className="p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                <p className="text-sm text-foreground whitespace-pre-wrap">{order.comments}</p>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5 text-primary" />
+              Articles de la commande
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="p-2 rounded-lg bg-yellow-100 text-yellow-600">
+                  <ShoppingCart className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">Nombre d&apos;articles</p>
+                  <Badge variant={order.supplierOrderLineList && order.supplierOrderLineList.length > 0 ? "default" : "secondary"}>
+                    {order.supplierOrderLineList?.length || 0} article{(order.supplierOrderLineList?.length || 0) !== 1 ? 's' : ''}
+                  </Badge>
+                </div>
+              </div>
+
+              {order.supplierOrderLineList && order.supplierOrderLineList.length > 0 && (
+                <div className="space-y-2">
+                  {order.supplierOrderLineList.map((line, index) => (
+                    <div key={line.id || index} className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/50">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{line.articleDesignation}</p>
+                        <p className="text-xs text-muted-foreground">Code: {line.articleCode}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold">Qté: {line.quantity}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {line.unitPrice?.toFixed(2)} FCFA × {line.quantity} = {line.totalPrice?.toFixed(2)} FCFA
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {showActions && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Actions
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {canChangeStatus && (
+                  <Button
+                    onClick={() => setIsStatusDialogOpen(true)}
+                    disabled={isUpdating}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Check className="h-4 w-4" />
+                    Changer le statut
+                  </Button>
+                )}
+                {canCancel && (
+                  <Button
+                    onClick={handleCancelOrder}
+                    disabled={isUpdating}
+                    variant="destructive"
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Annuler la commande
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Informations système
+            </h3>
+            <div className="space-y-4">
+              {order.createdAt && (
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                  <div className="p-2 rounded-lg bg-gray-100 text-gray-600">
+                    <Calendar className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-muted-foreground">Créée le</p>
+                    <p className="font-semibold">
+                      {format(new Date(order.createdAt), "PP 'à' p", { locale: fr })}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {order.updatedAt && (
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                  <div className="p-2 rounded-lg bg-gray-100 text-gray-600">
+                    <Calendar className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-muted-foreground">Mise à jour le</p>
+                    <p className="font-semibold">
+                      {format(new Date(order.updatedAt), "PP 'à' p", { locale: fr })}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+
+      <CmdSupplierStatusDialog
+        order={order}
+        open={isStatusDialogOpen}
+        onOpenChange={setIsStatusDialogOpen}
+        onStatusChange={handleStatusUpdate}
+        isLoading={isUpdating}
+      />
+    </Dialog>
+  )
+}

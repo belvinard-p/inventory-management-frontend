@@ -55,7 +55,7 @@ export function BulkActions({
       })
       
       onClearSelection()
-    } catch (error) {
+    } catch {
       // Error already handled by apiClient via toast
     } finally {
       setIsProcessing(false)
@@ -81,7 +81,7 @@ export function BulkActions({
       })
       
       onClearSelection()
-    } catch (error) {
+    } catch {
       // Error already handled
     } finally {
       setIsProcessing(false)
@@ -107,7 +107,7 @@ export function BulkActions({
       })
       
       onClearSelection()
-    } catch (error) {
+    } catch {
       // Error already handled
     } finally {
       setIsProcessing(false)
@@ -140,7 +140,7 @@ export function BulkActions({
       })
       
       onClearSelection()
-    } catch (error) {
+    } catch {
       // Error already handled
     } finally {
       setIsProcessing(false)

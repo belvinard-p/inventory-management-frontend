@@ -18,9 +18,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Check, X, Package, ChevronsUpDown } from "lucide-react"
 import { ClientOrderResponse, ClientOrderRequest } from "@/types/client/clientOrder"
-import { useQuery } from "@tanstack/react-query"
-import { clientService } from "@/service/client/clientService"
 import { useCreateCmdClient, useUpdateCmdClient } from "@/hooks/commandes/cmdClient/useCmdClient"
+import { useClients } from "@/hooks/client/useClient"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
@@ -72,12 +71,7 @@ export function CmdClientForm({
 
   const [openCombobox, setOpenCombobox] = useState(false)
 
-  const { data: clientsResponse } = useQuery({
-    queryKey: ["clients"],
-    queryFn: () => clientService.getAll({ page: 0, size: 1000 }),
-    enabled: open,
-  })
-
+  const { data: clientsResponse } = useClients(0, 1000)
   const clients = clientsResponse?.content || []
 
   const form = useForm<z.infer<typeof orderSchema>>({
