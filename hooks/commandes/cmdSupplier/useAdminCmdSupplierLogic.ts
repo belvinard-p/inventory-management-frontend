@@ -71,8 +71,9 @@ export function useAdminCmdSupplierLogic() {
       toast.success("Commande créée avec succès")
       setIsCreateModalOpen(false)
     },
-    onError: () => {
-      toast.error("Erreur lors de la création de la commande")
+    onError: (error: any) => {
+      const errorMessage = error?.details?.errors?.error || error?.message || "Erreur lors de la création de la commande"
+      toast.error("Création impossible", { description: errorMessage })
     },
   })
 
