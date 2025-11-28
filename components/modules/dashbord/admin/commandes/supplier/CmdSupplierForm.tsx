@@ -29,8 +29,8 @@ const orderSchema = z.object({
     .min(3, "Le code doit contenir au moins 3 caractères")
     .max(50, "Le code ne peut pas dépasser 50 caractères")
     .regex(
-      /^SUP-\d{3}$|^SUP[A-Z]{3}$/,
-      "Le code doit être au format SUP-XXX (ex: SUP-123) ou SUPABC"
+      /^ORD-\d{3}$|^ORD[A-Z]{3}$/,
+      "Le code doit être au format ORD-XXX (ex: ORD-123) ou ORDABC"
     ),
   orderDate: z.string()
     .min(1, "La date de commande est requise")
@@ -167,7 +167,7 @@ export function CmdSupplierForm({
                       <FormControl>
                         <div className="relative">
                           <Input
-                            placeholder="SUP-123 ou SUPABC"
+                            placeholder="ORD-123 ou ORDABC"
                             {...field}
                             disabled={isLoading}
                             className={`h-10 pl-4 pr-10 bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60 ${form.formState.errors.code && form.formState.touchedFields.code
@@ -191,7 +191,7 @@ export function CmdSupplierForm({
                       <FormMessage />
                       {!form.formState.errors.code && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Format: SUP-123 (3 chiffres) ou SUPABC (3 lettres majuscules)
+                          Format: ORD-123 (3 chiffres) ou ORDABC (3 lettres majuscules)
                         </p>
                       )}
                     </FormItem>
