@@ -200,26 +200,15 @@ class ApiClient {
             }
           }
           
-          console.error('Erreur backend détaillée:', errorRes)
-          
           // Extraire le vrai message d'erreur pour l'affichage
           if (errorRes.errors) {
-            console.error('Détails de validation:', errorRes.errors)
             // Si c'est une erreur de validation avec un message spécifique
             if (errorRes.errors.error) {
               errorMessage = errorRes.errors.error
             }
-            // Log each validation error
-            Object.keys(errorRes.errors).forEach(field => {
-              console.error(`Validation error for ${field}:`, errorRes.errors[field])
-            })
-          }
-          if (errorRes.message) {
-            console.error('Message d\'erreur:', errorRes.message)
           }
         } catch {
           errorMessage = responseText || errorMessage
-          console.error('Réponse d\'erreur brute:', responseText)
         }
       }
       

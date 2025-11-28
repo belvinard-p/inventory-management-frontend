@@ -1,13 +1,13 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { ClientOrderResponse, OrderStatus } from "@/types/client/clientOrder"
+import { SupplierOrder, OrderStatus } from "@/types/supplier/supplierOrder"
 import { DataTableColumnHeader } from "../../company/DataTableColumnHeader"
-import { CmdClientDataTableRowActions } from "./CmdClientDataTableRowActions"
+import { CmdSupplierDataTableRowActions } from "./CmdSupplierDataTableRowActions"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CopyButton } from "@/components/ui/copy-button"
 import { Badge } from "@/components/ui/badge"
-import { User, Calendar, Package, MessageSquare } from "lucide-react"
+import { Truck, Calendar, Package, MessageSquare } from "lucide-react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { getStatusConfig } from "@/lib/orderStatusUtils"
@@ -24,7 +24,7 @@ export const createColumns = ({
   onUpdateStatus,
   onCancel,
   isLoading = false,
-}: ColumnsProps): ColumnDef<ClientOrderResponse>[] => [
+}: ColumnsProps): ColumnDef<SupplierOrder>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -70,17 +70,17 @@ export const createColumns = ({
     },
   },
   {
-    accessorKey: "clientName",
+    accessorKey: "supplierName",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Client" />
+      <DataTableColumnHeader column={column} title="Fournisseur" />
     ),
     cell: ({ row }) => {
-      const clientName = row.getValue("clientName") as string | undefined
-      const order = row.original as ClientOrderResponse
+      const supplierName = row.getValue("supplierName") as string | undefined
+      const order = row.original as SupplierOrder
       return (
         <div className="flex items-center gap-2">
-          <User className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{clientName || `Client #${order.clientId}`}</span>
+          <Truck className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">{supplierName || `Fournisseur #${order.supplierId}`}</span>
         </div>
       )
     },
@@ -117,12 +117,12 @@ export const createColumns = ({
     },
   },
   {
-    accessorKey: "orderClientLineList",
+    accessorKey: "supplierOrderLineList",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Articles" />
     ),
     cell: ({ row }) => {
-      const lines = row.getValue("orderClientLineList") as ClientOrderResponse["orderClientLineList"]
+      const lines = row.getValue("supplierOrderLineList") as SupplierOrder["supplierOrderLineList"]
       const lineCount = lines?.length || 0
       return (
         <Badge variant={lineCount > 0 ? "default" : "secondary"}>
@@ -155,7 +155,7 @@ export const createColumns = ({
   {
     id: "actions",
     cell: ({ row }) => (
-      <CmdClientDataTableRowActions 
+      <CmdSupplierDataTableRowActions 
         row={row} 
         onDelete={onDelete}
         onUpdateStatus={onUpdateStatus}

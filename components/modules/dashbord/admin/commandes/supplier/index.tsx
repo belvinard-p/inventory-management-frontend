@@ -1,0 +1,1 @@
+export { AdminCmdSupplier as AdminCmdSupplierPage } from './AdminCmdSupplier'

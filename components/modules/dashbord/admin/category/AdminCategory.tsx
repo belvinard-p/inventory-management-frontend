@@ -44,6 +44,7 @@ export function AdminCategory() {
   return (
     <AdminCategoryContent
       categories={displayData}
+      
       categoriesPaginated={categories ? { totalPages: categories.totalPages, totalElements: categories.totalElements } : null}
       currentPage={currentPage}
       setCurrentPage={setCurrentPage}

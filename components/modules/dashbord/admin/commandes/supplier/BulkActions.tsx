@@ -18,11 +18,11 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react"
-import { ClientOrderResponse, OrderStatus } from "@/types/client/clientOrder"
-import { enhancedToast } from "@/lib/toast-utils"
+import { SupplierOrder, OrderStatus } from "@/types/supplier/supplierOrder"
+import { toast } from "sonner"
 
 interface BulkActionsProps {
-  selectedOrders: ClientOrderResponse[]
+  selectedOrders: SupplierOrder[]
   onClearSelection: () => void
   onBulkDelete: (ids: number[]) => Promise<void>
   onBulkUpdateStatus: (ids: number[], status: OrderStatus) => Promise<void>
@@ -50,13 +50,13 @@ export function BulkActions({
       const ids = selectedOrders.map(order => order.id)
       await onBulkDelete(ids)
       
-      enhancedToast.success(`${selectedOrders.length} commande(s) supprimée(s)`, {
+      toast.success(`${selectedOrders.length} commande(s) supprimée(s)`, {
         description: "Les commandes sélectionnées ont été supprimées"
       })
       
       onClearSelection()
     } catch {
-      // Error already handled by apiClient via toast
+      toast.error("Erreur lors de la suppression")
     } finally {
       setIsProcessing(false)
     }
@@ -65,7 +65,7 @@ export function BulkActions({
   const handleBulkConfirm = async () => {
     const pendingOrders = selectedOrders.filter(o => o.stateOrder === "PENDING")
     if (pendingOrders.length === 0) {
-      enhancedToast.error("Aucune commande en attente", {
+      toast.error("Aucune commande en attente", {
         description: "Seules les commandes en attente peuvent être confirmées"
       })
       return
@@ -76,13 +76,13 @@ export function BulkActions({
       const ids = pendingOrders.map(order => order.id)
       await onBulkUpdateStatus(ids, OrderStatus.CONFIRMED)
       
-      enhancedToast.success(`${pendingOrders.length} commande(s) confirmée(s)`, {
+      toast.success(`${pendingOrders.length} commande(s) confirmée(s)`, {
         description: "Les commandes ont été confirmées avec succès"
       })
       
       onClearSelection()
     } catch {
-      // Error already handled
+      toast.error("Erreur lors de la confirmation")
     } finally {
       setIsProcessing(false)
     }
@@ -91,7 +91,7 @@ export function BulkActions({
   const handleBulkComplete = async () => {
     const confirmedOrders = selectedOrders.filter(o => o.stateOrder === "CONFIRMED")
     if (confirmedOrders.length === 0) {
-      enhancedToast.error("Aucune commande confirmée", {
+      toast.error("Aucune commande confirmée", {
         description: "Seules les commandes confirmées peuvent être complétées"
       })
       return
@@ -102,13 +102,13 @@ export function BulkActions({
       const ids = confirmedOrders.map(order => order.id)
       await onBulkUpdateStatus(ids, OrderStatus.COMPLETED)
       
-      enhancedToast.success(`${confirmedOrders.length} commande(s) complétée(s)`, {
+      toast.success(`${confirmedOrders.length} commande(s) complétée(s)`, {
         description: "Les commandes ont été marquées comme complétées"
       })
       
       onClearSelection()
     } catch {
-      // Error already handled
+      toast.error("Erreur lors de la completion")
     } finally {
       setIsProcessing(false)
     }
@@ -120,7 +120,7 @@ export function BulkActions({
     )
     
     if (cancelableOrders.length === 0) {
-      enhancedToast.error("Aucune commande annulable", {
+      toast.error("Aucune commande annulable", {
         description: "Les commandes complétées ou déjà annulées ne peuvent pas être annulées"
       })
       return
@@ -135,13 +135,13 @@ export function BulkActions({
       const ids = cancelableOrders.map(order => order.id)
       await onBulkCancel(ids)
       
-      enhancedToast.success(`${cancelableOrders.length} commande(s) annulée(s)`, {
+      toast.success(`${cancelableOrders.length} commande(s) annulée(s)`, {
         description: "Les commandes ont été annulées"
       })
       
       onClearSelection()
     } catch {
-      // Error already handled
+      toast.error("Erreur lors de l'annulation")
     } finally {
       setIsProcessing(false)
     }
@@ -149,15 +149,13 @@ export function BulkActions({
 
   const handleExportCSV = () => {
     const csvContent = [
-      // En-têtes
-      ["Code", "Client", "Date", "Statut", "Articles", "Commentaires"].join(","),
-      // Données
+      ["Code", "Fournisseur", "Date", "Statut", "Articles", "Commentaires"].join(","),
       ...selectedOrders.map(order => [
         `"${order.code}"`,
-        `"${order.clientName || `Client #${order.clientId}`}"`,
+        `"${order.supplierName || `Fournisseur #${order.supplierId}`}"`,
         `"${new Date(order.orderDate).toLocaleDateString('fr-FR')}"`,
         `"${order.stateOrder}"`,
-        (order.orderClientLineList?.length || 0).toString(),
+        (order.supplierOrderLineList?.length || 0).toString(),
         `"${order.comments || ''}"`
       ].join(","))
     ].join("\n")
@@ -166,13 +164,13 @@ export function BulkActions({
     const link = document.createElement("a")
     const url = URL.createObjectURL(blob)
     link.setAttribute("href", url)
-    link.setAttribute("download", `commandes_${new Date().toISOString().split('T')[0]}.csv`)
+    link.setAttribute("download", `commandes_fournisseur_${new Date().toISOString().split('T')[0]}.csv`)
     link.style.visibility = "hidden"
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
 
-    enhancedToast.success("Export réussi", {
+    toast.success("Export réussi", {
       description: `${selectedOrders.length} commande(s) exportée(s) en CSV`
     })
   }

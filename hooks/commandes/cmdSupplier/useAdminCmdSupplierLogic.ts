@@ -4,20 +4,20 @@ import { useState, useEffect, useMemo } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/useAuth"
 import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
-import { clientOrderService } from "@/service/client/clientOrderService"
-import { clientService } from "@/service/client/clientService"
-import type { ClientOrderResponse, ClientOrderRequest, OrderStatus } from "@/types/client/clientOrder"
-import { calculateClientOrderStats } from "@/lib/orderStatusUtils"
+import { supplierOrderService } from "@/service/supplier/supplierOrderService"
+import { SupplierOrder, SupplierOrderRequest, OrderStatus } from "@/types/supplier/supplierOrder"
+import { SupplierOrdersCacheKeys } from "@/lib/const"
+import { calculateOrderStats } from "@/lib/orderStatusUtils"
 import { toast } from "sonner"
 
-export function useAdminCmdClientLogic() {
+export function useAdminCmdSupplierLogic() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading, accessToken } = useAuth()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [editingOrder, setEditingOrder] = useState<ClientOrderResponse | null>(null)
+  const [editingOrder, setEditingOrder] = useState<SupplierOrder | null>(null)
   const [mounted, setMounted] = useState(false)
-  const [filteredOrders, setFilteredOrders] = useState<ClientOrderResponse[]>([])
+  const [filteredOrders, setFilteredOrders] = useState<SupplierOrder[]>([])
   const [hasFilter, setHasFilter] = useState(false)
-  const [selectedOrders, setSelectedOrders] = useState<ClientOrderResponse[]>([])
+  const [selectedOrders, setSelectedOrders] = useState<SupplierOrder[]>([])
   const [currentPage, setCurrentPage] = useState(0)
   
   const pageSize = 10
@@ -26,49 +26,62 @@ export function useAdminCmdClientLogic() {
   const queryClient = useQueryClient()
 
   const { data: orders = [], isLoading, isError } = useQuery({
-    queryKey: ["clientOrders", currentPage, pageSize],
+    queryKey: [SupplierOrdersCacheKeys.SupplierOrders, currentPage, pageSize],
     queryFn: async () => {
-      const orders = await clientOrderService.getAllOrders()
+      const orders = await supplierOrderService.getAllOrders()
       
-      const uniqueClientIds = [...new Set(orders.map((o: any) => o.clientId))]
-      const clientNames = await Promise.all(
-        uniqueClientIds.map(async (clientId: number) => {
-          const client = await clientService.getById(clientId)
-          return { id: clientId, name: client.name }
+      const validSupplierIds = [...new Set(orders.map((o: any) => o.supplierId).filter(id => id != null && id !== undefined))]
+      
+      if (validSupplierIds.length === 0) {
+        return orders.map((order: any) => ({ ...order, supplierName: null }))
+      }
+      
+      const { supplierService } = await import("@/service/supplier/supplierService")
+      const supplierNames = await Promise.all(
+        validSupplierIds.map(async (supplierId: number) => {
+          try {
+            const supplier = await supplierService.getById(supplierId)
+            return { id: supplierId, name: supplier.name }
+          } catch {
+            return { id: supplierId, name: null }
+          }
         })
       )
       
-      const clientNameMap = new Map(clientNames.map(c => [c.id, c.name]))
+      const supplierNameMap = new Map(supplierNames.map(s => [s.id, s.name]))
       
       return orders.map((order: any) => ({
         ...order,
-        clientName: clientNameMap.get(order.clientId)
+        supplierName: supplierNameMap.get(order.supplierId)
       }))
     },
     staleTime: 5 * 60 * 1000,
-    enabled: hasPermission && !!accessToken
+    enabled: hasPermission && !!accessToken,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true
   })
 
   const ordersData = Array.isArray(orders) ? orders : []
   const displayData = hasFilter ? filteredOrders : ordersData
 
   const createMutation = useMutation({
-    mutationFn: (data: ClientOrderRequest) => clientOrderService.create(data),
+    mutationFn: (data: SupplierOrderRequest) => supplierOrderService.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
+      queryClient.invalidateQueries({ queryKey: [SupplierOrdersCacheKeys.SupplierOrders] })
       toast.success("Commande créée avec succès")
       setIsCreateModalOpen(false)
     },
-    onError: () => {
-      toast.error("Erreur lors de la création de la commande")
+    onError: (error: any) => {
+      const errorMessage = error?.details?.errors?.error || error?.message || "Erreur lors de la création de la commande"
+      toast.error("Création impossible", { description: errorMessage })
     },
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ClientOrderRequest }) =>
-      clientOrderService.update(id, data),
+    mutationFn: ({ id, data }: { id: number; data: SupplierOrderRequest }) =>
+      supplierOrderService.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
+      queryClient.invalidateQueries({ queryKey: [SupplierOrdersCacheKeys.SupplierOrders] })
       toast.success("Commande mise à jour avec succès")
       setEditingOrder(null)
     },
@@ -78,9 +91,9 @@ export function useAdminCmdClientLogic() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => clientOrderService.delete(id),
+    mutationFn: (id: number) => supplierOrderService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
+      queryClient.invalidateQueries({ queryKey: [SupplierOrdersCacheKeys.SupplierOrders] })
       toast.success("Commande supprimée avec succès")
     },
     onError: () => {
@@ -90,9 +103,9 @@ export function useAdminCmdClientLogic() {
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: OrderStatus }) =>
-      clientOrderService.updateOrderStatus(id, status),
+      supplierOrderService.updateOrderStatus(id, status),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
+      queryClient.invalidateQueries({ queryKey: [SupplierOrdersCacheKeys.SupplierOrders] })
       toast.success("Statut mis à jour avec succès")
     },
     onError: () => {
@@ -101,9 +114,9 @@ export function useAdminCmdClientLogic() {
   })
 
   const cancelMutation = useMutation({
-    mutationFn: (id: number) => clientOrderService.cancelOrder(id),
+    mutationFn: (id: number) => supplierOrderService.cancelOrder(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
+      queryClient.invalidateQueries({ queryKey: [SupplierOrdersCacheKeys.SupplierOrders] })
       toast.success("Commande annulée avec succès")
     },
     onError: () => {
@@ -127,7 +140,7 @@ export function useAdminCmdClientLogic() {
     }
   }, [ordersData, filteredOrders.length, hasFilter])
 
-  const handleEditOrder = (order: ClientOrderResponse) => {
+  const handleEditOrder = (order: SupplierOrder) => {
     if (!accessToken) {
       toast.error("Session expirée", { description: "Veuillez vous reconnecter" })
       return
@@ -148,19 +161,21 @@ export function useAdminCmdClientLogic() {
     if (!ordersData || ordersData.length === 0) {
       return { total: 0, pending: 0, confirmed: 0, completed: 0, cancelled: 0 }
     }
-    return calculateClientOrderStats(ordersData)
+    return calculateOrderStats(ordersData)
   }, [ordersData])
 
-  const handleFormSubmit = async (data: ClientOrderRequest) => {
+  const handleFormSubmit = async (data: SupplierOrderRequest) => {
     if (editingOrder) {
       await updateMutation.mutateAsync({ id: editingOrder.id, data })
     } else {
       await createMutation.mutateAsync(data)
     }
   }
+
   const handleDelete = async (id: number) => {
     await deleteMutation.mutateAsync(id)
   }
+
   const handleUpdateStatus = async (id: number, status: OrderStatus) => {
     await updateStatusMutation.mutateAsync({ id, status })
   }
@@ -196,7 +211,7 @@ export function useAdminCmdClientLogic() {
     ordersData,
     displayData,
     stats,
-    orders: { totalPages: 1, totalElements: ordersData.length }, // Simplified pagination
+    orders: { totalPages: 1, totalElements: ordersData.length },
     isLoading: isLoading || deleteMutation.isPending || updateStatusMutation.isPending || cancelMutation.isPending,
     isError,
     currentPage,

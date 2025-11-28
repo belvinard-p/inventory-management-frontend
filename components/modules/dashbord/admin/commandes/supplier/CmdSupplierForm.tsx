@@ -17,12 +17,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Check, X, Package, ChevronsUpDown } from "lucide-react"
-import { ClientOrderResponse, ClientOrderRequest } from "@/types/client/clientOrder"
-import { useCreateCmdClient, useUpdateCmdClient } from "@/hooks/commandes/cmdClient/useCmdClient"
-import { useClients } from "@/hooks/client/useClient"
+import { SupplierOrder, SupplierOrderRequest } from "@/types/supplier/supplierOrder"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
+import { useCreateSupplierOrder, useUpdateSupplierOrder } from "@/hooks/commandes/cmdSupplier/useSupplierOrder"
+import { useSuppliers } from "@/hooks/supplier/useSupplier"
 
 const orderSchema = z.object({
   code: z.string()
@@ -35,44 +35,42 @@ const orderSchema = z.object({
   orderDate: z.string()
     .min(1, "La date de commande est requise")
     .transform((val) => {
-
       if (val.includes('/')) {
         const date = new Date(val)
         return date.toISOString().split('T')[0]
       }
       return val
     }),
-  clientId: z.number().min(1, "Veuillez sélectionner un client"),
+  supplierId: z.number().min(1, "Veuillez sélectionner un fournisseur"),
   comments: z.string()
     .max(500, "Les commentaires ne peuvent pas dépasser 500 caractères")
     .optional()
     .or(z.literal("")),
 })
 
-interface CmdClientFormProps {
+interface CmdSupplierFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  order?: ClientOrderResponse | null
+  order?: SupplierOrder | null
   mode?: 'create' | 'edit'
 }
 
-export function CmdClientForm({
+export function CmdSupplierForm({
   open,
   onOpenChange,
   order,
   mode = 'create'
-}: CmdClientFormProps) {
+}: CmdSupplierFormProps) {
   const isEditMode = mode === 'edit' && order
 
-  const createMutation = useCreateCmdClient()
-  const updateMutation = useUpdateCmdClient()
+  const createMutation = useCreateSupplierOrder()
+  const updateMutation = useUpdateSupplierOrder()
 
   const isLoading = createMutation.isPending || updateMutation.isPending
 
   const [openCombobox, setOpenCombobox] = useState(false)
 
-  const { data: clientsResponse } = useClients(0, 1000)
-  const clients = clientsResponse?.content || []
+  const { data: suppliers = [] } = useSuppliers()
 
   const form = useForm<z.infer<typeof orderSchema>>({
     resolver: zodResolver(orderSchema),
@@ -80,7 +78,7 @@ export function CmdClientForm({
     defaultValues: {
       code: "",
       orderDate: new Date().toISOString().split('T')[0],
-      clientId: 0,
+      supplierId: 0,
       comments: "",
     },
   })
@@ -91,14 +89,14 @@ export function CmdClientForm({
         form.reset({
           code: order.code || "",
           orderDate: order.orderDate ? new Date(order.orderDate).toISOString().split('T')[0] : "",
-          clientId: order.clientId || 0,
+          supplierId: order.supplierId || 0,
           comments: order.comments || "",
         })
       } else {
         form.reset({
           code: "",
           orderDate: new Date().toISOString().split('T')[0],
-          clientId: 0,
+          supplierId: 0,
           comments: "",
         })
       }
@@ -107,27 +105,24 @@ export function CmdClientForm({
 
   const watchedValues = form.watch()
   const isFormValid = form.formState.isValid
-  const hasRequiredFields = watchedValues.code && watchedValues.orderDate && watchedValues.clientId > 0
+  const hasRequiredFields = watchedValues.code && watchedValues.orderDate && watchedValues.supplierId > 0
 
   const isSubmitDisabled = !isFormValid || !hasRequiredFields || isLoading
 
   async function handleSubmit(data: z.infer<typeof orderSchema>) {
-
     let formattedDate = data.orderDate
     if (formattedDate.includes('/')) {
       const date = new Date(formattedDate)
       formattedDate = date.toISOString().split('T')[0]
     }
 
-    const orderData: ClientOrderRequest = {
+    const orderData: SupplierOrderRequest = {
       code: data.code,
       orderDate: formattedDate,
-      clientId: data.clientId,
+      supplierId: data.supplierId,
       comments: data.comments || undefined,
-      stateOrder: isEditMode && order ? order.stateOrder : "pending",
+      stateOrder: isEditMode && order ? order.stateOrder : "PENDING",
     }
-
-    console.log('Sending order data:', orderData)
 
     try {
       if (isEditMode && order) {
@@ -138,7 +133,6 @@ export function CmdClientForm({
       form.reset()
       onOpenChange(false)
     } catch (error) {
-
       console.error('Error creating/updating order:', error)
     }
   }
@@ -149,12 +143,12 @@ export function CmdClientForm({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            {isEditMode ? "Modifier la commande" : 'Créer une commande'}
+            {isEditMode ? "Modifier la commande fournisseur" : 'Créer une commande fournisseur'}
           </DialogTitle>
           <DialogDescription>
             {isEditMode
-              ? "Modifiez les informations de la commande."
-              : 'Ajoutez une nouvelle commande client au système.'
+              ? "Modifiez les informations de la commande fournisseur."
+              : 'Ajoutez une nouvelle commande fournisseur au système.'
             }
           </DialogDescription>
         </DialogHeader>
@@ -244,13 +238,13 @@ export function CmdClientForm({
 
               <FormField
                 control={form.control}
-                name="clientId"
+                name="supplierId"
                 render={({ field }) => {
-                  const selectedClient = clients.find((c: { id: number }) => c.id === field.value)
+                  const selectedSupplier = suppliers.find((s: { id: number; name: string; phoneNumber?: string }) => s.id === field.value)
                   return (
                     <FormItem className="group flex flex-col">
                       <FormLabel className="text-sm font-medium text-foreground/80 group-focus-within:text-primary transition-colors">
-                        Client
+                        Fournisseur
                       </FormLabel>
                       <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
                         <PopoverTrigger asChild>
@@ -261,43 +255,43 @@ export function CmdClientForm({
                               disabled={isLoading}
                               className={cn(
                                 "h-10 w-full justify-between bg-background/50 border-2 transition-all duration-300 rounded-lg hover:border-border/60",
-                                form.formState.errors.clientId && form.formState.touchedFields.clientId
+                                form.formState.errors.supplierId && form.formState.touchedFields.supplierId
                                   ? "border-red-400 focus:border-red-500 bg-red-50/50"
-                                  : field.value > 0 && !form.formState.errors.clientId
+                                  : field.value > 0 && !form.formState.errors.supplierId
                                     ? "border-green-400 focus:border-green-500 bg-green-50/50"
                                     : "border-border/40 focus:border-primary/60 focus:bg-background",
                                 !field.value && "text-muted-foreground"
                               )}
                             >
-                              {selectedClient
-                                ? `${selectedClient.name} - ${selectedClient.email}`
-                                : "Rechercher un client..."}
+                              {selectedSupplier
+                                ? `${selectedSupplier.name}${selectedSupplier.phoneNumber ? ` - ${selectedSupplier.phoneNumber}` : ''}`
+                                : "Rechercher un fournisseur..."}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[99999]" align="start">
                           <Command>
-                            <CommandInput placeholder="Rechercher un client..." />
+                            <CommandInput placeholder="Rechercher un fournisseur..." />
                             <CommandList>
-                              <CommandEmpty>Aucun client trouvé.</CommandEmpty>
+                              <CommandEmpty>Aucun fournisseur trouvé.</CommandEmpty>
                               <CommandGroup>
-                                {clients.map((client: { id: number; name: string; email: string }) => (
+                                {suppliers.map((supplier: { id: number; name: string; phoneNumber?: string }) => (
                                   <CommandItem
-                                    key={client.id}
-                                    value={`${client.name} ${client.email}`}
+                                    key={supplier.id}
+                                    value={`${supplier.name} ${supplier.phoneNumber || ''}`}
                                     onSelect={() => {
-                                      field.onChange(client.id)
+                                      field.onChange(supplier.id)
                                       setOpenCombobox(false)
                                     }}
                                   >
                                     <Check
                                       className={cn(
                                         "mr-2 h-4 w-4",
-                                        client.id === field.value ? "opacity-100" : "opacity-0"
+                                        supplier.id === field.value ? "opacity-100" : "opacity-0"
                                       )}
                                     />
-                                    {client.name} - {client.email}
+                                    {supplier.name}{supplier.phoneNumber ? ` - ${supplier.phoneNumber}` : ''}
                                   </CommandItem>
                                 ))}
                               </CommandGroup>
