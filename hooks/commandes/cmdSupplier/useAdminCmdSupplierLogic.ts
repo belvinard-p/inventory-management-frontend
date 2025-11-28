@@ -27,7 +27,34 @@ export function useAdminCmdSupplierLogic() {
 
   const { data: orders = [], isLoading, isError } = useQuery({
     queryKey: [SupplierOrdersCacheKeys.SupplierOrders, currentPage, pageSize],
-    queryFn: () => supplierOrderService.getAllOrders(),
+    queryFn: async () => {
+      const orders = await supplierOrderService.getAllOrders()
+      
+      const validSupplierIds = [...new Set(orders.map((o: any) => o.supplierId).filter(id => id != null && id !== undefined))]
+      
+      if (validSupplierIds.length === 0) {
+        return orders.map((order: any) => ({ ...order, supplierName: null }))
+      }
+      
+      const { supplierService } = await import("@/service/supplier/supplierService")
+      const supplierNames = await Promise.all(
+        validSupplierIds.map(async (supplierId: number) => {
+          try {
+            const supplier = await supplierService.getById(supplierId)
+            return { id: supplierId, name: supplier.name }
+          } catch {
+            return { id: supplierId, name: null }
+          }
+        })
+      )
+      
+      const supplierNameMap = new Map(supplierNames.map(s => [s.id, s.name]))
+      
+      return orders.map((order: any) => ({
+        ...order,
+        supplierName: supplierNameMap.get(order.supplierId)
+      }))
+    },
     staleTime: 5 * 60 * 1000,
     enabled: hasPermission && !!accessToken,
     refetchOnWindowFocus: false,
