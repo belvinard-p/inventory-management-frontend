@@ -21,6 +21,7 @@ import { Package, Info, AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 import { toast } from "sonner"
+import { ORDER_STATUS_CONFIG } from "@/lib/orderStatusUtils"
 
 interface CmdSupplierStatusDialogProps {
     order: SupplierOrder
@@ -30,34 +31,11 @@ interface CmdSupplierStatusDialogProps {
     isLoading?: boolean
 }
 
-interface StatusOption {
-    value: OrderStatus
-    label: string
-    variant: "default" | "secondary" | "destructive" | "outline"
-}
-
-const STATUS_OPTIONS: StatusOption[] = [
-    {
-        value: OrderStatus.PENDING,
-        label: "En attente",
-        variant: "secondary",
-    },
-    {
-        value: OrderStatus.CONFIRMED,
-        label: "Confirmée",
-        variant: "default",
-    },
-    {
-        value: OrderStatus.COMPLETED,
-        label: "Complétée",
-        variant: "outline",
-    },
-    {
-        value: OrderStatus.CANCELLED,
-        label: "Annulée",
-        variant: "destructive",
-    },
-]
+const STATUS_OPTIONS = Object.entries(ORDER_STATUS_CONFIG).map(([value, config]) => ({
+    value: value as OrderStatus,
+    label: config.label,
+    variant: config.variant
+}))
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
     [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],

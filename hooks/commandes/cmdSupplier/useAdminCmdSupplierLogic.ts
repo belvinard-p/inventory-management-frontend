@@ -7,6 +7,7 @@ import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
 import { supplierOrderService } from "@/service/supplier/supplierOrderService"
 import { SupplierOrder, SupplierOrderRequest, OrderStatus } from "@/types/supplier/supplierOrder"
 import { SupplierOrdersCacheKeys } from "@/lib/const"
+import { calculateOrderStats } from "@/lib/orderStatusUtils"
 import { toast } from "sonner"
 
 export function useAdminCmdSupplierLogic() {
@@ -28,7 +29,9 @@ export function useAdminCmdSupplierLogic() {
     queryKey: [SupplierOrdersCacheKeys.SupplierOrders, currentPage, pageSize],
     queryFn: () => supplierOrderService.getAllOrders(),
     staleTime: 5 * 60 * 1000,
-    enabled: hasPermission && !!accessToken
+    enabled: hasPermission && !!accessToken,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true
   })
 
   const ordersData = Array.isArray(orders) ? orders : []
@@ -127,12 +130,10 @@ export function useAdminCmdSupplierLogic() {
   const clearSelection = () => setSelectedOrders([])
 
   const stats = useMemo(() => {
-    const total = ordersData.length
-    const pending = ordersData.filter((o) => o.stateOrder === "PENDING").length
-    const confirmed = ordersData.filter((o) => o.stateOrder === "CONFIRMED").length
-    const completed = ordersData.filter((o) => o.stateOrder === "COMPLETED").length
-
-    return { total, pending, confirmed, completed }
+    if (!ordersData || ordersData.length === 0) {
+      return { total: 0, pending: 0, confirmed: 0, completed: 0, cancelled: 0 }
+    }
+    return calculateOrderStats(ordersData)
   }, [ordersData])
 
   const handleFormSubmit = async (data: SupplierOrderRequest) => {

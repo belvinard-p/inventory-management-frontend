@@ -7,6 +7,7 @@ import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
 import { clientOrderService } from "@/service/client/clientOrderService"
 import { clientService } from "@/service/client/clientService"
 import type { ClientOrderResponse, ClientOrderRequest, OrderStatus } from "@/types/client/clientOrder"
+import { calculateClientOrderStats } from "@/lib/orderStatusUtils"
 import { toast } from "sonner"
 
 export function useAdminCmdClientLogic() {
@@ -143,14 +144,11 @@ export function useAdminCmdClientLogic() {
 
   const clearSelection = () => setSelectedOrders([])
 
-  // Calculate statistics
   const stats = useMemo(() => {
-    const total = ordersData.length
-    const pending = ordersData.filter((o) => o.stateOrder === "PENDING").length
-    const confirmed = ordersData.filter((o) => o.stateOrder === "CONFIRMED").length
-    const completed = ordersData.filter((o) => o.stateOrder === "COMPLETED").length
-
-    return { total, pending, confirmed, completed }
+    if (!ordersData || ordersData.length === 0) {
+      return { total: 0, pending: 0, confirmed: 0, completed: 0, cancelled: 0 }
+    }
+    return calculateClientOrderStats(ordersData)
   }, [ordersData])
 
   const handleFormSubmit = async (data: ClientOrderRequest) => {

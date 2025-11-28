@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Truck, Calendar, Package, MessageSquare } from "lucide-react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
+import { getStatusConfig } from "@/lib/orderStatusUtils"
 
 interface ColumnsProps {
   onDelete: (id: number) => Promise<void>
@@ -108,13 +109,7 @@ export const createColumns = ({
     ),
     cell: ({ row }) => {
       const status = row.getValue("stateOrder") as string
-      const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-        PENDING: { label: "En attente", variant: "secondary" },
-        CONFIRMED: { label: "Confirmée", variant: "default" },
-        COMPLETED: { label: "Complétée", variant: "outline" },
-        CANCELLED: { label: "Annulée", variant: "destructive" },
-      }
-      const config = statusConfig[status] || { label: status, variant: "outline" }
+      const config = getStatusConfig(status)
       return <Badge variant={config.variant}>{config.label}</Badge>
     },
     filterFn: (row, id, value) => {

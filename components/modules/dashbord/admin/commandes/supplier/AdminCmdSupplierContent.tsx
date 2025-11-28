@@ -200,25 +200,25 @@ export function AdminCmdSupplierContent({
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard 
           title="Total" 
-          value={stats.total} 
+          value={stats?.total || 0} 
           icon={<Package className="h-4 w-4 text-primary" />}
           colorClass="primary"
         />
         <StatsCard 
           title="En Attente" 
-          value={stats.pending} 
+          value={stats?.pending || 0} 
           icon={<Clock className="h-4 w-4 text-yellow-600" />}
           colorClass="yellow-600"
         />
         <StatsCard 
           title="Confirmées" 
-          value={stats.confirmed} 
+          value={stats?.confirmed || 0} 
           icon={<CheckCircle className="h-4 w-4 text-blue-600" />}
           colorClass="blue-600"
         />
         <StatsCard 
           title="Complétées" 
-          value={stats.completed} 
+          value={stats?.completed || 0} 
           icon={<TrendingUp className="h-4 w-4 text-green-600" />}
           colorClass="green-600"
         />
