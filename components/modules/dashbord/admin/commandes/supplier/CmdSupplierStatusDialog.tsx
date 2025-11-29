@@ -74,7 +74,7 @@ export function CmdSupplierStatusDialog({
     onStatusChange,
     isLoading = false,
 }: CmdSupplierStatusDialogProps) {
-    const [selectedStatus, setSelectedStatus] = useState<string>(order.stateOrder)
+    const [selectedStatus, setSelectedStatus] = useState<string>(order.stateOrder?.toUpperCase() || "")
     const [isUpdating, setIsUpdating] = useState(false)
 
     const currentStatus = order.stateOrder?.toUpperCase() as OrderStatus
@@ -108,7 +108,7 @@ export function CmdSupplierStatusDialog({
         return allowedStatuses.includes(status)
     }
 
-    const hasChanges = selectedStatus !== currentStatus
+    const hasChanges = selectedStatus !== currentStatus && selectedStatus !== order.stateOrder
     const isSelectedStatusAllowed = isStatusAllowed(selectedStatus as OrderStatus)
 
     return (
