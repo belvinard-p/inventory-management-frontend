@@ -62,7 +62,16 @@ export function useAdminCmdSupplierLogic() {
   })
 
   const ordersData = Array.isArray(orders) ? orders : []
-  const displayData = hasFilter ? filteredOrders : ordersData
+  const allFilteredData = hasFilter ? filteredOrders : ordersData
+  
+  const totalPages = Math.ceil(allFilteredData.length / pageSize)
+  const displayData = allFilteredData.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
+  
+  useEffect(() => {
+    if (currentPage >= totalPages && totalPages > 0) {
+      setCurrentPage(0)
+    }
+  }, [totalPages, currentPage])
 
   const createMutation = useMutation({
     mutationFn: (data: SupplierOrderRequest) => supplierOrderService.create(data),
@@ -211,7 +220,7 @@ export function useAdminCmdSupplierLogic() {
     ordersData,
     displayData,
     stats,
-    orders: { totalPages: 1, totalElements: ordersData.length },
+    orders: { totalPages, totalElements: allFilteredData.length },
     isLoading: isLoading || deleteMutation.isPending || updateStatusMutation.isPending || cancelMutation.isPending,
     isError,
     currentPage,
