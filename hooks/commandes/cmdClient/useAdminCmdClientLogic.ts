@@ -68,8 +68,8 @@ export function useAdminCmdClientLogic() {
       toast.success("Commande créée avec succès")
       setIsCreateModalOpen(false)
     },
-    onError: () => {
-      toast.error("Erreur lors de la création de la commande")
+    onError: (error) => {
+      toast.error("Erreur lors de la création de la commande", { description: error.message })
     },
   })
 
@@ -81,8 +81,8 @@ export function useAdminCmdClientLogic() {
       toast.success("Commande mise à jour avec succès")
       setEditingOrder(null)
     },
-    onError: () => {
-      toast.error("Erreur lors de la mise à jour de la commande")
+    onError: (error) => {
+      toast.error("Erreur lors de la mise à jour de la commande", { description: error.message })
     },
   })
 
@@ -92,8 +92,8 @@ export function useAdminCmdClientLogic() {
       queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
       toast.success("Commande supprimée avec succès")
     },
-    onError: () => {
-      toast.error("Erreur lors de la suppression de la commande")
+    onError: (error) => {
+      toast.error("Erreur lors de la suppression de la commande", { description: error.message })
     },
   })
 
@@ -104,8 +104,8 @@ export function useAdminCmdClientLogic() {
       queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
       toast.success("Statut mis à jour avec succès")
     },
-    onError: () => {
-      toast.error("Erreur lors de la mise à jour du statut")
+    onError: (error) => {
+      toast.error("Erreur lors de la mise à jour du statut", { description: error.message })
     },
   })
 
@@ -115,8 +115,8 @@ export function useAdminCmdClientLogic() {
       queryClient.invalidateQueries({ queryKey: ["clientOrders"] })
       toast.success("Commande annulée avec succès")
     },
-    onError: () => {
-      toast.error("Erreur lors de l'annulation de la commande")
+    onError: (error) => {
+      toast.error("Erreur lors de l'annulation de la commande", { description: error.message })
     },
   })
 
