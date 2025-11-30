@@ -17,6 +17,19 @@ export const supplierService = {
         })
     },
 
+    getAllPaginated: async (pageNumber: number, pageSize: number): Promise<{
+        content: Supplier[]
+        totalElements: number
+        totalPages: number
+        size: number
+        number: number
+    }> => {
+        console.log(`SupplierService - Getting paginated suppliers: page ${pageNumber}, size ${pageSize}`)
+        return apiClient.get(`${BASE_URL}/all?pageNumber=${pageNumber}&pageSize=${pageSize}`, {
+            showErrorToast: false
+        })
+    },
+
     getById: async (id: number): Promise<Supplier> => {
         return apiClient.get<Supplier>(`${BASE_URL}/${id}`)
     },

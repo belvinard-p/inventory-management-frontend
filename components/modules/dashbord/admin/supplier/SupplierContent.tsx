@@ -11,6 +11,14 @@ import { DataTable } from "../company/DataTable"
 import { columns } from "./Columns"
 import { EmptyState } from "@/components/global"
 import { SupplierForm } from "./SupplierForm"
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination"
 import type { Supplier } from "@/types/supplier/supplier"
 
 interface StatsCardProps {
@@ -31,7 +39,8 @@ interface AdminSupplierContentProps {
         readonly withPhone: number
         readonly withoutPhone: number
     }
-    readonly suppliers: Supplier[] | null | undefined
+    readonly suppliers: { totalPages: number; totalElements: number } | null | undefined
+    readonly currentPage: number
     readonly selectedSuppliers: Supplier[]
     readonly isCreateModalOpen: boolean
     readonly editingSupplier: Supplier | null
@@ -41,6 +50,7 @@ interface AdminSupplierContentProps {
     readonly handleEditSupplier: (supplier: Supplier) => void
     readonly handleRowSelectionChange: (selection: unknown) => void
     readonly clearSelection: () => void
+    readonly setCurrentPage: (page: number) => void
     readonly setEditingSupplier: (supplier: Supplier | null) => void
 }
 
@@ -60,11 +70,74 @@ function StatsCard({ title, value, icon, colorClass }: StatsCardProps) {
     )
 }
 
+function PaginationComponent({ suppliers, currentPage, setCurrentPage }: {
+    readonly suppliers: { totalPages: number; totalElements: number } | null | undefined
+    readonly currentPage: number
+    readonly setCurrentPage: (page: number) => void
+}) {
+    if (!suppliers || suppliers.totalPages <= 1) return null
+
+    return (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+                <span className="hidden sm:inline">Page {currentPage + 1} sur {suppliers.totalPages} ({suppliers.totalElements} fournisseurs)</span>
+                <span className="sm:hidden">{currentPage + 1}/{suppliers.totalPages}</span>
+            </div>
+            <Pagination>
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious 
+                            onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                            className={currentPage === 0 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            size="default"
+                        />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: Math.min(suppliers.totalPages, 5) }, (_, i) => {
+                        let pageIndex = i
+                        if (suppliers.totalPages > 5) {
+                            if (currentPage < 3) {
+                                pageIndex = i
+                            } else if (currentPage > suppliers.totalPages - 4) {
+                                pageIndex = suppliers.totalPages - 5 + i
+                            } else {
+                                pageIndex = currentPage - 2 + i
+                            }
+                        }
+                        
+                        return (
+                            <PaginationItem key={pageIndex}>
+                                <PaginationLink
+                                    onClick={() => setCurrentPage(pageIndex)}
+                                    isActive={currentPage === pageIndex}
+                                    className="cursor-pointer"
+                                >
+                                    {pageIndex + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        )
+                    })}
+                    
+                    <PaginationItem>
+                        <PaginationNext 
+                            onClick={() => setCurrentPage(Math.min(suppliers.totalPages - 1, currentPage + 1))}
+                            className={currentPage === suppliers.totalPages - 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            size="default"
+                        />
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        </div>
+    )
+}
+
 export function AdminSupplierContent({
     currentUser,
     suppliersData,
     displayData,
     stats,
+    suppliers,
+    currentPage,
     selectedSuppliers,
     isCreateModalOpen,
     editingSupplier,
@@ -74,6 +147,7 @@ export function AdminSupplierContent({
     handleEditSupplier,
     handleRowSelectionChange,
     clearSelection,
+    setCurrentPage,
     setEditingSupplier
 }: AdminSupplierContentProps) {
     const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
@@ -176,6 +250,12 @@ export function AdminSupplierContent({
                             </SupplierProvider>
                         )}
                     </div>
+                    
+                    <PaginationComponent 
+                        suppliers={suppliers}
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                    />
                 </CardContent>
             </Card>
 
