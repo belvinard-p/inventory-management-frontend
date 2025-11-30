@@ -31,13 +31,13 @@ export function CmdSupplierSearch({
     const filtered = data.filter(order => {
       switch (value) {
         case "pending":
-          return order.stateOrder === "PENDING"
+          return order.stateOrder?.toUpperCase() === "PENDING"
         case "confirmed":
-          return order.stateOrder === "CONFIRMED"
+          return order.stateOrder?.toUpperCase() === "CONFIRMED"
         case "completed":
-          return order.stateOrder === "COMPLETED"
+          return order.stateOrder?.toUpperCase() === "COMPLETED"
         case "cancelled":
-          return order.stateOrder === "CANCELLED"
+          return order.stateOrder?.toUpperCase() === "CANCELLED"
         case "with-lines":
           return order.supplierOrderLineList && order.supplierOrderLineList.length > 0
         case "without-lines":

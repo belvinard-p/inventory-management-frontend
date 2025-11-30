@@ -31,17 +31,40 @@ interface CmdSupplierStatusDialogProps {
     isLoading?: boolean
 }
 
-const STATUS_OPTIONS = Object.entries(ORDER_STATUS_CONFIG).map(([value, config]) => ({
-    value: value as OrderStatus,
-    label: config.label,
-    variant: config.variant
-}))
+interface StatusOption {
+    value: OrderStatus
+    label: string
+    variant: "default" | "secondary" | "destructive" | "outline"
+}
+
+const STATUS_OPTIONS: StatusOption[] = [
+    {
+        value: OrderStatus.PENDING,
+        label: "En attente",
+        variant: "secondary",
+    },
+    {
+        value: OrderStatus.CONFIRMED,
+        label: "Confirmée",
+        variant: "default",
+    },
+    {
+        value: OrderStatus.COMPLETED,
+        label: "Complétée",
+        variant: "outline",
+    },
+    {
+        value: OrderStatus.CANCELLED,
+        label: "Annulée",
+        variant: "destructive",
+    },
+]
 
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
     [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
     [OrderStatus.CONFIRMED]: [OrderStatus.COMPLETED, OrderStatus.CANCELLED, OrderStatus.PENDING],
     [OrderStatus.CANCELLED]: [OrderStatus.PENDING],
-    [OrderStatus.COMPLETED]: [OrderStatus.CONFIRMED],
+    [OrderStatus.COMPLETED]: [OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
 }
 
 export function CmdSupplierStatusDialog({
@@ -51,10 +74,10 @@ export function CmdSupplierStatusDialog({
     onStatusChange,
     isLoading = false,
 }: CmdSupplierStatusDialogProps) {
-    const [selectedStatus, setSelectedStatus] = useState<string>(order.stateOrder)
+    const [selectedStatus, setSelectedStatus] = useState<string>(order.stateOrder?.toUpperCase() || "")
     const [isUpdating, setIsUpdating] = useState(false)
 
-    const currentStatus = order.stateOrder as OrderStatus
+    const currentStatus = order.stateOrder?.toUpperCase() as OrderStatus
     const allowedStatuses = ALLOWED_TRANSITIONS[currentStatus] || []
 
     const currentStatusOption = STATUS_OPTIONS.find(s => s.value === currentStatus)
@@ -85,7 +108,7 @@ export function CmdSupplierStatusDialog({
         return allowedStatuses.includes(status)
     }
 
-    const hasChanges = selectedStatus !== currentStatus
+    const hasChanges = selectedStatus !== currentStatus && selectedStatus !== order.stateOrder
     const isSelectedStatusAllowed = isStatusAllowed(selectedStatus as OrderStatus)
 
     return (
@@ -133,7 +156,7 @@ export function CmdSupplierStatusDialog({
                                 {STATUS_OPTIONS.map((status) => {
                                     const isCurrent = status.value === currentStatus
                                     const isAllowed = isStatusAllowed(status.value)
-                                    const isDisabled = isCurrent || !isAllowed
+                                    const isDisabled = !isAllowed && !isCurrent
 
                                     return (
                                         <SelectItem
