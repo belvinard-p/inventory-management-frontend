@@ -19,17 +19,17 @@ export function useAdminCmdClientLogic() {
   const [hasFilter, setHasFilter] = useState(false)
   const [selectedOrders, setSelectedOrders] = useState<ClientOrderResponse[]>([])
   const [currentPage, setCurrentPage] = useState(0)
-  
+
   const pageSize = 10
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
-  
+
   const queryClient = useQueryClient()
 
   const { data: orders = [], isLoading, isError } = useQuery({
     queryKey: ["clientOrders", currentPage, pageSize],
     queryFn: async () => {
       const orders = await clientOrderService.getAllOrders()
-      
+
       const uniqueClientIds = [...new Set(orders.map((o: any) => o.clientId))]
       const clientNames = await Promise.all(
         uniqueClientIds.map(async (clientId: number) => {
@@ -37,9 +37,9 @@ export function useAdminCmdClientLogic() {
           return { id: clientId, name: client.name }
         })
       )
-      
+
       const clientNameMap = new Map(clientNames.map(c => [c.id, c.name]))
-      
+
       return orders.map((order: any) => ({
         ...order,
         clientName: clientNameMap.get(order.clientId)
@@ -50,7 +50,16 @@ export function useAdminCmdClientLogic() {
   })
 
   const ordersData = Array.isArray(orders) ? orders : []
-  const displayData = hasFilter ? filteredOrders : ordersData
+  const allFilteredData = hasFilter ? filteredOrders : ordersData
+
+  const totalPages = Math.ceil(allFilteredData.length / pageSize)
+  const displayData = allFilteredData.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
+
+  useEffect(() => {
+    if (currentPage >= totalPages && totalPages > 0) {
+      setCurrentPage(0)
+    }
+  }, [totalPages, currentPage])
 
   const createMutation = useMutation({
     mutationFn: (data: ClientOrderRequest) => clientOrderService.create(data),
@@ -120,7 +129,7 @@ export function useAdminCmdClientLogic() {
   })
 
   useEffect(() => setMounted(true), [])
-  
+
   useEffect(() => {
     if (ordersData.length > 0 && filteredOrders.length === 0 && !hasFilter) {
       setFilteredOrders(ordersData)
@@ -196,7 +205,7 @@ export function useAdminCmdClientLogic() {
     ordersData,
     displayData,
     stats,
-    orders: { totalPages: 1, totalElements: ordersData.length }, // Simplified pagination
+    orders: { totalPages, totalElements: allFilteredData.length },
     isLoading: isLoading || deleteMutation.isPending || updateStatusMutation.isPending || cancelMutation.isPending,
     isError,
     currentPage,
