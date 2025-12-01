@@ -22,6 +22,7 @@ export function AdminSupplier() {
         displayData,
         stats,
         suppliers,
+        currentPage,
         isLoading,
         isError,
         selectedSuppliers,
@@ -33,6 +34,7 @@ export function AdminSupplier() {
         handleEditSupplier,
         handleRowSelectionChange,
         clearSelection,
+        setCurrentPage,
         setEditingSupplier
     } = useAdminSupplierLogic()
 
@@ -50,6 +52,7 @@ export function AdminSupplier() {
             displayData={displayData}
             stats={stats}
             suppliers={suppliers}
+            currentPage={currentPage}
             selectedSuppliers={selectedSuppliers}
             isCreateModalOpen={isCreateModalOpen}
             editingSupplier={editingSupplier}
@@ -59,6 +62,7 @@ export function AdminSupplier() {
             handleEditSupplier={handleEditSupplier}
             handleRowSelectionChange={handleRowSelectionChange}
             clearSelection={clearSelection}
+            setCurrentPage={setCurrentPage}
             setEditingSupplier={setEditingSupplier}
         />
     )

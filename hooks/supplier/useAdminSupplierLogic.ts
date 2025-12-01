@@ -17,7 +17,9 @@ export function useAdminSupplierLogic() {
     const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([])
     const [hasFilter, setHasFilter] = useState(false)
     const [selectedSuppliers, setSelectedSuppliers] = useState<Supplier[]>([])
-
+    const [currentPage, setCurrentPage] = useState(0)
+    
+    const pageSize = 10
     const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_MANAGER' || currentUser?.roleName === 'ROLE_SALES'
 
     const { data: suppliers, isLoading, isError } = useQuery<Supplier[]>({
@@ -28,7 +30,12 @@ export function useAdminSupplierLogic() {
     })
 
     const suppliersData = Array.isArray(suppliers) ? suppliers : []
-    const displayData = hasFilter ? filteredSuppliers : suppliersData
+    
+    // Pagination côté client
+    const startIndex = currentPage * pageSize
+    const endIndex = startIndex + pageSize
+    const paginatedData = hasFilter ? filteredSuppliers.slice(startIndex, endIndex) : suppliersData.slice(startIndex, endIndex)
+    const displayData = paginatedData
 
     useCommonShortcuts({
         onNew: hasPermission ? () => setIsCreateModalOpen(true) : undefined,
@@ -71,6 +78,12 @@ export function useAdminSupplierLogic() {
         withoutPhone: suppliersData.filter(s => !s.phoneNumber)?.length || 0,
     }
 
+    const totalDataLength = hasFilter ? filteredSuppliers.length : suppliersData.length
+    const paginationInfo = {
+        totalPages: Math.ceil(totalDataLength / pageSize),
+        totalElements: totalDataLength
+    }
+
     return {
         currentUser,
         isAuthenticated,
@@ -80,7 +93,7 @@ export function useAdminSupplierLogic() {
         suppliersData,
         displayData,
         stats,
-        suppliers,
+        suppliers: paginationInfo,
         isLoading,
         isError,
         selectedSuppliers,
@@ -92,6 +105,8 @@ export function useAdminSupplierLogic() {
         handleEditSupplier,
         handleRowSelectionChange,
         clearSelection,
+        setCurrentPage,
+        currentPage,
         setEditingSupplier
     }
 }
