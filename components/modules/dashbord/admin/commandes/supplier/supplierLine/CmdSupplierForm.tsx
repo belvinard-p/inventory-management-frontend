@@ -35,10 +35,10 @@ const lineSchema = z.object({
 type LineFormValues = z.infer<typeof lineSchema>
 
 interface CmdSupplierFormProps {
-    open: boolean
-    onOpenChange: (open: boolean) => void
-    supplierOrderId?: number
-    line?: SupplierOrderLine | null
+    readonly open: boolean
+    readonly onOpenChange: (open: boolean) => void
+    readonly supplierOrderId?: number
+    readonly line?: SupplierOrderLine | null
 }
 
 export function CmdSupplierForm({
@@ -120,7 +120,6 @@ export function CmdSupplierForm({
     }, [open, line, isEditMode, form, supplierOrderId])
 
     const watchedValues = form.watch()
-    const isFormValid = form.formState.isValid
 
     // En mode édition, on vérifie seulement la quantité
     // En mode création, on vérifie tous les champs requis

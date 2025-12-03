@@ -1,10 +1,20 @@
 "use client"
 
+import dynamic from "next/dynamic"
+import { useSearchParams } from "next/navigation"
+
+const AdminAllCmdSupplierLinesPage = dynamic(
+  () => import('@/components/modules/dashbord/admin/commandes/supplier/supplierLine').then(mod => ({ default: mod.AdminAllCmdSupplierLinesPage })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+)
+
 export default function LineCmdFournisseurPage() {
-  return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Lignes Commandes Fournisseurs</h1>
-      <p className="text-muted-foreground">Page en cours de développement...</p>
-    </div>
-  )
+  return <AdminAllCmdSupplierLinesPage />
 }
