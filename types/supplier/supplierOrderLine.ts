@@ -7,6 +7,7 @@ export type SupplierOrderLine = {
     unitPrice?: number;
     totalPrice?: number;
     supplierOrderId: number;
+    supplierId: number;
     articleId: number;
     articleDesignation: string;
     articleCode: string;

@@ -29,18 +29,18 @@ export function useAdminAllCmdSupplierLinesLogic() {
     queryKey: [OrderSupplierLinesCacheKeys.OrderSupplierLines],
     queryFn: async () => {
       const lines = await orderSupplierLineService.getAllLines()
-      const orders = await import("@/service/supplier/supplierOrderService").then(m => m.supplierOrderService.getAllOrders())
+      const suppliers = await import("@/service/supplier/supplierService").then(m => m.supplierService.getAll())
 
       const linesWithDetails = await Promise.all(
         lines.map(async (line: SupplierOrderLine) => {
           const article = await articleService.getById(line.articleId)
-          const order = orders.find(o => o.id === line.supplierOrderId)
-          
+          const supplier = suppliers.find(s => s.id === line.supplierId)
+
           return {
             ...line,
             articleDesignation: article.designation,
             articleCode: article.codeArticle,
-            supplierName: order?.supplierName || "Fournisseur non trouvé",
+            supplierName: supplier?.name || "Fournisseur non trouvé",
           }
         })
       )
