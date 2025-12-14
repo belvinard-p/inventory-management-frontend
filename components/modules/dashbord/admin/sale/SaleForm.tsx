@@ -27,8 +27,8 @@ const saleSchema = z.object({
   comments: z.string().max(50, "Les commentaires ne peuvent pas dépasser 50 caractères").optional().or(z.literal("")),
   saleDate: z.string().min(1, "La date de vente est obligatoire"),
   status: z.nativeEnum(SaleStatus, { message: "Le statut est obligatoire" }),
-  clientId: z.number({ message: "Le client est obligatoire" }).min(1, "Veuillez sélectionner un client"),
-  clientOrderId: z.number({ message: "La commande client est obligatoire" }).min(1, "Veuillez sélectionner une commande"),
+  clientId: z.coerce.number({ message: "Le client est obligatoire" }).min(1, "Veuillez sélectionner un client"),
+  clientOrderId: z.coerce.number({ message: "La commande client est obligatoire" }).min(1, "Veuillez sélectionner une commande"),
 })
 
 interface SaleFormProps {
@@ -46,16 +46,16 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
   const updateMutation = useUpdateSale()
 
   // Récupérer les clients
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
     queryKey: ['clients-for-sales'],
     queryFn: () => apiClient.get('/clients/all?pageSize=100'),
     select: (data: any) => data.content || []
   })
 
   // Récupérer les commandes du client sélectionné
-  const { data: clientOrders = [] } = useQuery({
+  const { data: clientOrders = [], isLoading: isLoadingOrders } = useQuery({
     queryKey: ['client-orders', selectedClientId],
-    queryFn: () => apiClient.get(`/client-orders/client/${selectedClientId}`),
+    queryFn: () => apiClient.get(`/orders/client/${selectedClientId}`),
     enabled: !!selectedClientId,
     select: (data: any) => Array.isArray(data) ? data : []
   })
@@ -67,8 +67,8 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
       comments: "",
       saleDate: new Date().toISOString().split('T')[0],
       status: SaleStatus.DRAFT,
-      clientId: undefined as any,
-      clientOrderId: undefined as any,
+      clientId: 0,
+      clientOrderId: 0,
     },
   })
 
@@ -88,8 +88,8 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
           comments: "",
           saleDate: new Date().toISOString().split('T')[0],
           status: SaleStatus.DRAFT,
-          clientId: undefined as any,
-          clientOrderId: undefined as any,
+          clientId: 0,
+          clientOrderId: 0,
         })
         setSelectedClientId(null)
       }
@@ -200,9 +200,9 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
                       const clientId = parseInt(value)
                       field.onChange(clientId)
                       setSelectedClientId(clientId)
-                      form.setValue('clientOrderId', undefined as any) // Reset order selection
+                      form.setValue('clientOrderId', 0) // Reset order selection
                     }}
-                    value={field.value ? field.value.toString() : undefined}
+                    value={field.value && field.value > 0 ? field.value.toString() : ""}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -230,7 +230,7 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
                   <FormLabel>Commande client</FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(parseInt(value))}
-                    value={field.value ? field.value.toString() : undefined}
+                    value={field.value && field.value > 0 ? field.value.toString() : ""}
                     disabled={!selectedClientId}
                   >
                     <FormControl>
