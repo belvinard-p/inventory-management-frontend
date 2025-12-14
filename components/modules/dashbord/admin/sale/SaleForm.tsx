@@ -23,12 +23,13 @@ import { Sale, SaleRequest, SaleStatus } from "@/types/sale"
 import { useQuery } from "@tanstack/react-query"
 import { apiClient } from "@/lib/apiClient"
 
+// Zod schema for sale form validation
 const saleSchema = z.object({
-  comments: z.string().max(50, "Les commentaires ne peuvent pas dépasser 50 caractères").optional().or(z.literal("")),
-  saleDate: z.string().min(1, "La date de vente est obligatoire"),
-  status: z.nativeEnum(SaleStatus, { message: "Le statut est obligatoire" }),
-  clientId: z.coerce.number({ message: "Le client est obligatoire" }).min(1, "Veuillez sélectionner un client"),
-  clientOrderId: z.coerce.number({ message: "La commande client est obligatoire" }).min(1, "Veuillez sélectionner une commande"),
+  comments: z.string().optional(),
+  saleDate: z.string().min(1, "La date de vente est requise"),
+  status: z.nativeEnum(SaleStatus),
+  clientId: z.number().min(1, "Le client est requis"),
+  clientOrderId: z.number().min(1, "La commande client est requise"),
 })
 
 interface SaleFormProps {
