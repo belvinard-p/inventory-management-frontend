@@ -28,8 +28,8 @@ const saleSchema = z.object({
   comments: z.string().optional(),
   saleDate: z.string().min(1, "La date de vente est requise"),
   status: z.nativeEnum(SaleStatus),
-  clientId: z.number().min(1, "Le client est requis"),
-  clientOrderId: z.number().min(1, "La commande client est requise"),
+  clientId: z.number().min(1, "Le client est requis").optional(),
+  clientOrderId: z.number().min(1, "La commande client est requise").optional(),
 })
 
 interface SaleFormProps {
@@ -68,8 +68,8 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
       comments: "",
       saleDate: new Date().toISOString().split('T')[0],
       status: SaleStatus.DRAFT,
-      clientId: 0,
-      clientOrderId: 0,
+      clientId: undefined,
+      clientOrderId: undefined,
     },
   })
 
@@ -89,8 +89,8 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
           comments: "",
           saleDate: new Date().toISOString().split('T')[0],
           status: SaleStatus.DRAFT,
-          clientId: 0,
-          clientOrderId: 0,
+          clientId: undefined,
+          clientOrderId: undefined,
         })
         setSelectedClientId(null)
       }
@@ -99,11 +99,15 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
 
   const watchedValues = form.watch()
   const isFormValid = form.formState.isValid
-  const hasRequiredFields = watchedValues.clientId > 0 && watchedValues.clientOrderId > 0 && watchedValues.saleDate
+  const hasRequiredFields = !!watchedValues.clientId && watchedValues.clientId > 0 && !!watchedValues.clientOrderId && watchedValues.clientOrderId > 0 && !!watchedValues.saleDate
 
   const isSubmitDisabled = !isFormValid || !hasRequiredFields || createMutation.isPending || updateMutation.isPending
 
   function onSubmit(data: z.infer<typeof saleSchema>) {
+    if (!data.clientId || !data.clientOrderId) {
+      return
+    }
+
     const requestData: SaleRequest = {
       comments: data.comments || undefined,
       saleDate: data.saleDate,
@@ -201,7 +205,7 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
                       const clientId = parseInt(value)
                       field.onChange(clientId)
                       setSelectedClientId(clientId)
-                      form.setValue('clientOrderId', 0) // Reset order selection
+                      form.setValue('clientOrderId', undefined) // Reset order selection
                     }}
                     value={field.value && field.value > 0 ? field.value.toString() : ""}
                   >
