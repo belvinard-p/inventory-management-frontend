@@ -41,7 +41,7 @@ interface SaleFormProps {
 export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleFormProps) {
   const isEditMode = mode === 'edit' && sale
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null)
-  
+
   const createMutation = useCreateSale()
   const updateMutation = useUpdateSale()
 
@@ -59,7 +59,7 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
     enabled: !!selectedClientId,
     select: (data: any) => Array.isArray(data) ? data : []
   })
-  
+
   const form = useForm<z.infer<typeof saleSchema>>({
     resolver: zodResolver(saleSchema),
     mode: "onChange",
@@ -67,8 +67,8 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
       comments: "",
       saleDate: new Date().toISOString().split('T')[0],
       status: SaleStatus.DRAFT,
-      clientId: 0,
-      clientOrderId: 0,
+      clientId: undefined as any,
+      clientOrderId: undefined as any,
     },
   })
 
@@ -79,17 +79,17 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
           comments: sale.comments || "",
           saleDate: sale.saleDate.split('T')[0],
           status: sale.status,
-          clientId: 0, // Will be set from clientName lookup
+          clientId: undefined as any, // Will be set from clientName lookup
           clientOrderId: sale.clientOrderId,
         })
-        setSelectedClientId(0) // Will be set from clientName lookup
+        setSelectedClientId(null) // Will be set from clientName lookup
       } else {
         form.reset({
           comments: "",
           saleDate: new Date().toISOString().split('T')[0],
           status: SaleStatus.DRAFT,
-          clientId: 0,
-          clientOrderId: 0,
+          clientId: undefined as any,
+          clientOrderId: undefined as any,
         })
         setSelectedClientId(null)
       }
@@ -99,7 +99,7 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
   const watchedValues = form.watch()
   const isFormValid = form.formState.isValid
   const hasRequiredFields = watchedValues.clientId > 0 && watchedValues.clientOrderId > 0 && watchedValues.saleDate
-  
+
   const isSubmitDisabled = !isFormValid || !hasRequiredFields || createMutation.isPending || updateMutation.isPending
 
   function onSubmit(data: z.infer<typeof saleSchema>) {
@@ -110,7 +110,7 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
       clientId: data.clientId,
       clientOrderId: data.clientOrderId,
     }
-    
+
     if (isEditMode) {
       updateMutation.mutate({ id: sale.id, data: requestData }, {
         onSuccess: () => {
@@ -137,13 +137,13 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
             {isEditMode ? "Modifier la vente" : 'Créer une vente'}
           </DialogTitle>
           <DialogDescription>
-            {isEditMode 
-              ? "Modifiez les informations de la vente." 
+            {isEditMode
+              ? "Modifiez les informations de la vente."
               : 'Ajoutez une nouvelle vente au système.'
             }
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -195,14 +195,14 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Client</FormLabel>
-                  <Select 
+                  <Select
                     onValueChange={(value) => {
                       const clientId = parseInt(value)
                       field.onChange(clientId)
                       setSelectedClientId(clientId)
-                      form.setValue('clientOrderId', 0) // Reset order selection
-                    }} 
-                    value={field.value?.toString()}
+                      form.setValue('clientOrderId', undefined as any) // Reset order selection
+                    }}
+                    value={field.value ? field.value.toString() : undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -228,9 +228,9 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Commande client</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(parseInt(value))} 
-                    value={field.value?.toString()}
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={field.value ? field.value.toString() : undefined}
                     disabled={!selectedClientId}
                   >
                     <FormControl>
@@ -268,12 +268,12 @@ export function SaleForm({ open, onOpenChange, sale, mode = 'create' }: SaleForm
                 </FormItem>
               )}
             />
-            
+
             <div className="flex justify-end gap-3 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)} 
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
                 disabled={createMutation.isPending || updateMutation.isPending}
               >
                 Annuler
