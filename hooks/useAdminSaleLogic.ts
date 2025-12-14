@@ -5,15 +5,16 @@ import { useQuery } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/useAuth"
 import { useCommonShortcuts } from "@/hooks/useKeyboardShortcuts"
 import { saleService } from "@/service/saleService"
-import type { Sale } from "@/types/sale"
+import type { Sale, SaleRequest, SaleStatus } from "@/types/sale"
 import { toast } from "sonner"
-
-const SALES_CACHE_KEY = 'sales'
+import { SalesCacheKeys } from "@/lib/const"
+import { useCreateSale, useUpdateSale, useDeleteSale, useUpdateSaleStatus, useCancelSale } from "@/hooks/useSales"
 
 export function useAdminSaleLogic() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading, accessToken } = useAuth()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingSale, setEditingSale] = useState<Sale | null>(null)
+  const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
   const [mounted, setMounted] = useState(false)
   const [filteredSales, setFilteredSales] = useState<Sale[]>([])
   const [hasFilter, setHasFilter] = useState(false)
@@ -24,7 +25,7 @@ export function useAdminSaleLogic() {
   const hasPermission = currentUser?.roleName === 'ROLE_ADMIN' || currentUser?.roleName === 'ROLE_SALES'
   
   const { data: sales = [], isLoading, isError } = useQuery({
-    queryKey: [SALES_CACHE_KEY, currentPage, pageSize],
+    queryKey: [SalesCacheKeys.Sales, currentPage, pageSize],
     queryFn: () => saleService.getAll(),
     staleTime: 5 * 60 * 1000,
     enabled: hasPermission && !!accessToken
@@ -66,6 +67,88 @@ export function useAdminSaleLogic() {
 
   const clearSelection = () => setSelectedSales([])
 
+  // Mutations
+  const createMutation = useCreateSale()
+  const updateMutation = useUpdateSale()
+  const deleteMutation = useDeleteSale()
+  const updateStatusMutation = useUpdateSaleStatus()
+  const cancelMutation = useCancelSale()
+
+  // Handlers
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteMutation.mutateAsync(id)
+      toast.success("Vente supprimée avec succès")
+    } catch (error) {
+      toast.error("Erreur lors de la suppression")
+    }
+  }
+
+  const handleUpdateStatus = async (id: number, status: SaleStatus) => {
+    try {
+      await updateStatusMutation.mutateAsync({ id, status })
+      toast.success("Statut mis à jour avec succès")
+    } catch (error) {
+      toast.error("Erreur lors de la mise à jour du statut")
+    }
+  }
+
+  const handleCancel = async (id: number) => {
+    try {
+      await cancelMutation.mutateAsync(id)
+      toast.success("Vente annulée avec succès")
+    } catch (error) {
+      toast.error("Erreur lors de l'annulation")
+    }
+  }
+
+  const handleBulkDelete = async (ids: number[]) => {
+    try {
+      await Promise.all(ids.map(id => deleteMutation.mutateAsync(id)))
+      toast.success(`${ids.length} vente(s) supprimée(s) avec succès`)
+    } catch (error) {
+      toast.error("Erreur lors de la suppression en lot")
+    }
+  }
+
+  const handleBulkUpdateStatus = async (ids: number[], status: SaleStatus) => {
+    try {
+      await Promise.all(ids.map(id => updateStatusMutation.mutateAsync({ id, status })))
+      toast.success(`${ids.length} vente(s) mise(s) à jour avec succès`)
+    } catch (error) {
+      toast.error("Erreur lors de la mise à jour en lot")
+    }
+  }
+
+  const handleBulkCancel = async (ids: number[]) => {
+    try {
+      await Promise.all(ids.map(id => cancelMutation.mutateAsync(id)))
+      toast.success(`${ids.length} vente(s) annulée(s) avec succès`)
+    } catch (error) {
+      toast.error("Erreur lors de l'annulation en lot")
+    }
+  }
+
+  const handleFormSubmit = async (data: SaleRequest) => {
+    try {
+      if (editingSale) {
+        await updateMutation.mutateAsync({ id: editingSale.id, data })
+        toast.success("Vente modifiée avec succès")
+        setEditingSale(null)
+      } else {
+        await createMutation.mutateAsync(data)
+        toast.success("Vente créée avec succès")
+      }
+      setIsCreateModalOpen(false)
+    } catch (error) {
+      toast.error("Erreur lors de l'enregistrement")
+    }
+  }
+
+  const handleSaleUpdate = () => {
+    // Trigger refetch or update logic
+  }
+
   const stats = {
     total: salesData.length,
     draft: salesData.filter(s => s.status === 'DRAFT').length,
@@ -91,6 +174,7 @@ export function useAdminSaleLogic() {
     selectedSales,
     isCreateModalOpen,
     editingSale,
+    selectedSale,
     setIsCreateModalOpen,
     setFilteredSales,
     setHasFilter,
@@ -98,6 +182,16 @@ export function useAdminSaleLogic() {
     handleRowSelectionChange,
     clearSelection,
     setCurrentPage,
-    setEditingSale
+    setEditingSale,
+    setSelectedSale,
+    handleDelete,
+    handleUpdateStatus,
+    handleCancel,
+    handleBulkDelete,
+    handleBulkUpdateStatus,
+    handleBulkCancel,
+    handleFormSubmit,
+    handleSaleUpdate,
+    isFormLoading: createMutation.isPending || updateMutation.isPending
   }
 }

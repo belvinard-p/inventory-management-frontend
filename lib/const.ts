@@ -47,3 +47,7 @@ export const SuppliersCacheKeys = Object.freeze({
     Supplier: 'supplier'
 } as const)
 
+export const SalesCacheKeys = Object.freeze({
+    Sales: 'sales',
+    Sale: 'sale'
+} as const)

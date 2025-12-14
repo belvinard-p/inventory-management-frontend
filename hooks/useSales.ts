@@ -1,12 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { saleService } from '@/service/saleService'
 import { Sale, SaleRequest, SaleStatus } from '@/types/sale'
-
-const SALES_CACHE_KEY = 'sales'
+import { SalesCacheKeys } from '@/lib/const'
 
 export const useSales = () => {
   return useQuery({
-    queryKey: [SALES_CACHE_KEY],
+    queryKey: [SalesCacheKeys.Sales],
     queryFn: () => saleService.getAll(),
     staleTime: 5 * 60 * 1000,
     enabled: typeof window !== 'undefined',
@@ -17,7 +16,7 @@ export const useSale = (id?: number) => {
   const queryClient = useQueryClient()
   
   const saleQuery = useQuery({
-    queryKey: [SALES_CACHE_KEY, id],
+    queryKey: [SalesCacheKeys.Sale, id],
     queryFn: () => saleService.getById(id!),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
@@ -29,8 +28,8 @@ export const useSale = (id?: number) => {
       return saleService.update(id, data)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SALES_CACHE_KEY] })
-      queryClient.invalidateQueries({ queryKey: [SALES_CACHE_KEY, id] })
+      queryClient.invalidateQueries({ queryKey: [SalesCacheKeys.Sales] })
+      queryClient.invalidateQueries({ queryKey: [SalesCacheKeys.Sale, id] })
     }
   })
   
@@ -40,7 +39,7 @@ export const useSale = (id?: number) => {
       return saleService.delete(id)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SALES_CACHE_KEY] })
+      queryClient.invalidateQueries({ queryKey: [SalesCacheKeys.Sales] })
     }
   })
   
@@ -68,7 +67,7 @@ export const useCreateSale = () => {
   return useMutation({
     mutationFn: (data: SaleRequest) => saleService.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SALES_CACHE_KEY] })
+      queryClient.invalidateQueries({ queryKey: [SalesCacheKeys.Sales] })
     }
   })
 }
@@ -80,7 +79,7 @@ export const useUpdateSale = () => {
     mutationFn: ({ id, data }: { id: number; data: SaleRequest }) => 
       saleService.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SALES_CACHE_KEY] })
+      queryClient.invalidateQueries({ queryKey: [SalesCacheKeys.Sales] })
     }
   })
 }
@@ -91,7 +90,7 @@ export const useDeleteSale = () => {
   return useMutation({
     mutationFn: (id: number) => saleService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SALES_CACHE_KEY] })
+      queryClient.invalidateQueries({ queryKey: [SalesCacheKeys.Sales] })
     }
   })
 }
@@ -103,7 +102,7 @@ export const useUpdateSaleStatus = () => {
     mutationFn: ({ id, status }: { id: number; status: SaleStatus }) => 
       saleService.updateStatus(id, status),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SALES_CACHE_KEY] })
+      queryClient.invalidateQueries({ queryKey: [SalesCacheKeys.Sales] })
     }
   })
 }
@@ -114,7 +113,7 @@ export const useCancelSale = () => {
   return useMutation({
     mutationFn: (id: number) => saleService.cancel(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SALES_CACHE_KEY] })
+      queryClient.invalidateQueries({ queryKey: [SalesCacheKeys.Sales] })
     }
   })
 }
@@ -125,7 +124,7 @@ export const useFinalizeSale = () => {
   return useMutation({
     mutationFn: (id: number) => saleService.finalize(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SALES_CACHE_KEY] })
+      queryClient.invalidateQueries({ queryKey: [SalesCacheKeys.Sales] })
     }
   })
 }
@@ -136,7 +135,7 @@ export const useGenerateSaleLines = () => {
   return useMutation({
     mutationFn: (id: number) => saleService.generateSaleLines(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SALES_CACHE_KEY] })
+      queryClient.invalidateQueries({ queryKey: [SalesCacheKeys.Sales] })
     }
   })
 }

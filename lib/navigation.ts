@@ -101,7 +101,7 @@ export const navigationConfig: NavigationItem[] = [
   },
   {
     title: "Ventes",
-    href: "/dashboard/sales",
+    href: "/dashboard/ventes",
     icon: Receipt,
     roles: ["ROLE_ADMIN", "ROLE_MANAGER", "ROLE_SALES"],
   },
@@ -130,7 +130,7 @@ export function getNavigationForRole(userRoles: string[]): NavigationItem[] {
   const roleHierarchy = ['ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_SALES', 'ROLE_USER']
   const primaryRole = roleHierarchy.find(role => userRoles.includes(role))
   const roleSlug = primaryRole?.replace('ROLE_', '').toLowerCase()
-  
+
   return navigationConfig
     .filter((item) => item.roles.some(role => userRoles.includes(role)))
     .map((item) => {
@@ -141,7 +141,7 @@ export function getNavigationForRole(userRoles: string[]): NavigationItem[] {
           ...subItem,
           href: `/dashboard/${roleSlug}${subItem.href.replace('/dashboard', '')}`
         }))
-      
+
       return {
         ...item,
         href: item.href ? (item.href === '/dashboard' ? `/dashboard/${roleSlug}` : `/dashboard/${roleSlug}${item.href.replace('/dashboard', '')}`) : undefined,
